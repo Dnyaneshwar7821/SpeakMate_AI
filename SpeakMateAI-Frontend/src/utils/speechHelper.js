@@ -4,24 +4,31 @@ import { getPrimaryVisemeForWord } from "./PhoneticVisemeEngine";
 import { getAvatarById } from "../config/AvatarCatalog";
 
 export const VOICE_PROFILES = [
-  { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male', previewText: 'Hello! I am your American English coach. Great to meet you!' },
-  { code: 'US Female', accent: 'American', locale: 'en-US', gender: 'female', label: 'American - Female', previewText: "Hello! I am your American English coach. Let us practice speaking together!" },
-  { code: 'UK Male', accent: 'British', locale: 'en-GB', gender: 'male', label: 'British - Male', previewText: 'Hello! I am your British English tutor. Shall we practice speaking together?' },
-  { code: 'UK Female', accent: 'British', locale: 'en-GB', gender: 'female', label: 'British - Female', previewText: 'Hello! I am your British English tutor. It is lovely to practice English with you.' },
-  { code: 'AU Male', accent: 'Australian', locale: 'en-AU', gender: 'male', label: 'Australian - Male', previewText: "Hello! I am your Australian English tutor. Ready to practice speaking together mate?" },
-  { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female', previewText: "Hello! I am your Australian English tutor. Let us have a wonderful speaking session today!" },
-  { code: 'IN Male', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Indian - Male', previewText: 'Namaste! I am your Indian English tutor. Let us practice English conversation together.' },
-  { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female', previewText: 'Namaste! I am your Indian English tutor. I am delighted to help you master English speaking.' },
-  { code: 'Haru', accent: 'Anime Coach', locale: 'en-US', gender: 'female', label: 'Haru (Anime Coach)', previewText: "Hello! I'm Haru, your AI speaking coach. Let's practice speaking English together!" },
-  { code: 'Shizuku', accent: 'Academic Mentor', locale: 'en-US', gender: 'female', label: 'Shizuku (Academic Mentor)', previewText: 'Hello, I am Shizuku. Together we will master English grammar and conversational fluency step by step.' },
-  { code: 'Robo-Paws', accent: 'Cute Mascot', locale: 'en-US', gender: 'cartoon', label: 'Robo-Paws (Cute Robot Cat)', previewText: 'Beep-boop! Hello superstar! I am Robo-Paws, your friendly robot cat English buddy!' },
-  { code: 'Motu', accent: 'Jolly Friend', locale: 'en-IN', gender: 'cartoon', label: 'Motu (Cartoon Friend)', previewText: 'Arey wah, dost! I am Motu from Furfuri Nagar! Let us practice English with lots of fun and laughter!' },
-  { code: 'Sparky', accent: 'Superhero Kid', locale: 'en-US', gender: 'kid', label: 'Sparky (Superhero Kid)', previewText: 'Power up! I am Sparky, your superhero English training partner! Let us conquer our daily goal!' },
-  { code: 'Koharu', accent: 'Schoolgirl', locale: 'en-US', gender: 'female', label: 'Koharu (Cartoon Schoolgirl)', previewText: 'Yay! Hello! I am Koharu! Let us practice speaking English happily together today!' },
-  { code: 'Haruto', accent: 'Explorer Kid', locale: 'en-US', gender: 'kid', label: 'Haruto (Cartoon Explorer)', previewText: 'Hey there explorer! I am Haruto! Grab your backpack and let us practice cool English words!' },
-  { code: 'Mao', accent: 'Chibi Junior', locale: 'en-US', gender: 'female', label: 'Mao (Cute Chibi)', previewText: 'Hi! I am Mao! Let us learn fun new English words and speaking drills together!' },
-  { code: 'Puppy', accent: 'Playful Pup', locale: 'en-US', gender: 'cartoon', label: 'Puppy (Playful Pup)', previewText: 'Woof! Hello best friend! I am your puppy pal! Let us play and speak cheerful English every day!' },
-  { code: 'Wanko', accent: 'Playful Pup', locale: 'en-US', gender: 'cartoon', label: 'Puppy (Playful Pup)', previewText: 'Woof! Hello best friend! I am your puppy pal! Let us play and speak cheerful English every day!' },
+  { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male', previewText: 'Hello, I am your American Male English tutor.' },
+  { code: 'US Female', accent: 'American', locale: 'en-US', gender: 'female', label: 'American - Female', previewText: 'Hello, I am your American Female English tutor.' },
+  { code: 'UK Male', accent: 'British', locale: 'en-GB', gender: 'male', label: 'British - Male', previewText: 'Hello, I am your British Male English tutor.' },
+  { code: 'UK Female', accent: 'British', locale: 'en-GB', gender: 'female', label: 'British - Female', previewText: 'Hello, I am your British Female English tutor.' },
+  { code: 'AU Male', accent: 'Australian', locale: 'en-AU', gender: 'male', label: 'Australian - Male', previewText: 'Hello, I am your Australian Male English tutor.' },
+  { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female', previewText: 'Hello, I am your Australian Female English tutor.' },
+  { code: 'IN Male', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Indian - Male', previewText: 'Hello, I am your Indian Male English tutor.' },
+  { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female', previewText: 'Hello, I am your Indian Female English tutor.' },
+  { code: 'SpongeBob', accent: 'Cartoon Boy', locale: 'en-US', gender: 'male', label: 'SpongeBob (Youthful Boy)', previewText: 'Hey! It is really nice to meet you! Let us practice English together!' },
+  { code: 'Shizuka', accent: 'Academic Mentor', locale: 'en-US', gender: 'female', label: 'Shizuka (Academic Mentor)', previewText: "Hii, I am Shizuka, your AI speaking coach. Let's practice English together!" },
+  { code: 'Shizuku', accent: 'Academic Mentor', locale: 'en-US', gender: 'female', label: 'Shizuka (Academic Mentor)', previewText: "Hii, I am Shizuka, your AI speaking coach. Let's practice English together!" },
+  { code: 'Doraemon', accent: 'Robotic Male', locale: 'en-US', gender: 'male', label: 'Doraemon (Robotic Male Voice)', previewText: "Hii, I am Dohraymon, your AI speaking coach. Let's practice English together!" },
+  { code: 'Robo-Paws', accent: 'Robotic Male', locale: 'en-US', gender: 'male', label: 'Doraemon (Robotic Male Voice)', previewText: "Hii, I am Dohraymon, your AI speaking coach. Let's practice English together!" },
+  { code: 'Motu', accent: 'Cartoon Kids', locale: 'en-IN', gender: 'male', label: 'Motu (Cartoon Friend)', previewText: 'Arey wah, dost! I am Motu from Furfuri Nagar! Let us practice English with lots of fun and laughter!' },
+  { code: 'Sparky', accent: 'Indian Hero', locale: 'en-IN', gender: 'male', label: 'Chhota Bheem (Young Hero)', previewText: "Hello! I am Chhota Bheem from Dholakpur! Let's practice English together!" },
+  { code: 'Mao', accent: 'American Hero', locale: 'en-US', gender: 'male', label: 'Ben 10 (Alien Hero)', previewText: "Hello! I'm Ben 10! It's hero time! Let's practice English together!" },
+  { code: 'BenTen', accent: 'American Hero', locale: 'en-US', gender: 'male', label: 'Ben 10 (Alien Hero)', previewText: "Hello! I'm Ben 10! It's hero time! Let's practice English together!" },
+  { code: 'Koharu', accent: 'Cartoon Youth Hero', locale: 'en-US', gender: 'male', label: 'Ninja Hattori (Youth Hero Voice)', previewText: 'Hello! My name is Ninja Hattori! Let us practice English together!' },
+  { code: 'NinjaHattori', accent: 'Cartoon Youth Hero', locale: 'en-US', gender: 'male', label: 'Ninja Hattori (Youth Hero Voice)', previewText: 'Hello! My name is Ninja Hattori! Let us practice English together!' },
+  { code: 'Haruto', accent: 'Classic Cartoon Cat', locale: 'en-US', gender: 'male', label: 'Tom (Classic Cartoon Cat)', previewText: "Hello! I'm Tom! Let's practice English together with some fun and clever conversations!" },
+  { code: 'Puppy', accent: 'Cartoon Dog', locale: 'en-US', gender: 'male', label: 'Scooby-Doo (Playful Mystery Dog)', previewText: 'Ruh-roh! Hello! I am Scooby-Doo! Let us practice English together!' },
+  { code: 'Wanko', accent: 'Cartoon Dog', locale: 'en-US', gender: 'male', label: 'Scooby-Doo (Playful Mystery Dog)', previewText: 'Ruh-roh! Hello! I am Scooby-Doo! Let us practice English together!' },
+  { code: 'ScoobyDoo', accent: 'Cartoon Dog', locale: 'en-US', gender: 'male', label: 'Scooby-Doo (Playful Mystery Dog)', previewText: 'Ruh-roh! Hello! I am Scooby-Doo! Let us practice English together!' },
+  { code: 'Teacher', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Teacher (Articulate & Warm)', previewText: 'Hello! Welcome to SpeakMate. Today, we are going to practice speaking clearly and confidently.' },
+  { code: 'MaleTeacher', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Male Teacher (Articulate & Calm)', previewText: 'Hello! Welcome to SpeakMate. Today, we are going to practice speaking clearly and confidently in English.' },
   { code: 'Default', accent: 'System Default', locale: 'en-US', gender: 'female', label: 'System Default', previewText: 'Hello, I am your System Default English tutor.' },
 ];
 
@@ -95,45 +102,1550 @@ export const VOICE_PERSONAS = [
   },
 ];
 
-export const isMaleVoiceCode = (code) => {
-  const c = String(code || '').toLowerCase().trim();
-  return c.includes('male') && !c.includes('female');
+export const isKnownMaleVoiceName = (voiceName = "") => {
+  const name = String(voiceName).toLowerCase();
+  const MALE_NAMES = [
+    "david", "guy", "mark", "alex", "tom", "chris", "george", "james",
+    "ryan", "oliver", "daniel", "william", "russell", "prabhat", "rishi",
+    "ravi", "male", "fred", "bruce", "ralph", "junior", "albert", "steffan",
+    "sam", "paul", "john", "richard", "charles", "edward", "brian", "kevin",
+    "eric", "jason", "justin"
+  ];
+  return MALE_NAMES.some((k) => name.includes(k));
 };
 
-export const isFemaleVoiceCode = (code) => {
-  const c = String(code || '').toLowerCase().trim();
-  return c.includes('female') || c === 'haru' || c === 'shizuku';
+export const isKnownFemaleVoiceName = (voiceName = "") => {
+  const name = String(voiceName).toLowerCase();
+  const FEMALE_NAMES = [
+    "jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia",
+    "hazel", "fiona", "kate", "serena", "natasha", "catherine", "libby",
+    "mia", "annette", "neerja", "veena", "heera", "female", "woman", "girl",
+    "aria", "ana", "kalpana", "ananya"
+  ];
+  return FEMALE_NAMES.some((k) => name.includes(k));
 };
 
-export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
-  const currentAvatarModel = (localStorage.getItem("speakmate_avatar_model") || "haru").toLowerCase();
-  const avatar = getAvatarById(currentAvatarModel);
-  let aiVoice = overrideVoiceCode || localStorage.getItem("speakmate_ai_voice") || "Default";
-  const onboardingVoice = localStorage.getItem("speakmate_onboarding_voice") || localStorage.getItem("speakmate_voice_persona") || "Friendly";
-  const accent = localStorage.getItem("speakmate_voice_accent") || "US";
-  const selectedVoiceName = localStorage.getItem("speakmate_voice_name") || "";
-  const customPitch = localStorage.getItem("speakmate_voice_pitch");
-  const customRate = localStorage.getItem("speakmate_speech_rate") || "1.0";
+export const selectSpongeBobBoyVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
 
-  // Automatic Avatar-Intrinsic Voice Resolution:
-  // Cute cartoon & kid avatars have intrinsic voice personalities calibrated to their character design.
-  // Adult human coaches (Haru & Chitose) default to their signature coach voices or respect user settings.
-  if (!overrideVoiceCode) {
-    if (avatar.category === "cartoon") {
-      aiVoice = avatar.voiceProfile;
-    } else if (avatar.id === "shizuku") {
-      aiVoice = "Shizuku";
-    } else if (avatar.id === "haru") {
-      // If no valid voice or a male voice was stored, fallback to Haru
-      if (aiVoice === "Default" || !aiVoice || isMaleVoiceCode(aiVoice)) {
-        aiVoice = "Haru";
+  // Score candidate voices deterministically according to SB4 criteria:
+  // 1. English language
+  // 2. Male voice
+  // 3. Naturally youthful, gentle, warm tone (Guy, Ryan, Christopher, Steffan, Google UK Male, Alex, Daniel)
+  // 4. Clear English pronunciation
+  // 5. Avoid deep, overly mature, authoritative adult narrator voices (lower priority for David, etc.)
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    // Strict rejection of female voices
+    if (isKnownFemaleVoiceName(name)) {
+      score -= 1000;
+      return { voice: v, score };
+    }
+
+    // Must be English candidate
+    if (!lang.startsWith("en")) {
+      score -= 500;
+      return { voice: v, score };
+    }
+
+    // Base English score
+    score += 100;
+
+    // Locale preference
+    if (lang === "en-us") {
+      score += 40;
+    } else if (lang === "en-gb" || lang === "en-au" || lang === "en-ca") {
+      score += 25;
+    }
+
+    // ── Tier 1: Naturally Youthful & Conversational Male Voices ──
+    if (name.includes("guy")) {
+      score += 160; // Microsoft Guy (Natural / Online / Desktop) - Top youthful, friendly boy candidate
+    } else if (name.includes("ryan")) {
+      score += 150; // Microsoft Ryan - Clear, bright youthful British male
+    } else if (name.includes("christopher") || name.includes("steffan") || name.includes("eric")) {
+      score += 140; // High-clarity youthful male voices
+    } else if (name.includes("google uk english male")) {
+      score += 130; // Crisp, bright youthful tone
+    } else if (name.includes("alex")) {
+      score += 120; // Apple Alex - Natural conversational clarity
+    } else if (name.includes("daniel")) {
+      score += 110; // Daniel - Clear British young male
+    } else if (name.includes("mark")) {
+      score += 85;  // Microsoft Mark - Lighter timbre
+    } else if (name.includes("david")) {
+      score += 60;  // Microsoft David - Reliable Windows desktop standard (tuned with pitch lift)
+    } else if (name.includes("male") || isKnownMaleVoiceName(name)) {
+      score += 40;  // Generic male English voice
+    }
+
+    // Quality bonus for Natural / Online / Neural voices
+    if (name.includes("natural") || name.includes("online") || name.includes("neural")) {
+      score += 30;
+    }
+
+    // Local stability bonus
+    if (v.localService) {
+      score += 10;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  // Safe fallback to first male English voice or first English voice
+  const fallbackMale = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && isKnownMaleVoiceName(v.name));
+  return fallbackMale || voices.find((v) => (v.lang || "").toLowerCase().startsWith("en")) || voices[0];
+};
+
+export const getSpongeBobIntonation = (text = "") => {
+  const lower = String(text).toLowerCase().trim();
+
+  // 1. Excited / Surprised / Celebratory
+  // e.g. "Really?! That's awesome!", "Wow! You did it!", "That's a great answer! Nice job!", "Haha! That was a good one!"
+  if (
+    lower.includes("wow") ||
+    lower.includes("really") ||
+    lower.includes("wait...") ||
+    lower.includes("already knew") ||
+    lower.includes("awesome") ||
+    lower.includes("you did it") ||
+    lower.includes("excellent") ||
+    lower.includes("great answer") ||
+    lower.includes("nice job") ||
+    lower.includes("we've got this") ||
+    lower.includes("pretty cool") ||
+    lower.includes("getting better") ||
+    (lower.includes("!") && (lower.includes("cool") || lower.includes("haha") || lower.includes("hey") || lower.includes("good one")))
+  ) {
+    return { pitchOffset: +0.04, rateOffset: +0.02, mood: 'excited' };
+  }
+
+  // 2. Gentle / Reassuring / Patient
+  // e.g. "Don't worry, I'll help you.", "Take your time. There's no hurry.", "Okay, okay... let's try it again!"
+  if (
+    lower.includes("don't worry") ||
+    lower.includes("take your time") ||
+    lower.includes("no hurry") ||
+    lower.includes("okay, okay") ||
+    lower.includes("let's try that again") ||
+    lower.includes("try it again") ||
+    lower.includes("i'll help you") ||
+    lower.includes("carefully")
+  ) {
+    return { pitchOffset: -0.03, rateOffset: -0.03, mood: 'gentle' };
+  }
+
+  // 3. Funny / Playful / Humble
+  // e.g. "Oops! I think I got that one wrong.", "Uh-oh! I think we need to try that again."
+  if (
+    lower.includes("oops") ||
+    lower.includes("uh-oh") ||
+    lower.includes("mistake") ||
+    lower.includes("wrong")
+  ) {
+    return { pitchOffset: +0.02, rateOffset: -0.01, mood: 'playful' };
+  }
+
+  // 4. Default: Friendly, warm, approachable conversational
+  return { pitchOffset: 0.0, rateOffset: 0.0, mood: 'friendly' };
+};
+
+export const selectChhotaBheemVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
+
+  // Score candidate voices deterministically according to CB4 criteria:
+  // 1. English language
+  // 2. Male voice (strictly reject female voices)
+  // 3. Preferred language priority: en-IN -> en-US -> en-GB -> other English
+  // 4. Youthful, heroic, confident, cheerful quality
+  // 5. Never depend on a single browser-specific voice name
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    // Strict rejection of female voices
+    if (isKnownFemaleVoiceName(name)) {
+      score -= 1000;
+      return { voice: v, score };
+    }
+
+    // Must be English candidate
+    if (!lang.startsWith("en")) {
+      score -= 500;
+      return { voice: v, score };
+    }
+
+    // Base English score
+    score += 100;
+
+    // ── Primary Priority: Indian-English (en-IN) Male Voices ──
+    const isIndian = lang === "en-in" || name.includes("india") || name.includes("indian");
+    if (isIndian) {
+      score += 250; // Decisive preference for en-IN
+      if (name.includes("prabhat")) {
+        score += 80; // Microsoft Prabhat Online (Natural) - High clarity, youthful Indian English
+      } else if (name.includes("ravi")) {
+        score += 70; // Microsoft Ravi - Windows Desktop standard en-IN male
+      } else if (name.includes("rishi")) {
+        score += 60; // Microsoft Rishi - en-IN male
       }
-    } else if (avatar.id === "chitose") {
-      // If no valid voice or a female voice was stored, fallback to US Male
-      if (aiVoice === "Default" || !aiVoice || isFemaleVoiceCode(aiVoice)) {
-        aiVoice = "US Male";
+    } else if (lang === "en-us") {
+      score += 40;
+    } else if (lang === "en-gb" || lang === "en-au") {
+      score += 25;
+    }
+
+    // ── Secondary Priority: Youthful & Conversational Male Timbre Fallbacks ──
+    if (name.includes("guy")) {
+      score += 60; // Microsoft Guy (Natural) - Warm, bright, friendly boy tone
+    } else if (name.includes("ryan")) {
+      score += 55; // Microsoft Ryan - Clear young British male
+    } else if (name.includes("christopher") || name.includes("steffan")) {
+      score += 50;
+    } else if (name.includes("google uk english male")) {
+      score += 45;
+    } else if (name.includes("alex")) {
+      score += 40;
+    } else if (name.includes("mark")) {
+      score += 35; // Microsoft Mark - lighter US male
+    } else if (name.includes("george")) {
+      score += 30; // Microsoft George - clear British male
+    } else if (name.includes("david")) {
+      score += 20; // Microsoft David - reliable desktop standard
+    } else if (name.includes("male") || isKnownMaleVoiceName(name)) {
+      score += 15;
+    }
+
+    // Quality bonus for Natural / Online / Neural voices
+    if (name.includes("natural") || name.includes("online") || name.includes("neural")) {
+      score += 30;
+    }
+
+    // Local service stability bonus
+    if (v.localService) {
+      score += 10;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  // Safe fallback to first male English voice or first English voice
+  const fallbackMale = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && isKnownMaleVoiceName(v.name));
+  return fallbackMale || voices.find((v) => (v.lang || "").toLowerCase().startsWith("en")) || voices[0];
+};
+
+export const getChhotaBheemIntonation = (text = "") => {
+  const lower = String(text).toLowerCase().trim();
+
+  // 1. Excited / Celebratory / High-Energy Heroic
+  // e.g. "Come on!", "Ready for the next question?", "That's a fantastic answer!", "Excellent!", "Awesome!"
+  if (
+    lower.includes("come on") ||
+    lower.includes("fantastic") ||
+    lower.includes("excellent") ||
+    lower.includes("awesome") ||
+    lower.includes("super") ||
+    lower.includes("you did it") ||
+    lower.includes("great job") ||
+    lower.includes("ready for") ||
+    (lower.includes("!") && (lower.includes("let's go") || lower.includes("hurray") || lower.includes("yay") || lower.includes("wow") || lower.includes("bravo")))
+  ) {
+    return { pitchOffset: +0.04, rateOffset: +0.02, mood: "excited" };
+  }
+
+  // 2. Calm / Gentle / Reassuring
+  // e.g. "Take your time", "Speak clearly", "Don't worry", "No rush", "Relax"
+  if (
+    lower.includes("don't worry") ||
+    lower.includes("take your time") ||
+    lower.includes("speak clearly") ||
+    lower.includes("no hurry") ||
+    lower.includes("no rush") ||
+    lower.includes("relax") ||
+    lower.includes("slowly")
+  ) {
+    return { pitchOffset: -0.02, rateOffset: -0.03, mood: "calm" };
+  }
+
+  // 3. Encouraging / Confident / Supportive
+  // e.g. "You are doing really well.", "Keep going.", "We can try again.", "You can do it."
+  if (
+    lower.includes("really well") ||
+    lower.includes("keep going") ||
+    lower.includes("try again") ||
+    lower.includes("you can do it") ||
+    lower.includes("good job") ||
+    lower.includes("well done") ||
+    lower.includes("proud of you")
+  ) {
+    return { pitchOffset: +0.02, rateOffset: 0.0, mood: "encouraging" };
+  }
+
+  // 4. Playful / Lively
+  // e.g. "Let's learn something new", "Haha", "Fun", "Ready"
+  if (
+    lower.includes("something new") ||
+    lower.includes("haha") ||
+    lower.includes("play") ||
+    lower.includes("fun") ||
+    lower.includes("game")
+  ) {
+    return { pitchOffset: +0.03, rateOffset: +0.01, mood: "playful" };
+  }
+
+  // 5. Default: Warm, conversational, youthful
+  return { pitchOffset: 0.0, rateOffset: 0.0, mood: "normal" };
+};
+
+export const selectBenTenBoyVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
+
+  // Score candidate voices deterministically according to B4 criteria:
+  // 1. English language
+  // 2. Male voice (strictly reject female voices)
+  // 3. Preferred language priority: en-US (primary American English) -> en-CA -> en-GB / en-AU -> other English
+  // 4. Youthful, energetic, confident, heroic, adventurous quality (Guy, Eric, Christopher, Alex, Mark, David)
+  // 5. Never depend on a single browser-specific voice name; robust deterministic fallback
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    // Strict rejection of female voices
+    if (isKnownFemaleVoiceName(name)) {
+      score -= 1000;
+      return { voice: v, score };
+    }
+
+    // Must be English candidate
+    if (!lang.startsWith("en")) {
+      score -= 500;
+      return { voice: v, score };
+    }
+
+    // Base English score
+    score += 100;
+
+    // ── Primary Priority: American-English (en-US) Male Voices ──
+    const isAmerican = lang === "en-us" || name.includes("united states") || name.includes("us english");
+    if (isAmerican) {
+      score += 260; // Decisive preference for en-US
+      if (name.includes("guy")) {
+        score += 120; // Microsoft Guy (Natural / Online / Desktop) - Top youthful, energetic, confident American male
+      } else if (name.includes("eric")) {
+        score += 110; // Microsoft Eric - Clear, youthful American male
+      } else if (name.includes("christopher")) {
+        score += 100; // Microsoft Christopher - High-clarity natural American male
+      } else if (name.includes("google us english")) {
+        score += 90;  // Google US English - Clean, energetic American tone
+      } else if (name.includes("alex")) {
+        score += 85;  // Apple Alex - Clear conversational American male
+      } else if (name.includes("mark")) {
+        score += 75;  // Microsoft Mark - Lighter timbre US male
+      } else if (name.includes("david")) {
+        score += 65;  // Microsoft David - Reliable Windows desktop standard en-US male
+      }
+    } else if (lang === "en-ca") {
+      score += 50;
+    } else if (lang === "en-gb" || lang === "en-au") {
+      score += 30;
+      if (name.includes("ryan")) {
+        score += 40; // Microsoft Ryan - Clear young British male fallback
       }
     }
+
+    // Secondary male name match if not already boosted
+    if (isKnownMaleVoiceName(name) || name.includes("male")) {
+      score += 25;
+    }
+
+    // Quality bonus for Natural / Online / Neural voices
+    if (name.includes("natural") || name.includes("online") || name.includes("neural")) {
+      score += 30;
+    }
+
+    // Local service stability bonus
+    if (v.localService) {
+      score += 10;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  // Safe fallback to first male en-US voice, then first male English, then first English
+  const fallbackUsMale = voices.find((v) => (v.lang || "").toLowerCase().includes("us") && isKnownMaleVoiceName(v.name));
+  if (fallbackUsMale) return fallbackUsMale;
+
+  const fallbackMale = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && isKnownMaleVoiceName(v.name));
+  return fallbackMale || voices.find((v) => (v.lang || "").toLowerCase().startsWith("en")) || voices[0];
+};
+
+export const getBenTenIntonation = (text = "") => {
+  const lower = String(text).toLowerCase().trim();
+
+  // 1. Heroic / Omnitrix / High-Energy Action
+  // e.g. "It's hero time!", "Let's go!", "Awesome!", "Alien", "Transform", "Check this out!"
+  if (
+    lower.includes("hero time") ||
+    lower.includes("let's go") ||
+    lower.includes("awesome") ||
+    lower.includes("alien") ||
+    lower.includes("omnitrix") ||
+    lower.includes("transform") ||
+    lower.includes("check this out") ||
+    lower.includes("super") ||
+    lower.includes("cool") ||
+    lower.includes("kick some") ||
+    (lower.includes("!") && (lower.includes("yeah") || lower.includes("yes") || lower.includes("ready") || lower.includes("haha") || lower.includes("whoa")))
+  ) {
+    return { pitchOffset: +0.03, rateOffset: +0.02, mood: "heroic" };
+  }
+
+  // 2. Confident / Encouraging / Supportive Hero
+  // e.g. "We've got this!", "You're doing great!", "Piece of cake!", "No sweat!", "You can do it!"
+  if (
+    lower.includes("we've got this") ||
+    lower.includes("you're doing great") ||
+    lower.includes("piece of cake") ||
+    lower.includes("no sweat") ||
+    lower.includes("easy") ||
+    lower.includes("you can do it") ||
+    lower.includes("nice job") ||
+    lower.includes("great job") ||
+    lower.includes("keep going") ||
+    lower.includes("proud of you")
+  ) {
+    return { pitchOffset: +0.01, rateOffset: +0.01, mood: "confident" };
+  }
+
+  // 3. Curious / Inquisitive / Alert
+  // e.g. "Wait, what's that?", "Are you serious?", "What are we doing today?"
+  if (
+    lower.includes("wait") ||
+    lower.includes("serious") ||
+    lower.includes("what") ||
+    lower.includes("how") ||
+    lower.includes("who") ||
+    lower.includes("?")
+  ) {
+    return { pitchOffset: +0.02, rateOffset: 0.0, mood: "curious" };
+  }
+
+  // 4. Calm / Focused / Tactical
+  // e.g. "Okay, let's figure this out", "Take your time", "Relax", "Hold on"
+  if (
+    lower.includes("figure this out") ||
+    lower.includes("take your time") ||
+    lower.includes("hold on") ||
+    lower.includes("relax") ||
+    lower.includes("let's see")
+  ) {
+    return { pitchOffset: -0.02, rateOffset: -0.02, mood: "focused" };
+  }
+
+  // 5. Default: Youthful, energetic, friendly American teen hero
+  return { pitchOffset: 0.0, rateOffset: 0.0, mood: "normal" };
+};
+
+export const selectNinjaHattoriVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
+
+  // Score candidate voices deterministically according to N4 criteria:
+  // 1. English language candidate
+  // 2. Male presentation (strictly reject female voices)
+  // 3. Preferred priority: en-US natural/youthful male -> en-GB natural male -> en-IN natural male -> other English male
+  // 4. Youthful, energetic, playful, clear, friendly, adventurous tone
+  // 5. Never depend on a single browser-specific voice name; robust deterministic fallback hierarchy
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    // Strict rejection of female voices
+    if (isKnownFemaleVoiceName(name)) {
+      score -= 1000;
+      return { voice: v, score };
+    }
+
+    // Must be English candidate
+    if (!lang.startsWith("en")) {
+      score -= 500;
+      return { voice: v, score };
+    }
+
+    // Base English score
+    score += 100;
+
+    // ── Locale Preference Hierarchy ──
+    // Priority: en-US -> en-GB -> en-IN -> en-CA/en-AU -> other English
+    if (lang === "en-us" || name.includes("united states") || name.includes("us english")) {
+      score += 60;
+    } else if (lang === "en-gb" || name.includes("uk") || name.includes("british")) {
+      score += 45;
+    } else if (lang === "en-in" || name.includes("india") || name.includes("indian")) {
+      score += 35;
+    } else if (lang === "en-ca" || lang === "en-au") {
+      score += 25;
+    }
+
+    // ── Tier 1: Youthful, Energetic, Playful, Heroic Male Timbre Matches ──
+    if (name.includes("guy")) {
+      score += 150; // Microsoft Guy (Natural / Online / Desktop) - Top youthful, energetic, friendly young hero
+    } else if (name.includes("eric")) {
+      score += 140; // Microsoft Eric - Clear, youthful male voice
+    } else if (name.includes("christopher") || name.includes("steffan")) {
+      score += 130; // Natural, clear youthful tone
+    } else if (name.includes("google us english")) {
+      score += 120; // Clean, energetic, bright tone
+    } else if (name.includes("google uk english male")) {
+      score += 115; // Crisp, bright youthful tone
+    } else if (name.includes("ryan")) {
+      score += 110; // Microsoft Ryan - Clear, bright youthful British male
+    } else if (name.includes("alex")) {
+      score += 100; // Apple Alex - Natural conversational clarity
+    } else if (name.includes("daniel")) {
+      score += 95;  // Daniel - Clear British young male
+    } else if (name.includes("mark")) {
+      score += 80;  // Microsoft Mark - Lighter timbre US male
+    } else if (name.includes("prabhat") || name.includes("rishi") || name.includes("ravi")) {
+      score += 75;  // Clear Indian English male voices
+    } else if (name.includes("david")) {
+      score += 65;  // Microsoft David - Reliable Windows desktop standard (tuned with pitch lift)
+    } else if (name.includes("george") || name.includes("james") || name.includes("william") || name.includes("tom")) {
+      score += 50;  // Other standard male voices
+    } else if (isKnownMaleVoiceName(name) || name.includes("male")) {
+      score += 30;  // Generic male English voice
+    }
+
+    // Quality bonus for Natural / Online / Neural voices
+    if (name.includes("natural") || name.includes("online") || name.includes("neural")) {
+      score += 30;
+    }
+
+    // Local service stability bonus
+    if (v.localService) {
+      score += 10;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  // ── Deterministic Safe Fallback Chain ──
+  // Fallback 1: English male natural voice
+  const fallbackMaleNatural = voices.find((v) =>
+    (v.lang || "").toLowerCase().startsWith("en") &&
+    isKnownMaleVoiceName(v.name) &&
+    ((v.name || "").toLowerCase().includes("natural") || (v.name || "").toLowerCase().includes("online"))
+  );
+  if (fallbackMaleNatural) return fallbackMaleNatural;
+
+  // Fallback 2: Any English male voice
+  const fallbackMale = voices.find((v) =>
+    (v.lang || "").toLowerCase().startsWith("en") &&
+    isKnownMaleVoiceName(v.name)
+  );
+  if (fallbackMale) return fallbackMale;
+
+  // Fallback 3: English natural voice (excluding known female)
+  const fallbackNaturalNonFemale = voices.find((v) =>
+    (v.lang || "").toLowerCase().startsWith("en") &&
+    !isKnownFemaleVoiceName(v.name) &&
+    ((v.name || "").toLowerCase().includes("natural") || (v.name || "").toLowerCase().includes("online"))
+  );
+  if (fallbackNaturalNonFemale) return fallbackNaturalNonFemale;
+
+  // Fallback 4: Any English voice (excluding known female if possible)
+  const fallbackEnNonFemale = voices.find((v) =>
+    (v.lang || "").toLowerCase().startsWith("en") &&
+    !isKnownFemaleVoiceName(v.name)
+  );
+  if (fallbackEnNonFemale) return fallbackEnNonFemale;
+
+  const fallbackEn = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en"));
+  if (fallbackEn) return fallbackEn;
+
+  // Fallback 5: Safe browser default
+  return voices[0] || null;
+};
+
+export const getNinjaHattoriIntonation = (text = "") => {
+  const lower = String(text).toLowerCase().trim();
+
+  // 1. Action / Adventure / High-Energy Ninja Enthusiasm
+  // e.g. "Ninja power!", "Let's go!", "Awesome!", "Swift as the wind!", "Amazing!", "Ready!"
+  if (
+    lower.includes("ninja") ||
+    lower.includes("iga") ||
+    lower.includes("shuriken") ||
+    lower.includes("scroll") ||
+    lower.includes("let's go") ||
+    lower.includes("awesome") ||
+    lower.includes("amazing") ||
+    lower.includes("swift") ||
+    lower.includes("adventure") ||
+    lower.includes("hurray") ||
+    lower.includes("hooray") ||
+    lower.includes("super") ||
+    (lower.includes("!") && (lower.includes("ready") || lower.includes("yes") || lower.includes("yeah") || lower.includes("cool") || lower.includes("wow") || lower.includes("haha")))
+  ) {
+    return { pitchOffset: +0.03, rateOffset: +0.02, mood: "adventurous" };
+  }
+
+  // 2. Encouraging / Training / Practice / Supportive
+  // e.g. "We are going to practice English together!", "You're doing great!", "Keep training!", "Good work!"
+  if (
+    lower.includes("practice") ||
+    lower.includes("together") ||
+    lower.includes("train") ||
+    lower.includes("doing great") ||
+    lower.includes("keep going") ||
+    lower.includes("you can do it") ||
+    lower.includes("good job") ||
+    lower.includes("great job") ||
+    lower.includes("well done") ||
+    lower.includes("proud") ||
+    lower.includes("excellent")
+  ) {
+    return { pitchOffset: +0.01, rateOffset: +0.01, mood: "encouraging" };
+  }
+
+  // 3. Curious / Inquisitive / Alert
+  // e.g. "Can you tell me what you did today?", "What is your favorite ninja move?", "How was your day?"
+  if (
+    lower.includes("can you tell me") ||
+    lower.includes("tell me") ||
+    lower.includes("what did you") ||
+    lower.includes("what do you") ||
+    lower.includes("how") ||
+    lower.includes("why") ||
+    lower.includes("where") ||
+    lower.includes("?")
+  ) {
+    return { pitchOffset: +0.02, rateOffset: 0.0, mood: "curious" };
+  }
+
+  // 4. Calm / Stealth / Disciplined / Reassuring
+  // e.g. "Take your time", "Stay calm and focused", "Don't worry", "Breathe slowly"
+  if (
+    lower.includes("take your time") ||
+    lower.includes("don't worry") ||
+    lower.includes("stay calm") ||
+    lower.includes("focus") ||
+    lower.includes("slowly") ||
+    lower.includes("carefully") ||
+    lower.includes("listen") ||
+    lower.includes("no rush") ||
+    lower.includes("no hurry") ||
+    lower.includes("relax")
+  ) {
+    return { pitchOffset: -0.02, rateOffset: -0.02, mood: "calm" };
+  }
+
+  // 5. Default: Youthful, energetic, friendly young ninja hero
+  return { pitchOffset: 0.0, rateOffset: 0.0, mood: "normal" };
+};
+
+export const selectScoobyVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
+
+  // Score candidate voices deterministically according to Scooby S4 criteria:
+  // 1. English candidate (en-US primary preference)
+  // 2. Male presentation (strictly reject female voices)
+  // 3. Timbre: warm, playful, goofy, mid-range resonant cartoon dog (Guy, David, Mark, Eric, Christopher, Alex, Ryan)
+  // 4. Intelligible, clear English pronunciation
+  // 5. Deterministic multi-tier fallback chain
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    // Strict rejection of female voices
+    if (isKnownFemaleVoiceName(name)) {
+      score -= 1000;
+      return { voice: v, score };
+    }
+
+    // Must be English candidate
+    if (!lang.startsWith("en")) {
+      score -= 500;
+      return { voice: v, score };
+    }
+
+    // Base English score
+    score += 100;
+
+    // ── Primary Locale Preference: American English (en-US) ──
+    if (lang === "en-us" || name.includes("united states") || name.includes("us english")) {
+      score += 70;
+    } else if (lang === "en-ca") {
+      score += 40;
+    } else if (lang === "en-gb" || lang === "en-au") {
+      score += 30;
+    }
+
+    // ── Priority Timbre Matches for Cartoon Dog Persona ──
+    // Candidates providing warm, friendly, goofy, mid/deep resonant characteristics
+    if (name.includes("guy")) {
+      score += 150; // Microsoft Guy (Natural / Online / Desktop) - Warm, friendly, highly responsive
+    } else if (name.includes("david")) {
+      score += 140; // Microsoft David - Classic warm resonant desktop male, perfect with pitch ~0.94-0.96
+    } else if (name.includes("mark")) {
+      score += 130; // Microsoft Mark - Lighter, conversational US male
+    } else if (name.includes("eric")) {
+      score += 125; // Microsoft Eric - Clear, friendly American male
+    } else if (name.includes("christopher") || name.includes("steffan")) {
+      score += 120; // Clear, resonant male
+    } else if (name.includes("google us english")) {
+      score += 115; // Clean conversational tone
+    } else if (name.includes("alex")) {
+      score += 110; // Apple Alex - Natural clarity
+    } else if (name.includes("ryan")) {
+      score += 100; // Microsoft Ryan - Clear British male fallback
+    } else if (name.includes("george") || name.includes("oliver") || name.includes("daniel")) {
+      score += 85;
+    } else if (name.includes("prabhat") || name.includes("rishi") || name.includes("ravi")) {
+      score += 70;
+    } else if (isKnownMaleVoiceName(name) || name.includes("male")) {
+      score += 40; // Any identified male voice
+    }
+
+    // Quality bonus for Natural / Online / Neural voices
+    if (name.includes("natural") || name.includes("online") || name.includes("neural")) {
+      score += 30;
+    }
+
+    // Local service stability bonus
+    if (v.localService) {
+      score += 10;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  // ── Deterministic Fallback Chain ──
+  // Tier 1: Natural English male voice
+  const fallbackMaleNatural = voices.find((v) =>
+    (v.lang || "").toLowerCase().startsWith("en") &&
+    isKnownMaleVoiceName(v.name) &&
+    ((v.name || "").toLowerCase().includes("natural") || (v.name || "").toLowerCase().includes("online"))
+  );
+  if (fallbackMaleNatural) return fallbackMaleNatural;
+
+  // Tier 2: Any English male voice
+  const fallbackMale = voices.find((v) =>
+    (v.lang || "").toLowerCase().startsWith("en") &&
+    isKnownMaleVoiceName(v.name)
+  );
+  if (fallbackMale) return fallbackMale;
+
+  // Tier 3: English natural voice (non-female)
+  const fallbackNaturalNonFemale = voices.find((v) =>
+    (v.lang || "").toLowerCase().startsWith("en") &&
+    !isKnownFemaleVoiceName(v.name) &&
+    ((v.name || "").toLowerCase().includes("natural") || (v.name || "").toLowerCase().includes("online"))
+  );
+  if (fallbackNaturalNonFemale) return fallbackNaturalNonFemale;
+
+  // Tier 4: Any English voice (non-female)
+  const fallbackEnNonFemale = voices.find((v) =>
+    (v.lang || "").toLowerCase().startsWith("en") &&
+    !isKnownFemaleVoiceName(v.name)
+  );
+  if (fallbackEnNonFemale) return fallbackEnNonFemale;
+
+  // Tier 5: Any English voice or browser default
+  const fallbackEn = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en"));
+  return fallbackEn || voices[0] || null;
+};
+
+export const getScoobyIntonation = (text = "") => {
+  const lower = String(text).toLowerCase().trim();
+
+  // 1. Excited / Mystery / Surprise / Classic Scooby Catchphrases
+  // e.g. "Ruh-roh!", "Zoinks!", "Mystery", "Spooky", "Gang", "Shaggy", "Awesome!", "Yikes!"
+  if (
+    lower.includes("ruh-roh") ||
+    lower.includes("zoinks") ||
+    lower.includes("mystery") ||
+    lower.includes("spooky") ||
+    lower.includes("ghost") ||
+    lower.includes("monster") ||
+    lower.includes("shaggy") ||
+    lower.includes("clue") ||
+    lower.includes("yikes") ||
+    lower.includes("jinkies") ||
+    lower.includes("investigate") ||
+    lower.includes("awesome") ||
+    lower.includes("super") ||
+    (lower.includes("!") && (lower.includes("hey") || lower.includes("wow") || lower.includes("yes") || lower.includes("go") || lower.includes("run") || lower.includes("look")))
+  ) {
+    return { pitchOffset: +0.03, rateOffset: +0.02, mood: "excited" };
+  }
+
+  // 2. Inquisitive / Curious / Questioning
+  // e.g. "Where are Shaggy and the gang?", "Could you help me?", "What happened?", "Why?"
+  if (
+    lower.includes("where") ||
+    lower.includes("what") ||
+    lower.includes("who") ||
+    lower.includes("why") ||
+    lower.includes("how") ||
+    lower.includes("could you") ||
+    lower.includes("can you") ||
+    lower.includes("are you") ||
+    lower.includes("?")
+  ) {
+    return { pitchOffset: +0.02, rateOffset: 0.0, mood: "curious" };
+  }
+
+  // 3. Relaxed / Friendly / Reassuring / Snack
+  // e.g. "Snack", "Scooby snack", "Don't worry", "Take your time", "Relax", "Friend"
+  if (
+    lower.includes("snack") ||
+    lower.includes("cookie") ||
+    lower.includes("treat") ||
+    lower.includes("hungry") ||
+    lower.includes("don't worry") ||
+    lower.includes("take your time") ||
+    lower.includes("relax") ||
+    lower.includes("slowly") ||
+    lower.includes("friend") ||
+    lower.includes("pal")
+  ) {
+    return { pitchOffset: -0.02, rateOffset: -0.02, mood: "relaxed" };
+  }
+
+  // 4. Default: Warm, goofy, friendly conversational cartoon dog
+  return { pitchOffset: 0.0, rateOffset: 0.0, mood: "friendly" };
+};
+
+export const selectTomVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
+
+  // Score candidate voices deterministically according to Tom criteria:
+  // 1. English candidate (en-US primary preference)
+  // 2. Male presentation (strictly reject female voices)
+  // 3. Timbre: playful, witty, expressive classic cartoon cat male voices (Guy, David, Mark, Alex, Ryan, Christopher)
+  // 4. Intelligible, clear English pronunciation
+  // 5. Deterministic multi-tier fallback chain
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    // Strict rejection of female voices
+    if (isKnownFemaleVoiceName(name)) {
+      score -= 1000;
+      return { voice: v, score };
+    }
+
+    // Must be English candidate
+    if (!lang.startsWith("en")) {
+      score -= 500;
+      return { voice: v, score };
+    }
+
+    // Base English score
+    score += 100;
+
+    // Primary Locale: American English (en-US)
+    if (lang === "en-us") {
+      score += 40;
+    } else if (lang === "en-ca") {
+      score += 25;
+    } else if (lang === "en-gb" || lang === "en-au") {
+      score += 15;
+    }
+
+    // High priority target names for classic cartoon cat: Guy, David, Mark, Alex
+    if (name.includes("guy")) score += 95;
+    else if (name.includes("david")) score += 90;
+    else if (name.includes("mark")) score += 88;
+    else if (name.includes("alex")) score += 85;
+    else if (name.includes("ryan")) score += 75;
+    else if (name.includes("christopher")) score += 70;
+    else if (name.includes("daniel")) score += 65;
+    else if (name.includes("eric")) score += 60;
+
+    if (name.includes("natural") || name.includes("neural") || name.includes("online")) {
+      score += 30;
+    }
+    if (name.includes("male") || isKnownMaleVoiceName(name)) {
+      score += 15;
+    }
+    if (v.localService) {
+      score += 10;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  const fallbackUsMale = voices.find(
+    (v) => (v.lang || "").toLowerCase().startsWith("en-us") && !isKnownFemaleVoiceName(v.name)
+  );
+  if (fallbackUsMale) return fallbackUsMale;
+
+  const fallbackAnyMale = voices.find(
+    (v) => (v.lang || "").toLowerCase().startsWith("en") && !isKnownFemaleVoiceName(v.name)
+  );
+  if (fallbackAnyMale) return fallbackAnyMale;
+
+  return voices[0] || null;
+};
+
+export const getTomIntonation = (text = "") => {
+  if (!text || typeof text !== "string") {
+    return { pitchOffset: 0.0, rateOffset: 0.0, mood: "normal" };
+  }
+  const lower = text.toLowerCase().trim();
+
+  // 1. Playful / Mischievous / Witty Cat Exclamations
+  if (
+    lower.includes("haha") ||
+    lower.includes("hehe") ||
+    lower.includes("gotcha") ||
+    lower.includes("clever") ||
+    lower.includes("fun") ||
+    lower.includes("catch me") ||
+    lower.includes("aha") ||
+    lower.includes("oops") ||
+    lower.includes("!")
+  ) {
+    return { pitchOffset: +0.03, rateOffset: +0.02, mood: "playful" };
+  }
+
+  // 2. Inquisitive / Sneaky / Curious Cat Questions
+  if (
+    lower.includes("what") ||
+    lower.includes("how") ||
+    lower.includes("ready") ||
+    lower.includes("shall we") ||
+    lower.includes("think") ||
+    lower.includes("?")
+  ) {
+    return { pitchOffset: +0.02, rateOffset: 0.0, mood: "curious" };
+  }
+
+  // 3. Relaxed / Purring / Calm Cat Encouragement
+  if (
+    lower.includes("take your time") ||
+    lower.includes("relax") ||
+    lower.includes("easy") ||
+    lower.includes("good job") ||
+    lower.includes("well done")
+  ) {
+    return { pitchOffset: -0.02, rateOffset: -0.02, mood: "calm" };
+  }
+
+  // 4. Default: Classic witty cartoon cat voice
+  return { pitchOffset: 0.0, rateOffset: 0.0, mood: "normal" };
+};
+
+export const selectDoraemonRoboticVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
+
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    // Strong negative rejection of female voices
+    if (
+      isKnownFemaleVoiceName(name) ||
+      name.includes("female") ||
+      name.includes("woman") ||
+      name.includes("girl") ||
+      name.includes("zira") ||
+      name.includes("jenny") ||
+      name.includes("samantha") ||
+      name.includes("hazel") ||
+      name.includes("aria")
+    ) {
+      score -= 1000;
+      return { voice: v, score };
+    }
+
+    // Must be English candidate
+    if (!lang.startsWith("en")) {
+      score -= 400;
+      return { voice: v, score };
+    }
+
+    // Locale preference (US English top, followed by UK / AU / CA)
+    if (lang === "en-us") {
+      score += 45;
+    } else if (lang === "en-gb" || lang === "en-au" || lang === "en-ca") {
+      score += 25;
+    }
+
+    // ── Tier 1: True Hardware/OS Robotic, Synthesizer or Cyborg Voice (if installed) ──
+    if (
+      name.includes("robot") ||
+      name.includes("zarvox") ||
+      name.includes("trinoids") ||
+      name.includes("android") ||
+      name.includes("synth") ||
+      name.includes("espeak")
+    ) {
+      score += 300;
+    }
+    // ── Tier 2: Precision Mechanical / Clean Resonant Male Voices ──
+    // Microsoft David has a distinct, slightly mechanical desktop resonance that produces the perfect kind, crisp robot-cat sound when modulated
+    else if (name.includes("david")) {
+      score += 210;
+    } else if (name.includes("mark")) {
+      score += 190; // Crisp, lighter American male with great articulation
+    } else if (name.includes("george")) {
+      score += 175; // Distinct crisp male
+    } else if (name.includes("guy")) {
+      score += 165; // Clean natural male
+    } else if (name.includes("google us english") || (name.includes("google") && !name.includes("female"))) {
+      score += 160; // Clean digital male
+    } else if (name.includes("alex")) {
+      score += 150; // Apple Alex mechanical clarity
+    } else if (name.includes("eric") || name.includes("christopher") || name.includes("steffan")) {
+      score += 140;
+    } else if (name.includes("ryan") || name.includes("daniel") || name.includes("oliver")) {
+      score += 120;
+    } else if (isKnownMaleVoiceName(name) || name.includes("male")) {
+      score += 90;
+    }
+
+    // Natural / Online quality bonus
+    if (name.includes("natural") || name.includes("online") || name.includes("neural")) {
+      score += 20;
+    }
+
+    // Local service stability bonus
+    if (v.localService) {
+      score += 15;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  // Safe fallback to first male English voice or non-female voice
+  const fallbackMale = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && isKnownMaleVoiceName(v.name));
+  return fallbackMale || voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && !isKnownFemaleVoiceName(v.name)) || voices[0];
+};
+
+export const getDoraemonIntonation = (text = "") => {
+  const lower = String(text).toLowerCase().trim();
+
+  // 1. Mischievous / Gadget Reveal / Playful Cheeky
+  // e.g. "Take a look at this!", "Pocket", "Gadget", "Anywhere Door", "Bamboo-Copter", "Secret", "Hehe", "Aha!", "Watch this!", "Magic", "Surprise"
+  if (
+    lower.includes("gadget") ||
+    lower.includes("pocket") ||
+    lower.includes("anywhere door") ||
+    lower.includes("bamboo") ||
+    lower.includes("time machine") ||
+    lower.includes("secret") ||
+    lower.includes("surprise") ||
+    lower.includes("magic") ||
+    lower.includes("hehe") ||
+    lower.includes("haha") ||
+    lower.includes("aha") ||
+    lower.includes("oops") ||
+    lower.includes("watch this") ||
+    lower.includes("check this") ||
+    lower.includes("tada") ||
+    lower.includes("look what") ||
+    lower.includes("special tool") ||
+    lower.includes("don't tell") ||
+    lower.includes("guess what")
+  ) {
+    return { pitchOffset: +0.06, rateOffset: +0.03, mood: "mischievous" };
+  }
+
+  // 2. Kind / Gentle / Humble / Reassuring
+  // e.g. "Don't worry", "I am here to help you", "Take your time", "It's okay", "No problem", "Together", "Gentle", "Friend", "Buddy", "Please", "Thank you", "You did great"
+  if (
+    lower.includes("don't worry") ||
+    lower.includes("dont worry") ||
+    lower.includes("it's okay") ||
+    lower.includes("its okay") ||
+    lower.includes("no problem") ||
+    lower.includes("here to help") ||
+    lower.includes("help you") ||
+    lower.includes("take your time") ||
+    lower.includes("together") ||
+    lower.includes("friend") ||
+    lower.includes("buddy") ||
+    lower.includes("gentle") ||
+    lower.includes("kind") ||
+    lower.includes("humble") ||
+    lower.includes("please") ||
+    lower.includes("thank you") ||
+    lower.includes("thanks") ||
+    lower.includes("you can do it") ||
+    lower.includes("great job") ||
+    lower.includes("proud of you") ||
+    lower.includes("well done")
+  ) {
+    return { pitchOffset: -0.04, rateOffset: -0.02, mood: "gentle_humble" };
+  }
+
+  // 3. Inquisitive / Curious / Asking Questions
+  // e.g. "What do you think?", "Could you tell me?", "Why?", "How?", "?"
+  if (
+    lower.includes("what") ||
+    lower.includes("how") ||
+    lower.includes("why") ||
+    lower.includes("who") ||
+    lower.includes("could you") ||
+    lower.includes("can you") ||
+    lower.includes("shall we") ||
+    lower.includes("ready?") ||
+    lower.includes("?")
+  ) {
+    return { pitchOffset: +0.03, rateOffset: 0.0, mood: "curious" };
+  }
+
+  // 4. Celebratory / Enthusiastic Robotic Cheer
+  // e.g. "Hii", "Hello", "Yay!", "Awesome!", "Super!", "Hurray!"
+  if (
+    lower.includes("hii") ||
+    lower.includes("hello") ||
+    lower.includes("hey") ||
+    lower.includes("yay") ||
+    lower.includes("awesome") ||
+    lower.includes("super") ||
+    lower.includes("hurray") ||
+    lower.includes("let's practice") ||
+    lower.includes("lets practice") ||
+    lower.includes("!")
+  ) {
+    return { pitchOffset: +0.02, rateOffset: +0.01, mood: "cheerful" };
+  }
+
+  // 5. Default: Balanced, warm robotic male voice with steady machine articulation
+  return { pitchOffset: 0.0, rateOffset: 0.0, mood: "robotic_default" };
+};
+
+export const selectShizukuFemaleVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
+
+  // Score candidate voices deterministically
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    const isMale = isKnownMaleVoiceName(name);
+    if (isMale) {
+      score -= 1000; // Strong negative rejection of male voices
+      return { voice: v, score };
+    }
+
+    // Must be English candidate
+    if (!lang.startsWith("en")) {
+      score -= 500; // Deprioritize non-English
+      return { voice: v, score };
+    }
+
+    // +100 Naturally feminine English candidate
+    score += 100;
+
+    // +40 en-US preference
+    if (lang === "en-us") {
+      score += 40;
+    } else if (lang === "en-gb" || lang === "en-au" || lang === "en-ca") {
+      score += 20;
+    }
+
+    // Top Winning candidate chosen in experimental listening test
+    if (name.includes("google us english")) {
+      score += 90;
+    } else if (name.includes("zira")) {
+      score += 70; // Top Windows local desktop candidate
+    } else if (name.includes("jenny") || name.includes("aria") || name.includes("ana") || name.includes("samantha")) {
+      score += 80; // High-clarity online natural female
+    } else if (name.includes("sonia") || name.includes("hazel") || name.includes("susan") || name.includes("victoria") || name.includes("karen")) {
+      score += 50; // Known female voices
+    }
+
+    // Natural / Online quality bonus
+    if (name.includes("natural") || name.includes("online") || name.includes("neural")) {
+      score += 25;
+    }
+
+    // Female keyword bonus
+    if (name.includes("female") || name.includes("woman") || name.includes("girl")) {
+      score += 30;
+    }
+
+    // localService reliability
+    if (v.localService) {
+      score += 10;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  // Return highest-scoring valid candidate
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  // Safe fallback to first non-male English voice
+  const fallback = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && !isKnownMaleVoiceName(v.name));
+  return fallback || voices[0];
+};
+
+export const selectShizukaFemaleVoice = selectShizukuFemaleVoice;
+
+export const selectTeacherFemaleVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
+
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    const isMale = isKnownMaleVoiceName(name);
+    if (isMale) {
+      score -= 1000;
+      return { voice: v, score };
+    }
+
+    if (!lang.startsWith("en")) {
+      score -= 500;
+      return { voice: v, score };
+    }
+
+    // Baseline English female candidate
+    score += 100;
+
+    // 1. Priority #1: en-IN female English (Heera, Neerja, Veena, etc.)
+    if (lang === "en-in" || name.includes("india") || name.includes("en-in")) {
+      score += 150;
+      if (name.includes("heera")) score += 60;
+      else if (name.includes("neerja")) score += 55;
+      else if (name.includes("veena")) score += 50;
+    }
+    // 2. Priority #2: en-US female English (Zira, Jenny, Samantha, Aria)
+    else if (lang === "en-us" || name.includes("en-us") || name.includes("united states")) {
+      score += 80;
+      if (name.includes("zira")) score += 40;
+      else if (name.includes("jenny")) score += 45;
+      else if (name.includes("aria") || name.includes("samantha")) score += 35;
+    }
+    // 3. Priority #3: en-GB female English (Hazel, Susan, Sonia, Libby)
+    else if (lang === "en-gb" || name.includes("en-gb") || name.includes("united kingdom")) {
+      score += 50;
+      if (name.includes("hazel")) score += 30;
+      else if (name.includes("susan")) score += 30;
+      else if (name.includes("sonia")) score += 25;
+    } else {
+      score += 20;
+    }
+
+    if (name.includes("natural") || name.includes("neural") || name.includes("online")) {
+      score += 30;
+    }
+    if (name.includes("female") || name.includes("woman")) {
+      score += 20;
+    }
+    if (v.localService) {
+      score += 10;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  const fallbackIn = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en-in") && !isKnownMaleVoiceName(v.name));
+  if (fallbackIn) return fallbackIn;
+
+  const fallbackEn = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && !isKnownMaleVoiceName(v.name));
+  if (fallbackEn) return fallbackEn;
+
+  return voices[0] || null;
+};
+
+export const selectMaleTeacherVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
+
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    // Strict rejection of female voices
+    if (isKnownFemaleVoiceName(name)) {
+      score -= 1000;
+      return { voice: v, score };
+    }
+
+    // Must be English candidate
+    if (!lang.startsWith("en")) {
+      score -= 500;
+      return { voice: v, score };
+    }
+
+    // Baseline English male candidate
+    score += 100;
+
+    // 1. Priority #1: en-IN male English (Ravi, Prabhat, Rishi, etc.)
+    if (lang === "en-in" || name.includes("india") || name.includes("en-in")) {
+      score += 180;
+      if (name.includes("ravi")) score += 80;
+      else if (name.includes("prabhat")) score += 75;
+      else if (name.includes("rishi")) score += 70;
+    }
+    // 2. Priority #2: en-US male English (Guy, David, Mark, Alex, etc.)
+    else if (lang === "en-us" || name.includes("en-us") || name.includes("united states")) {
+      score += 110;
+      if (name.includes("guy")) score += 55;
+      else if (name.includes("david")) score += 50;
+      else if (name.includes("mark")) score += 45;
+      else if (name.includes("alex")) score += 40;
+      else if (name.includes("chris") || name.includes("eric")) score += 35;
+    }
+    // 3. Priority #3: en-GB male English (George, Ryan, Daniel, Oliver)
+    else if (lang === "en-gb" || name.includes("en-gb") || name.includes("united kingdom")) {
+      score += 90;
+      if (name.includes("george")) score += 50;
+      else if (name.includes("ryan")) score += 45;
+      else if (name.includes("daniel")) score += 40;
+      else if (name.includes("oliver")) score += 35;
+    } else {
+      score += 50;
+    }
+
+    if (name.includes("natural") || name.includes("neural") || name.includes("online")) {
+      score += 30;
+    }
+    if (name.includes("male") || isKnownMaleVoiceName(name)) {
+      score += 20;
+    }
+    if (v.localService) {
+      score += 15;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  const fallbackIn = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en-in") && isKnownMaleVoiceName(v.name));
+  if (fallbackIn) return fallbackIn;
+
+  const fallbackUs = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en-us") && isKnownMaleVoiceName(v.name));
+  if (fallbackUs) return fallbackUs;
+
+  const fallbackMale = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && isKnownMaleVoiceName(v.name));
+  if (fallbackMale) return fallbackMale;
+
+  const fallbackEn = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && !isKnownFemaleVoiceName(v.name));
+  if (fallbackEn) return fallbackEn;
+
+  return voices[0] || null;
+};
+
+export const getMaleTeacherIntonation = (text = "") => {
+  const lower = String(text).toLowerCase().trim();
+
+  // 1. Encouraging / Supportive / Positive Affirmation
+  if (
+    lower.includes("good job") ||
+    lower.includes("great job") ||
+    lower.includes("well done") ||
+    lower.includes("good attempt") ||
+    lower.includes("keep practicing") ||
+    lower.includes("nice attempt") ||
+    lower.includes("excellent") ||
+    lower.includes("proud") ||
+    lower.includes("congratulations")
+  ) {
+    return { pitchOffset: +0.02, rateOffset: 0.00, mood: 'encouraging' };
+  }
+
+  // 2. Explanatory / Instructional / Calm Teaching
+  if (
+    lower.includes("listen carefully") ||
+    lower.includes("repeat after me") ||
+    lower.includes("for example") ||
+    lower.includes("in english") ||
+    lower.includes("today we are going to learn") ||
+    lower.includes("let us practice") ||
+    lower.includes("notice that") ||
+    lower.includes("remember that") ||
+    lower.includes("step by step")
+  ) {
+    return { pitchOffset: 0.00, rateOffset: -0.02, mood: 'instructional' };
+  }
+
+  return { pitchOffset: 0.00, rateOffset: 0.00, mood: 'neutral' };
+};
+
+export const mapModelToVoiceCode = (model) => {
+  if (!model) return null;
+  const m = String(model).toLowerCase();
+  if (m === "spongebob") return "SpongeBob";
+  if (m === "shizuku" || m === "shizuka") return "Shizuka";
+  if (m === "robopaws" || m === "doraemon") return "Doraemon";
+  if (m === "sparky" || m === "hero" || m === "bheem" || m === "chhotabheem") return "Sparky";
+  if (m === "mao" || m === "ben" || m === "ben10" || m === "unitychan") return "Mao";
+  if (m === "koharu" || m === "hattori" || m === "ninjahattori") return "Koharu";
+  if (m === "haruto" || m === "tom") return "Haruto";
+  if (m === "puppy" || m === "wanko" || m === "dog" || m === "scooby" || m === "scoobydoo") return "Puppy";
+  if (m === "haru" || m === "teacher") return "Teacher";
+  if (m === "chitose" || m === "maleteacher") return "MaleTeacher";
+  return null;
+};
+
+export const mapVoiceCodeToModel = (code) => {
+  if (!code) return null;
+  const c = String(code).toLowerCase();
+  if (c === "spongebob") return "spongebob";
+  if (c === "shizuka" || c === "shizuku") return "shizuku";
+  if (c === "doraemon" || c === "robo-paws" || c === "robopaws") return "robopaws";
+  if (c === "sparky" || c === "chhotabheem" || c === "bheem") return "sparky";
+  if (c === "mao" || c === "benten" || c === "ben 10" || c === "ben") return "mao";
+  if (c === "koharu" || c === "ninjahattori" || c === "hattori") return "koharu";
+  if (c === "haruto" || c === "tom") return "haruto";
+  if (c === "puppy" || c === "wanko" || c === "scoobydoo" || c === "scooby") return "puppy";
+  if (c === "teacher") return "haru";
+  if (c === "maleteacher") return "chitose";
+  return null;
+};
+
+export const getSavedVoiceSettings = (overrideVoiceCode = null, overrideModel = null) => {
+  const hasOverride = Boolean(overrideVoiceCode || overrideModel);
+  const currentAvatarModel = hasOverride
+    ? (overrideModel || mapVoiceCodeToModel(overrideVoiceCode) || "").toLowerCase()
+    : (localStorage.getItem("speakmate_avatar_model") || "haru").toLowerCase();
+
+  let aiVoice = overrideVoiceCode || (hasOverride ? mapModelToVoiceCode(currentAvatarModel) : localStorage.getItem("speakmate_ai_voice")) || "Default";
+  const onboardingVoice = localStorage.getItem("speakmate_onboarding_voice") || localStorage.getItem("speakmate_voice_persona") || "Friendly";
+  const accent = localStorage.getItem("speakmate_voice_accent") || "US";
+  let selectedVoiceName = hasOverride ? "" : (localStorage.getItem("speakmate_voice_name") || "");
+  const customPitch = hasOverride ? null : localStorage.getItem("speakmate_voice_pitch");
+  const customRate = localStorage.getItem("speakmate_speech_rate") || "1.0";
+
+  const isSpongeBobActive = currentAvatarModel === "spongebob" || aiVoice === "SpongeBob";
+  const isShizukuActive = currentAvatarModel === "shizuku" || currentAvatarModel === "shizuka" || aiVoice === "Shizuku" || aiVoice === "Shizuka";
+  const isDoraemonActive = currentAvatarModel === "robopaws" || currentAvatarModel === "doraemon" || aiVoice === "Robo-Paws" || aiVoice === "Doraemon";
+  const isChhotaBheemActive = currentAvatarModel === "sparky" || currentAvatarModel === "bheem" || currentAvatarModel === "chhotabheem" || aiVoice === "Sparky" || aiVoice === "ChhotaBheem";
+  const isBenTenActive = currentAvatarModel === "mao" || currentAvatarModel === "ben" || currentAvatarModel === "ben10" || aiVoice === "Mao" || aiVoice === "BenTen" || aiVoice === "Ben 10";
+  const isNinjaHattoriActive = currentAvatarModel === "koharu" || currentAvatarModel === "hattori" || currentAvatarModel === "ninjahattori" || aiVoice === "Koharu" || aiVoice === "NinjaHattori";
+  const isTomActive = currentAvatarModel === "haruto" || currentAvatarModel === "tom" || aiVoice === "Haruto";
+  const isScoobyActive = currentAvatarModel === "puppy" || currentAvatarModel === "wanko" || currentAvatarModel === "dog" || currentAvatarModel === "scooby" || currentAvatarModel === "scoobydoo" || aiVoice === "Puppy" || aiVoice === "ScoobyDoo" || aiVoice === "Scooby";
+  const isTeacherActive = currentAvatarModel === "haru" || currentAvatarModel === "teacher" || aiVoice === "Teacher";
+  const isMaleTeacherActive = currentAvatarModel === "chitose" || currentAvatarModel === "maleteacher" || aiVoice === "MaleTeacher";
+
+  // Automatic Avatar-Intrinsic Voice Resolution:
+  if (!overrideVoiceCode) {
+    if (isSpongeBobActive) {
+      aiVoice = "SpongeBob";
+    } else if (isShizukuActive) {
+      aiVoice = "Shizuka";
+    } else if (isDoraemonActive) {
+      aiVoice = "Doraemon";
+    } else if (currentAvatarModel === "motu") {
+      aiVoice = "Motu";
+    } else if (currentAvatarModel === "sparky" || currentAvatarModel === "hero" || currentAvatarModel === "bheem" || currentAvatarModel === "chhotabheem") {
+      aiVoice = "Sparky";
+    } else if (currentAvatarModel === "koharu" || currentAvatarModel === "hattori" || currentAvatarModel === "ninjahattori") {
+      aiVoice = "Koharu";
+    } else if (currentAvatarModel === "haruto" || currentAvatarModel === "tom") {
+      aiVoice = "Haruto";
+    } else if (currentAvatarModel === "mao" || currentAvatarModel === "unitychan" || currentAvatarModel === "ben" || currentAvatarModel === "ben10") {
+      aiVoice = "Mao";
+    } else if (currentAvatarModel === "wanko" || currentAvatarModel === "puppy" || currentAvatarModel === "dog" || currentAvatarModel === "scooby" || currentAvatarModel === "scoobydoo") {
+      aiVoice = "Puppy";
+    } else if (currentAvatarModel === "haru" || currentAvatarModel === "teacher") {
+      aiVoice = "Teacher";
+    } else if (currentAvatarModel === "chitose" || currentAvatarModel === "maleteacher") {
+      aiVoice = "MaleTeacher";
+    }
+  }
+
+  // Character Voice Locks: Mutually exclusive locks
+  if (isSpongeBobActive) {
+    aiVoice = "SpongeBob";
+    selectedVoiceName = "";
+  } else if (isTeacherActive) {
+    aiVoice = "Teacher";
+    if (selectedVoiceName && isKnownMaleVoiceName(selectedVoiceName)) {
+      selectedVoiceName = "";
+    }
+  } else if (isMaleTeacherActive) {
+    aiVoice = "MaleTeacher";
+    if (selectedVoiceName && isKnownFemaleVoiceName(selectedVoiceName)) {
+      selectedVoiceName = "";
+    }
+  } else if (isShizukuActive) {
+    aiVoice = "Shizuka";
+    if (selectedVoiceName && isKnownMaleVoiceName(selectedVoiceName)) {
+      selectedVoiceName = "";
+    }
+  } else if (isDoraemonActive) {
+    aiVoice = "Doraemon";
+    if (selectedVoiceName && isKnownFemaleVoiceName(selectedVoiceName)) {
+      selectedVoiceName = "";
+    }
+  } else if (isChhotaBheemActive) {
+    aiVoice = "Sparky";
+    selectedVoiceName = "";
+  } else if (isBenTenActive) {
+    aiVoice = "Mao";
+    selectedVoiceName = "";
+  } else if (isNinjaHattoriActive) {
+    aiVoice = "Koharu";
+    selectedVoiceName = "";
+  } else if (isTomActive) {
+    aiVoice = "Haruto";
+    selectedVoiceName = "";
+  } else if (isScoobyActive) {
+    aiVoice = "Puppy";
+    selectedVoiceName = "";
   }
 
   const isDefault = aiVoice === "Default" || !aiVoice;
@@ -177,34 +1689,93 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
     } else if (profile.code === "IN Female") {
       pitch = 0.98; // Warm, natural melodic Indian English cadence
       baseRate = 0.92; // Calm, precise syllable timing
-    } else if (profile.code === "Haru") {
-      pitch = 1.16; // Warm, sweet anime coach
-      baseRate = 1.02;
-    } else if (profile.code === "Shizuku") {
-      pitch = 1.06; // Calm, articulate academic mentor
+    } else if (profile.code === "Haru" || profile.code === "Teacher") {
+      pitch = 1.12; // Kind, articulate, warm female English coach
       baseRate = 0.98;
-    } else if (profile.code === "Robo-Paws") {
-      pitch = 1.54; // Bright, joyful, high-energy robot cat mascot
-      baseRate = 1.05;
+    } else if (profile.code === "SpongeBob") {
+      pitch = 1.18; // Sweet, youthful, gentle, friendly cartoon boy
+      baseRate = 1.02; // Clear, comfortable conversational pace
+    } else if (profile.code === "Shizuku" || profile.code === "Shizuka") {
+      pitch = 1.22; // Sweet, youthful, cheerful academic companion (winning experimental combination)
+      baseRate = 1.04;
+    } else if (profile.code === "Robo-Paws" || profile.code === "Doraemon") {
+      pitch = 1.06; // Kind, gentle, humble & mischievous robotic male voice
+      baseRate = 1.03;
     } else if (profile.code === "Motu") {
       pitch = 1.22; // Jolly, enthusiastic Indian cartoon friend
       baseRate = 1.04;
-    } else if (profile.code === "Sparky") {
-      pitch = 1.42; // Spirited superhero kid
-      baseRate = 1.08;
-    } else if (profile.code === "Koharu") {
-      pitch = 1.40; // Cheerful cartoon schoolgirl
-      baseRate = 1.04;
+    } else if (profile.code === "Sparky" || profile.code === "ChhotaBheem") {
+      pitch = 1.22; // Confident, cheerful, youthful Indian hero
+      baseRate = 1.03; // Clear, comfortable conversational pace
+    } else if (profile.code === "Koharu" || profile.code === "NinjaHattori") {
+      pitch = 1.20; // Youthful, energetic, friendly young ninja hero
+      baseRate = 1.04; // Clear, lively conversational pace
     } else if (profile.code === "Haruto") {
-      pitch = 1.35; // Bright, adventurous schoolboy explorer
-      baseRate = 1.05;
-    } else if (profile.code === "Mao") {
-      pitch = 1.52; // Adorable, high-spirited chibi tutor
+      pitch = 1.20; // Classic witty cartoon cat voice
       baseRate = 1.04;
-    } else if (profile.code === "Wanko" || profile.code === "Puppy") {
-      pitch = 1.46; // Playful, cute, lively puppy
-      baseRate = 1.06;
+    } else if (profile.code === "Mao" || profile.code === "BenTen") {
+      pitch = 1.18; // Youthful, energetic, confident American teen hero
+      baseRate = 1.03; // Clear, enthusiastic heroic pace
+    } else if (profile.code === "Wanko" || profile.code === "Puppy" || profile.code === "ScoobyDoo") {
+      pitch = 0.92; // Warm, goofy, slightly relaxed mid-depth cartoon dog
+      baseRate = 0.94; // Slightly slower, comfortable conversational pace
+    } else if (profile.code === "MaleTeacher") {
+      pitch = 1.00; // Articulate, calm, professional male teacher
+      baseRate = 0.96; // Moderate, clear pace for learners
     }
+  }
+
+  // Mutually exclusive strict character parameter locks
+  if (isSpongeBobActive) {
+    gender = "male";
+    pitch = 1.18;
+    baseRate = 1.02;
+    targetLang = "en-US";
+  } else if (isTeacherActive) {
+    gender = "female";
+    pitch = 1.12;
+    baseRate = 0.98;
+    targetLang = "en-IN";
+  } else if (isMaleTeacherActive) {
+    gender = "male";
+    pitch = 1.00;
+    baseRate = 0.96;
+    targetLang = "en-IN";
+  } else if (isShizukuActive) {
+    gender = "female";
+    pitch = 1.22;
+    baseRate = 1.04;
+    targetLang = "en-US";
+  } else if (isDoraemonActive) {
+    gender = "male";
+    pitch = 1.06;
+    baseRate = 1.03;
+    targetLang = "en-US";
+  } else if (isChhotaBheemActive) {
+    gender = "male";
+    pitch = 1.22;
+    baseRate = 1.03;
+    targetLang = "en-IN";
+  } else if (isBenTenActive) {
+    gender = "male";
+    pitch = 1.18;
+    baseRate = 1.03;
+    targetLang = "en-US";
+  } else if (isNinjaHattoriActive) {
+    gender = "male";
+    pitch = 1.20;
+    baseRate = 1.04;
+    targetLang = "en-US";
+  } else if (isTomActive) {
+    gender = "male";
+    pitch = 1.20;
+    baseRate = 1.04;
+    targetLang = "en-US";
+  } else if (isScoobyActive) {
+    gender = "male";
+    pitch = 0.92;
+    baseRate = 0.94;
+    targetLang = "en-US";
   }
 
   return {
@@ -224,10 +1795,10 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
   };
 };
 
-export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overrideVoiceCode = null) => {
+export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overrideVoiceCode = null, overrideModel = null) => {
   if (!utterance || typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
-  const settings = getSavedVoiceSettings(overrideVoiceCode);
+  const settings = getSavedVoiceSettings(overrideVoiceCode, overrideModel);
   utterance.lang = settings.lang;
   utterance.pitch = settings.pitch;
   utterance.rate = settings.baseRate * settings.rateMultiplier * speedMultiplier;
@@ -235,475 +1806,365 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   const voices = window.speechSynthesis.getVoices();
   if (!voices || voices.length === 0) return;
 
-  // 1. Explicit user selection by voice name (if saved in settings)
-  if (settings.selectedVoiceName) {
-    const exactVoice = voices.find((v) => v.name === settings.selectedVoiceName);
-    if (exactVoice) {
-      utterance.voice = exactVoice;
-      return;
-    }
-  }
-
-  const voiceCode = (settings.effectiveVoiceCode || "").trim();
-  const lowerCode = voiceCode.toLowerCase();
-
-  // Determine character archetype:
-  const isCuteCartoonOrKid = [
-    "robo-paws", "robopaws", "sparky", "koharu", "haruto", "mao", "puppy", "wanko"
-  ].includes(lowerCode);
-  const isMotu = lowerCode === "motu";
-  const isShizuku = lowerCode === "shizuku";
-
-  const MALE_NAMES = [
-    "guy", "david", "mark", "alex", "tom", "chris", "george", "james",
-    "ryan", "oliver", "daniel", "william", "russell", "prabhat", "rishi",
-    "ravi", "richard", "sean", "fred", "eric", "steffan", "thomas",
-    "alfie", "arthur", "harry", "ken", "jack", "madhav", "aravind",
-    "karan", "rohan", "amit", "brian", "mike", "stephen", "andrew"
-  ];
-
-  const FEMALE_NAMES = [
-    "jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia",
-    "hazel", "fiona", "kate", "serena", "natasha", "catherine", "libby",
-    "mia", "annette", "neerja", "veena", "heera", "aria", "ana",
-    "ava", "allison", "stephanie", "tessa", "moira", "flo", "ananya",
-    "priya", "swara", "kalpana", "geeta", "sangeeta", "michelle", "alice",
-    "clara", "julie", "laura", "emma", "olivia", "sophia", "chloe"
-  ];
-
-  const CUTE_CHILD_NAMES = ["ana", "child", "kid", "junior", "flo", "sweet", "youth"];
-  const INDIAN_VOICE_NAMES = [
-    "neerja", "heera", "veena", "kalpana", "ananya", "swara", "geeta",
-    "sangeeta", "priya", "aditi", "lekha", "shruthi", "dharini",
-    "prabhat", "rishi", "ravi", "indian", "hindi", "हिन्दी"
-  ];
-
-  const isIndianVoice = (v) => {
-    if (!v) return false;
-    const n = (v.name || "").toLowerCase();
-    const l = (v.lang || "").toLowerCase().replace("_", "-");
-    return (
-      l === "en-in" ||
-      l === "hi-in" ||
-      l.includes("-in") ||
-      l.startsWith("hi") ||
-      l.startsWith("ta") ||
-      l.startsWith("te") ||
-      l.startsWith("mr") ||
-      n.includes("india") ||
-      n.includes("hindi") ||
-      n.includes("हिन्दी") ||
-      INDIAN_VOICE_NAMES.some((k) => n.includes(k))
-    );
-  };
-
-  const isAustralianVoice = (v) => {
-    if (!v) return false;
-    const n = (v.name || "").toLowerCase();
-    const l = (v.lang || "").toLowerCase().replace("_", "-");
-    return (
-      l === "en-au" ||
-      l.includes("-au") ||
-      n.includes("australia") ||
-      n.includes("australian")
-    );
-  };
-
-  const isBritishVoice = (v) => {
-    if (!v) return false;
-    const n = (v.name || "").toLowerCase();
-    const l = (v.lang || "").toLowerCase().replace("_", "-");
-    return (
-      l === "en-gb" ||
-      l.includes("-gb") ||
-      l.includes("en-uk") ||
-      n.includes("british") ||
-      n.includes("united kingdom")
-    );
-  };
-
-  const isMaleVoice = (v) => {
-    if (!v) return false;
-    const n = (v.name || "").toLowerCase();
-    if (/\bfemale\b/i.test(n)) return false;
-    if (/\bmale\b/i.test(n)) return true;
-    return MALE_NAMES.some((k) => n.includes(k)) && !FEMALE_NAMES.some((k) => n.includes(k));
-  };
-
-  const isFemaleVoice = (v) => {
-    if (!v) return false;
-    const n = (v.name || "").toLowerCase();
-    if (/\bfemale\b/i.test(n)) return true;
-    if (/\bmale\b/i.test(n)) return false;
-    if (n.includes("हिन्दी") || n.includes("swara")) return true;
-    return FEMALE_NAMES.some((k) => n.includes(k)) && !MALE_NAMES.some((k) => n.includes(k));
-  };
-
   let targetVoice = null;
+  const hasOverride = Boolean(overrideVoiceCode || overrideModel);
+  const activeModel = hasOverride
+    ? (overrideModel || mapVoiceCodeToModel(overrideVoiceCode) || "").toLowerCase()
+    : (localStorage.getItem("speakmate_avatar_model") || "haru").toLowerCase();
+  const effCode = (settings.effectiveVoiceCode || "").toLowerCase();
 
-  // ─────────────────────────────────────────────────────────────
-  // ARCHETYPE 1: CUTE CARTOON & KID AVATARS
-  // ─────────────────────────────────────────────────────────────
-  if (isCuteCartoonOrKid) {
-    targetVoice = voices.find((v) =>
-      CUTE_CHILD_NAMES.some((k) => (v.name || "").toLowerCase().includes(k)) &&
-      !isMaleVoice(v)
-    );
+  const isSpongeBobActive = effCode === "spongebob" || activeModel === "spongebob";
+  const isShizukuActive = effCode === "shizuku" || effCode === "shizuka" || activeModel === "shizuku" || activeModel === "shizuka";
+  const isDoraemonActive = effCode === "robo-paws" || effCode === "doraemon" || effCode === "robopaws" || activeModel === "robopaws" || activeModel === "doraemon";
+  const isChhotaBheemActive = effCode === "sparky" || effCode === "chhotabheem" || activeModel === "sparky" || activeModel === "bheem" || activeModel === "chhotabheem";
+  const isBenTenActive = effCode === "mao" || effCode === "benten" || effCode === "ben 10" || activeModel === "mao" || activeModel === "ben" || activeModel === "ben10";
+  const isNinjaHattoriActive = effCode === "koharu" || effCode === "ninjahattori" || activeModel === "koharu" || activeModel === "hattori" || activeModel === "ninjahattori";
+  const isTomActive = effCode === "haruto" || effCode === "tom" || activeModel === "haruto" || activeModel === "tom";
+  const isScoobyActive = effCode === "puppy" || effCode === "wanko" || effCode === "scoobydoo" || effCode === "scooby" || activeModel === "puppy" || activeModel === "wanko" || activeModel === "dog" || activeModel === "scooby" || activeModel === "scoobydoo";
+  const isTeacherActive = effCode === "teacher" || activeModel === "haru" || activeModel === "teacher";
+  const isMaleTeacherActive = effCode === "maleteacher" || activeModel === "chitose" || activeModel === "maleteacher";
 
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const n = (v.name || "").toLowerCase();
-        return (
-          (n.includes("jenny") || n.includes("aria") || n.includes("google us english") || n.includes("samantha") || n.includes("zira")) &&
-          !isMaleVoice(v)
-        );
-      });
-    }
+    if (isSpongeBobActive) {
+      // ── SPONGEBOB DEDICATED YOUTHFUL BOY VOICE LOCK ──
+      // Force SpongeBob youthful cartoon boy voice using the deterministic scoring resolver.
+      // Strictly ignores any previously selected female or generic voice.
+      targetVoice = selectSpongeBobBoyVoice(voices);
 
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const n = (v.name || "").toLowerCase();
-        const l = (v.lang || "").toLowerCase();
-        return l.startsWith("en") && isFemaleVoice(v) && (n.includes("natural") || n.includes("online") || n.includes("google"));
-      });
-    }
+      // Adaptive base pitch: if selected voice is deeper (e.g. David/Mark), lift pitch slightly more (1.22)
+      // If naturally youthful (Guy/Ryan/Alex/Daniel), use sweet youthful pitch (1.18)
+      const vName = (targetVoice?.name || "").toLowerCase();
+      const isDeeperVoice = vName.includes("david") || vName.includes("mark");
+      const basePitch = isDeeperVoice ? 1.22 : 1.18;
 
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const l = (v.lang || "").toLowerCase();
-        return l.startsWith("en") && isFemaleVoice(v);
-      });
-    }
+      const intonation = getSpongeBobIntonation(utterance.text || "");
+      utterance.pitch = Math.max(1.00, Math.min(1.30, basePitch + intonation.pitchOffset));
+      utterance.rate = Math.max(0.90, Math.min(1.15, 1.02 * (settings.rateMultiplier || 1.0) * speedMultiplier + intonation.rateOffset));
+    } else if (isShizukuActive) {
+      // ── SHIZUKA / SHIZUKU DEDICATED AVATAR VOICE LOCK ──
+      // Force Shizuka female cheerful voice using the deterministic scoring resolver.
+      // Strictly ignores any previously selected male voice.
+      targetVoice = selectShizukuFemaleVoice(voices);
+      utterance.pitch = 1.22;
+      utterance.rate = 1.04 * (settings.rateMultiplier || 1.0) * speedMultiplier;
+    } else if (isDoraemonActive) {
+      // ── DORAEMON DEDICATED ROBOTIC MALE AVATAR VOICE LOCK ──
+      // Force Doraemon robotic male voice with kind, gentle, humble, and mischievous cadence
+      targetVoice = selectDoraemonRoboticVoice(voices);
 
-    if (!targetVoice || isMaleVoice(targetVoice)) {
-      if (!targetVoice && voices.length > 0) targetVoice = voices[0];
-      utterance.pitch = Math.max(1.50, settings.pitch * 1.15);
-      utterance.rate = Math.min(1.22, utterance.rate * 1.08);
-    }
-  }
+      const vName = (targetVoice?.name || "").toLowerCase();
+      const isHardwareRobot = vName.includes("robot") || vName.includes("zarvox") || vName.includes("trinoids") || vName.includes("android");
+      const isDeepMale = vName.includes("david") || vName.includes("george") || vName.includes("ravi");
+      const basePitch = isHardwareRobot ? 1.00 : isDeepMale ? 1.07 : 1.05;
 
-  // ─────────────────────────────────────────────────────────────
-  // ARCHETYPE 2: JOLLY INDIAN CARTOON FRIEND (Motu)
-  // ─────────────────────────────────────────────────────────────
-  else if (isMotu) {
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (
-        l.includes("in") ||
-        n.includes("indian") ||
-        n.includes("hindi") ||
-        INDIAN_VOICE_NAMES.some((k) => n.includes(k))
-      );
-    });
+      const intonation = getDoraemonIntonation(utterance.text || "");
+      utterance.pitch = Math.max(0.96, Math.min(1.22, basePitch + intonation.pitchOffset));
+      utterance.rate = Math.max(0.92, Math.min(1.15, 1.03 * (settings.rateMultiplier || 1.0) * speedMultiplier + intonation.rateOffset));
+      utterance.volume = 1.0;
+    } else if (isChhotaBheemActive) {
+      // ── CHHOTA BHEEM DEDICATED YOUTHFUL HERO VOICE LOCK ──
+      // Force Chhota Bheem youthful Indian hero voice using the deterministic scoring resolver.
+      // Strictly ignores any previously selected female or generic voice.
+      targetVoice = selectChhotaBheemVoice(voices);
 
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const n = (v.name || "").toLowerCase();
-        return n.includes("jenny") || n.includes("samantha") || n.includes("google us english") || n.includes("zira");
-      });
-    }
-  }
+      // Adaptive base pitch: if selected voice is deeper (e.g. David/Ravi/George), lift pitch slightly more (1.22)
+      // If naturally youthful (Guy/Ryan/Prabhat), use vibrant youthful pitch (1.18)
+      const vName = (targetVoice?.name || "").toLowerCase();
+      const isDeeperVoice = vName.includes("david") || vName.includes("ravi") || vName.includes("george");
+      const basePitch = isDeeperVoice ? 1.22 : 1.18;
 
-  // ─────────────────────────────────────────────────────────────
-  // ARCHETYPE 3: ACADEMIC MENTOR (Shizuku)
-  // ─────────────────────────────────────────────────────────────
-  else if (isShizuku) {
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      return (
-        (n.includes("jenny") || n.includes("sonia") || n.includes("samantha") || n.includes("google us english") || n.includes("zira")) &&
-        !isMaleVoice(v)
-      );
-    });
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const l = (v.lang || "").toLowerCase();
-        return l.startsWith("en") && isFemaleVoice(v);
-      });
-    }
-  }
+      const intonation = getChhotaBheemIntonation(utterance.text || "");
+      utterance.pitch = Math.max(1.05, Math.min(1.32, basePitch + intonation.pitchOffset));
+      utterance.rate = Math.max(0.92, Math.min(1.15, 1.03 * (settings.rateMultiplier || 1.0) * speedMultiplier + intonation.rateOffset));
+    } else if (isBenTenActive) {
+      // ── BEN 10 DEDICATED YOUTHFUL HERO VOICE LOCK ──
+      // Force Ben 10 youthful American male hero voice using the deterministic scoring resolver.
+      // Strictly ignores any previously selected female or generic voice.
+      targetVoice = selectBenTenBoyVoice(voices);
 
-  // ─────────────────────────────────────────────────────────────
-  // ── REGIONAL VOICE 1: US MALE (American Male / Chitose) ──
-  // ─────────────────────────────────────────────────────────────
-  else if (lowerCode === "us male" || lowerCode === "chitose") {
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (l === "en-us" || l === "en_us") && isMaleVoice(v) &&
-        (n.includes("guy") || n.includes("david") || n.includes("mark") || n.includes("natural") || n.includes("online") || n.includes("google"));
-    });
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const l = (v.lang || "").toLowerCase();
-        return (l === "en-us" || l === "en_us") && isMaleVoice(v);
-      });
-    }
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && isMaleVoice(v));
-    }
-  }
+      // Adaptive base pitch: if selected voice is deeper (e.g. David/Mark), lift pitch slightly more (1.20)
+      // If naturally youthful (Guy/Eric/Christopher/Alex), use sweet youthful heroic pitch (1.18)
+      const vName = (targetVoice?.name || "").toLowerCase();
+      const isDeeperVoice = vName.includes("david") || vName.includes("mark");
+      const basePitch = isDeeperVoice ? 1.20 : 1.18;
 
-  // ─────────────────────────────────────────────────────────────
-  // ── REGIONAL VOICE 2: US FEMALE (American Female / Haru) ──
-  // ─────────────────────────────────────────────────────────────
-  else if (lowerCode === "us female" || lowerCode === "haru") {
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (l === "en-us" || l === "en_us") && isFemaleVoice(v) &&
-        (n.includes("jenny") || n.includes("aria") || n.includes("zira") || n.includes("samantha") || n.includes("natural") || n.includes("online") || n.includes("google"));
-    });
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const l = (v.lang || "").toLowerCase();
-        return (l === "en-us" || l === "en_us") && isFemaleVoice(v);
-      });
-    }
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && isFemaleVoice(v));
-    }
-  }
+      const intonation = getBenTenIntonation(utterance.text || "");
+      utterance.pitch = Math.max(1.05, Math.min(1.30, basePitch + intonation.pitchOffset));
+      utterance.rate = Math.max(0.92, Math.min(1.15, 1.03 * (settings.rateMultiplier || 1.0) * speedMultiplier + intonation.rateOffset));
+    } else if (isNinjaHattoriActive) {
+      // ── NINJA HATTORI DEDICATED YOUTHFUL HERO VOICE LOCK ──
+      // Force Ninja Hattori youthful English male hero voice using the deterministic scoring resolver.
+      // Strictly ignores any previously selected female or generic voice.
+      targetVoice = selectNinjaHattoriVoice(voices);
 
-  // ─────────────────────────────────────────────────────────────
-  // ── REGIONAL VOICE 3: UK MALE (British Male) ──
-  // ─────────────────────────────────────────────────────────────
-  else if (lowerCode === "uk male") {
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (l.includes("gb") || l.includes("uk") || n.includes("british") || n.includes("united kingdom")) && isMaleVoice(v) &&
-        (n.includes("george") || n.includes("ryan") || n.includes("oliver") || n.includes("daniel") || n.includes("natural") || n.includes("online") || n.includes("google"));
-    });
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const n = (v.name || "").toLowerCase();
-        const l = (v.lang || "").toLowerCase();
-        return (l.includes("gb") || l.includes("uk") || n.includes("british") || n.includes("united kingdom")) && isMaleVoice(v);
-      });
-    }
-    if (!targetVoice) {
-      // Fallback: Use male voice with explicit British acoustic tuning
-      targetVoice = voices.find((v) => isMaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
-      utterance.pitch = 0.88;
-      utterance.rate = 0.94 * speedMultiplier;
-    }
-  }
+      // Adaptive base pitch: if selected voice is deeper (e.g. David/Mark), lift pitch slightly more (1.22)
+      // If naturally youthful (Guy/Eric/Ryan/Alex/Daniel), use sweet youthful heroic pitch (1.19)
+      const vName = (targetVoice?.name || "").toLowerCase();
+      const isDeeperVoice = vName.includes("david") || vName.includes("mark");
+      const basePitch = isDeeperVoice ? 1.22 : 1.19;
 
-  // ─────────────────────────────────────────────────────────────
-  // ── REGIONAL VOICE 4: UK FEMALE (British Female) ──
-  // ─────────────────────────────────────────────────────────────
-  else if (lowerCode === "uk female") {
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (l.includes("gb") || l.includes("uk") || n.includes("british") || n.includes("united kingdom")) && isFemaleVoice(v) &&
-        (n.includes("sonia") || n.includes("hazel") || n.includes("susan") || n.includes("libby") || n.includes("mia") || n.includes("natural") || n.includes("online") || n.includes("google"));
-    });
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const n = (v.name || "").toLowerCase();
-        const l = (v.lang || "").toLowerCase();
-        return (l.includes("gb") || l.includes("uk") || n.includes("british") || n.includes("united kingdom")) && isFemaleVoice(v);
-      });
-    }
-    if (!targetVoice) {
-      // Fallback: Use female voice with explicit British acoustic tuning
-      targetVoice = voices.find((v) => isFemaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
-      utterance.pitch = 1.15;
-      utterance.rate = 0.95 * speedMultiplier;
-    }
-  }
+      const intonation = getNinjaHattoriIntonation(utterance.text || "");
+      utterance.pitch = Math.max(1.05, Math.min(1.30, basePitch + intonation.pitchOffset));
+      utterance.rate = Math.max(0.92, Math.min(1.15, 1.04 * (settings.rateMultiplier || 1.0) * speedMultiplier + intonation.rateOffset));
+    } else if (isScoobyActive) {
+      // ── SCOOBY-DOO DEDICATED CARTOON-DOG VOICE LOCK ──
+      // Force Scooby-Doo warm, playful, goofy cartoon dog voice using deterministic scoring resolver.
+      // Strictly ignores any previously selected female or generic voice.
+      targetVoice = selectScoobyVoice(voices);
 
-  // ─────────────────────────────────────────────────────────────
-  // ── REGIONAL VOICE 5: AU MALE (Australian Male) ──
-  // ─────────────────────────────────────────────────────────────
-  else if (lowerCode === "au male") {
-    utterance.lang = "en-AU";
-    // 1. Native Australian male voices (MUST NOT match Indian voices)
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      return isAustralianVoice(v) && isMaleVoice(v) && !isIndianVoice(v) &&
-        (n.includes("james") || n.includes("william") || n.includes("russell") || n.includes("wayne") || n.includes("jack") || n.includes("darren") || n.includes("natural") || n.includes("online") || n.includes("google"));
-    });
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => isAustralianVoice(v) && isMaleVoice(v) && !isIndianVoice(v));
-    }
-    // 2. Commonwealth / British male voices (closest accent to Australian, NEVER Indian)
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => isBritishVoice(v) && isMaleVoice(v) && !isIndianVoice(v));
-    }
-    // 3. Any non-Indian English male voice that is not David (e.g. Guy, Mark, Alex, Tom)
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const n = (v.name || "").toLowerCase();
-        const l = (v.lang || "").toLowerCase();
-        return l.startsWith("en") && isMaleVoice(v) && !isIndianVoice(v) && !n.includes("david");
-      });
-    }
-    // 4. Fallback: English male voice that is STRICTLY NOT INDIAN
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => isMaleVoice(v) && !isIndianVoice(v));
+      // Adaptive base pitch:
+      // If selected voice is naturally deep (e.g. David/George/Oliver), pitch = 0.95 to avoid over-lowering
+      // If naturally lighter/youthful (Guy/Eric/Christopher/Mark/Alex), pitch = 0.92 for warm cartoon dog warmth
+      const vName = (targetVoice?.name || "").toLowerCase();
+      const isDeeperVoice = vName.includes("david") || vName.includes("george") || vName.includes("oliver");
+      const basePitch = isDeeperVoice ? 0.95 : 0.92;
+
+      const intonation = getScoobyIntonation(utterance.text || "");
+      utterance.pitch = Math.max(0.85, Math.min(1.02, basePitch + intonation.pitchOffset));
+      utterance.rate = Math.max(0.88, Math.min(1.02, 0.94 * (settings.rateMultiplier || 1.0) * speedMultiplier + intonation.rateOffset));
+      utterance.volume = 1.0;
+    } else if (isTomActive) {
+      // ── TOM DEDICATED CARTOON CAT VOICE LOCK ──
+      // Force Tom playful, witty classic cartoon cat male voice using deterministic scoring resolver.
+      // Strictly ignores any previously selected female or generic voice.
+      targetVoice = selectTomVoice(voices);
+
+      const vName = (targetVoice?.name || "").toLowerCase();
+      const isDeeperVoice = vName.includes("david") || vName.includes("mark");
+      const basePitch = isDeeperVoice ? 1.22 : 1.20;
+
+      const intonation = getTomIntonation(utterance.text || "");
+      utterance.pitch = Math.max(1.05, Math.min(1.30, basePitch + intonation.pitchOffset));
+      utterance.rate = Math.max(0.92, Math.min(1.15, 1.04 * (settings.rateMultiplier || 1.0) * speedMultiplier + intonation.rateOffset));
+    } else if (isTeacherActive) {
+      // ── TEACHER DEDICATED FEMALE COACH VOICE LOCK ──
+      // Force Teacher articulate, warm, approachable female voice using deterministic scoring resolver.
+      // Strictly ignores any previously selected male voice.
+      targetVoice = selectTeacherFemaleVoice(voices);
       utterance.pitch = 1.12;
-      utterance.rate = 1.08 * speedMultiplier;
+      utterance.rate = 0.98 * (settings.rateMultiplier || 1.0) * speedMultiplier;
+      utterance.volume = 1.0;
+    } else if (isMaleTeacherActive) {
+      // ── MALE TEACHER DEDICATED MALE COACH VOICE LOCK ──
+      // Force Male Teacher articulate, calm, approachable male voice using deterministic scoring resolver.
+      // Strictly ignores any previously selected female voice.
+      targetVoice = selectMaleTeacherVoice(voices);
+      const intonation = getMaleTeacherIntonation(utterance.text || "");
+      const vName = (targetVoice?.name || "").toLowerCase();
+      const isDeeperVoice = vName.includes("david") || vName.includes("george");
+      const basePitch = isDeeperVoice ? 1.00 : 0.98;
+
+      utterance.pitch = Math.max(0.92, Math.min(1.08, basePitch + intonation.pitchOffset));
+      utterance.rate = Math.max(0.88, Math.min(1.05, 0.96 * (settings.rateMultiplier || 1.0) * speedMultiplier + intonation.rateOffset));
+      utterance.volume = 1.0;
     } else {
-      utterance.pitch = 1.08;
-      utterance.rate = 1.06 * speedMultiplier;
-    }
-  }
+      // 1. Explicit user selection by voice name
+      if (settings.selectedVoiceName) {
+        targetVoice = voices.find((v) => v.name === settings.selectedVoiceName);
+      }
 
-  // ─────────────────────────────────────────────────────────────
-  // ── REGIONAL VOICE 6: AU FEMALE (Australian Female) ──
-  // ─────────────────────────────────────────────────────────────
-  else if (lowerCode === "au female") {
-    utterance.lang = "en-AU";
-    // 1. Native Australian female voices (MUST NOT match Indian voices)
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      return isAustralianVoice(v) && isFemaleVoice(v) && !isIndianVoice(v) &&
-        (n.includes("catherine") || n.includes("natasha") || n.includes("annette") || n.includes("karen") || n.includes("natural") || n.includes("online") || n.includes("google"));
-    });
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => isAustralianVoice(v) && isFemaleVoice(v) && !isIndianVoice(v));
-    }
-    // 2. Commonwealth / British female voices (NEVER Indian)
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => isBritishVoice(v) && isFemaleVoice(v) && !isIndianVoice(v));
-    }
-    // 3. Any non-Indian English female voice
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const l = (v.lang || "").toLowerCase();
-        return l.startsWith("en") && isFemaleVoice(v) && !isIndianVoice(v);
-      });
-    }
-    utterance.pitch = 1.22;
-    utterance.rate = 1.05 * speedMultiplier;
-  }
+      const isMale = settings.gender === "male";
+      const targetLangPrefix = settings.lang.toLowerCase(); // e.g. "en-us", "en-gb", "en-au", "en-in"
+      const langBase = settings.lang.split("-")[0].toLowerCase(); // "en"
 
-  // ─────────────────────────────────────────────────────────────
-  // ── REGIONAL VOICE 7: IN MALE (Indian Male) ──
-  // ─────────────────────────────────────────────────────────────
-  else if (lowerCode === "in male") {
-    utterance.lang = "en-IN";
-    // 1. Native Indian male voices
-    targetVoice = voices.find((v) => isIndianVoice(v) && isMaleVoice(v) &&
-      (v.name.toLowerCase().includes("prabhat") || v.name.toLowerCase().includes("ravi") || v.name.toLowerCase().includes("rishi") || v.name.toLowerCase().includes("natural") || v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("google")));
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => isIndianVoice(v) && isMaleVoice(v));
-    }
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => isIndianVoice(v) && !isFemaleVoice(v));
-    }
-    if (!targetVoice) {
-      // Fallback: Male voice with explicit Indian acoustic calibration
-      targetVoice = voices.find((v) => isMaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
-      utterance.pitch = 0.96;
-      utterance.rate = 0.96 * speedMultiplier;
-    }
-  }
+      // Profile-specific voice lists
+      const US_MALE = ["guy", "david", "mark", "alex", "us male", "en-us"];
+      const US_FEMALE = ["jenny", "zira", "samantha", "us female", "en-us"];
+      const UK_MALE = ["ryan", "george", "oliver", "daniel", "malcolm", "uk male", "british", "en-gb", "en_gb", "united kingdom"];
+      const UK_FEMALE = ["sonia", "hazel", "fiona", "kate", "serena", "libby", "mia", "uk female", "british", "en-gb", "en_gb", "united kingdom"];
+      const AU_MALE = ["william", "russell", "au male", "australian", "en-au", "en_au", "australia"];
+      const AU_FEMALE = ["natasha", "catherine", "karen", "annette", "au female", "australian", "en-au", "en_au", "australia"];
+      const IN_MALE = ["prabhat", "rishi", "ravi", "in male", "indian", "en-in", "en_in"];
+      const IN_FEMALE = ["neerja", "veena", "heera", "kalpana", "ananya", "in female", "indian", "en-in", "en_in", "hindi"];
 
-  // ─────────────────────────────────────────────────────────────
-  // ── REGIONAL VOICE 8: IN FEMALE (Indian Female) ──
-  // ─────────────────────────────────────────────────────────────
-  else if (lowerCode === "in female") {
-    utterance.lang = "en-IN";
-    // 1. Native Indian female voices
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      return isIndianVoice(v) && (isFemaleVoice(v) || n.includes("हिन्दी") || n.includes("hindi") || n.includes("neerja") || n.includes("heera") || n.includes("veena") || n.includes("swara") || n.includes("kalpana") || n.includes("ananya") || n.includes("geeta") || n.includes("priya") || n.includes("aditi") || n.includes("google"));
-    });
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => isIndianVoice(v) && !isMaleVoice(v));
-    }
-    // 2. If OS only has an Indian voice that is marked male, pitch-shift it to female so it keeps authentic Indian phonetics
-    if (!targetVoice) {
-      const anyIndianVoice = voices.find((v) => isIndianVoice(v));
-      if (anyIndianVoice) {
-        targetVoice = anyIndianVoice;
-        utterance.pitch = 1.34;
-        utterance.rate = 0.94 * speedMultiplier;
+      const MALE_NAMES = ["guy", "david", "mark", "alex", "tom", "chris", "george", "james", "ryan", "oliver", "daniel", "william", "russell", "prabhat", "rishi", "ravi", "male"];
+      const FEMALE_NAMES = ["jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia", "hazel", "fiona", "kate", "serena", "natasha", "catherine", "libby", "mia", "annette", "neerja", "veena", "heera", "female"];
+
+      // Profile-driven targeted voice matching for AU Female (Explicitly excludes Indian & US female voices)
+      if (settings.effectiveVoiceCode === "AU Female") {
+        const EXCLUDE_IN_FEMALES = ["neerja", "veena", "heera", "kalpana", "ananya", "indian", "in-in", "zira", "jenny", "david", "guy"];
+        targetVoice = voices.find((v) =>
+          (v.lang.toLowerCase().includes("au") || v.name.toLowerCase().includes("australia") || AU_FEMALE.some((k) => v.name.toLowerCase().includes(k))) &&
+          !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) &&
+          !EXCLUDE_IN_FEMALES.some((k) => v.name.toLowerCase().includes(k))
+        );
+        if (!targetVoice) {
+          targetVoice = voices.find((v) =>
+            AU_FEMALE.some((k) => v.name.toLowerCase().includes(k)) &&
+            !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) &&
+            !EXCLUDE_IN_FEMALES.some((k) => v.name.toLowerCase().includes(k))
+          );
+        }
+        if (!targetVoice) {
+          targetVoice = voices.find((v) =>
+            v.lang.toLowerCase().includes("au") &&
+            !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+          );
+        }
+        if (!targetVoice) {
+          targetVoice = voices.find((v) =>
+            !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) &&
+            !EXCLUDE_IN_FEMALES.some((k) => v.name.toLowerCase().includes(k))
+          );
+        }
+      } else if (settings.effectiveVoiceCode === "IN Female") {
+        targetVoice = voices.find((v) =>
+          (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("indian") || v.name.toLowerCase().includes("veena") || v.name.toLowerCase().includes("neerja") || v.name.toLowerCase().includes("heera")) &&
+          !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+        );
+        if (!targetVoice) {
+          targetVoice = voices.find((v) => v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("jenny")) ||
+                        voices.find((v) => FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+        }
+      } else if (settings.effectiveVoiceCode === "UK Female") {
+        targetVoice = voices.find((v) =>
+          (v.lang.toLowerCase().includes("gb") || v.name.toLowerCase().includes("uk") || v.name.toLowerCase().includes("british")) &&
+          (FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) || UK_FEMALE.some((k) => v.name.toLowerCase().includes(k))) &&
+          !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+        ) || voices.find((v) => UK_FEMALE.some((k) => v.name.toLowerCase().includes(k)))
+          || voices.find((v) => v.lang.toLowerCase().includes("gb") && !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+      } else if (settings.effectiveVoiceCode === "UK Male") {
+        targetVoice = voices.find((v) =>
+          (v.lang.toLowerCase().includes("gb") || v.name.toLowerCase().includes("uk") || v.name.toLowerCase().includes("british")) &&
+          (MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) || UK_MALE.some((k) => v.name.toLowerCase().includes(k))) &&
+          !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+        ) || voices.find((v) => UK_MALE.some((k) => v.name.toLowerCase().includes(k)))
+          || voices.find((v) => v.lang.toLowerCase().includes("gb") && !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+      } else if (settings.effectiveVoiceCode === "AU Male") {
+        targetVoice = voices.find((v) =>
+          (v.lang.toLowerCase().includes("au") || AU_MALE.some((k) => v.name.toLowerCase().includes(k))) &&
+          !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+        );
+        if (!targetVoice) {
+          targetVoice = voices.find((v) => v.name.toLowerCase().includes("mark") || v.name.toLowerCase().includes("george") || v.name.toLowerCase().includes("chris") || v.name.toLowerCase().includes("alex")) ||
+                        voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+        }
+      } else if (settings.effectiveVoiceCode === "US Male") {
+        targetVoice = voices.find((v) =>
+          v.lang.toLowerCase().includes("us") && (v.name.toLowerCase().includes("guy") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("male"))
+        ) || voices.find((v) => US_MALE.some((k) => v.name.toLowerCase().includes(k)));
+      } else if (settings.effectiveVoiceCode === "IN Male") {
+        targetVoice = voices.find((v) =>
+          (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("indian") || v.name.toLowerCase().includes("rishi") || v.name.toLowerCase().includes("prabhat")) &&
+          !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+        );
+        if (!targetVoice) {
+          targetVoice = voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+        }
+      } else if (settings.effectiveVoiceCode === "Motu") {
+        targetVoice = voices.find((v) =>
+          (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("indian") || v.name.toLowerCase().includes("rishi") || v.name.toLowerCase().includes("prabhat")) &&
+          !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+        ) || voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+      } else if (settings.effectiveVoiceCode === "Doraemon" || settings.effectiveVoiceCode === "Robo-Paws" || settings.effectiveVoiceCode === "Sparky" || settings.effectiveVoiceCode === "Haruto" || settings.effectiveVoiceCode === "Wanko" || settings.effectiveVoiceCode === "Puppy") {
+        targetVoice = voices.find((v) =>
+          v.lang.toLowerCase().includes("us") && (v.name.toLowerCase().includes("guy") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("mark") || v.name.toLowerCase().includes("alex"))
+        ) || voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+      } else if (settings.effectiveVoiceCode === "Koharu") {
+        targetVoice = voices.find((v) =>
+          v.lang.toLowerCase().includes("us") && (v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("jenny") || v.name.toLowerCase().includes("samantha"))
+        ) || voices.find((v) => FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+      }
+
+      // Generic fallbacks if targetVoice not matched above
+      if (!targetVoice) {
+        const preferredKeywords = isMale ? MALE_NAMES : FEMALE_NAMES;
+        const excludedKeywords = isMale ? FEMALE_NAMES : MALE_NAMES;
+
+        const matchesGender = (v) => {
+          const vName = v.name.toLowerCase();
+          const hasPreferred = preferredKeywords.some((k) => vName.includes(k));
+          const hasExcluded = excludedKeywords.some((k) => vName.includes(k));
+          if (hasPreferred && !hasExcluded) return true;
+          if (isMale && (vName.includes("david") || vName.includes("guy") || vName.includes("george") || vName.includes("male"))) return true;
+          if (!isMale && (vName.includes("zira") || vName.includes("jenny") || vName.includes("samantha") || vName.includes("female"))) return true;
+          return false;
+        };
+
+        targetVoice = voices.find(
+          (v) =>
+            v.lang.toLowerCase().replace("_", "-") === targetLangPrefix &&
+            (v.name.toLowerCase().includes("natural") || v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("google")) &&
+            matchesGender(v)
+        );
+
+        if (!targetVoice) {
+          targetVoice = voices.find(
+            (v) => v.lang.toLowerCase().replace("_", "-") === targetLangPrefix && matchesGender(v)
+          );
+        }
+
+        if (!targetVoice) {
+          targetVoice = voices.find(
+            (v) =>
+              v.lang.toLowerCase().replace("_", "-") === targetLangPrefix &&
+              (v.name.toLowerCase().includes("natural") || v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("google"))
+          );
+        }
+
+        if (!targetVoice) {
+          targetVoice = voices.find((v) => v.lang.toLowerCase().replace("_", "-") === targetLangPrefix);
+        }
+
+        if (!targetVoice) {
+          targetVoice = voices.find(
+            (v) => v.lang.toLowerCase().startsWith(langBase) && matchesGender(v)
+          );
+        }
+      }
+
+      // Ultimate fallback for non-Shizuku avatars
+      if (!targetVoice && voices.length > 0) {
+        targetVoice = voices[0];
       }
     }
-    // 3. Fallback: Distinct non-Australian female voice with warm Indian prosody
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => isFemaleVoice(v) && !isAustralianVoice(v));
-    }
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => isFemaleVoice(v));
-    }
-    if (utterance.pitch === settings.pitch) {
-      utterance.pitch = 0.98; // Warm, natural Indian cadence (completely distinct from AU Female's 1.22)
-      utterance.rate = 0.92 * speedMultiplier;
-    }
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // GENERIC FALLBACKS
-  // ─────────────────────────────────────────────────────────────
-  if (!targetVoice) {
-    const isTargetMale = settings.gender === "male";
-    const targetLangPrefix = (settings.lang || "en-US").toLowerCase().replace("_", "-");
-    const langBase = targetLangPrefix.split("-")[0];
-
-    targetVoice = voices.find((v) => {
-      const l = (v.lang || "").toLowerCase().replace("_", "-");
-      const matchG = isTargetMale ? isMaleVoice(v) : isFemaleVoice(v);
-      return l === targetLangPrefix && matchG;
-    });
-
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const l = (v.lang || "").toLowerCase().replace("_", "-");
-        return l === targetLangPrefix;
-      });
-    }
-
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const l = (v.lang || "").toLowerCase();
-        const matchG = isTargetMale ? isMaleVoice(v) : isFemaleVoice(v);
-        return l.startsWith(langBase) && matchG;
-      });
-    }
-
-    if (!targetVoice && voices.length > 0) {
-      if (!isTargetMale) {
-        targetVoice = voices.find((v) => isFemaleVoice(v)) || voices[0];
-      } else {
-        targetVoice = voices.find((v) => isMaleVoice(v)) || voices[0];
-      }
-    }
-  }
 
   if (targetVoice) {
     utterance.voice = targetVoice;
 
-    // Safety pitch adjustment ONLY if target voice gender mismatches character:
-    const voiceIsActuallyMale = isMaleVoice(targetVoice);
-    const charIsMale = settings.gender === "male";
-
-    if (isCuteCartoonOrKid) {
-      if (voiceIsActuallyMale) {
-        utterance.pitch = Math.max(1.48, utterance.pitch * 1.15);
+      if (!isShizukuActive && !isDoraemonActive && !isSpongeBobActive && !isChhotaBheemActive && !isBenTenActive && !isNinjaHattoriActive && !isScoobyActive && !isTomActive && !isTeacherActive && !isMaleTeacherActive) {
+        // Fine-tune pitch for smooth natural clarity if fallback voice doesn't match gender
+        const FEMALE_NAMES = ["jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia", "hazel", "fiona", "kate", "serena", "natasha", "catherine", "libby", "mia", "annette", "neerja", "veena", "heera", "female"];
+        const MALE_NAMES = ["guy", "david", "mark", "alex", "tom", "chris", "george", "james", "ryan", "oliver", "daniel", "william", "russell", "prabhat", "rishi", "ravi", "male"];
+        const isMale = settings.gender === "male";
+        const voiceIsFemale = FEMALE_NAMES.some((k) => targetVoice.name.toLowerCase().includes(k));
+        const voiceIsMale = MALE_NAMES.some((k) => targetVoice.name.toLowerCase().includes(k));
+        if (isMale && voiceIsFemale) {
+          utterance.pitch = 0.88; // Subtle pitch-shift down for masculine depth
+        } else if (!isMale && voiceIsMale) {
+          utterance.pitch = 1.12; // Subtle pitch-shift up for feminine clarity
+        }
       }
-    } else if (!charIsMale && voiceIsActuallyMale) {
-      utterance.pitch = Math.max(1.30, utterance.pitch * 1.15);
-    } else if (charIsMale && !voiceIsActuallyMale) {
-      utterance.pitch = Math.min(0.85, utterance.pitch * 0.90);
-    }
   }
+};
+
+export const stopSpeaking = () => {
+  if (typeof window === "undefined") return;
+  try {
+    if (window._activeUtterance) {
+      window._activeUtterance.onstart = null;
+      window._activeUtterance.onboundary = null;
+      window._activeUtterance.onend = null;
+      window._activeUtterance.onerror = null;
+      window._activeUtterance = null;
+    }
+    if (typeof window._activeCleanupKeepAlive === "function") {
+      window._activeCleanupKeepAlive();
+      window._activeCleanupKeepAlive = null;
+    }
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  } catch (_) {}
+  window._speakmate_ai_is_speaking = false;
+  EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
 };
 
 export const warmupSpeechAutoplay = () => {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   try {
-    window.speechSynthesis.resume();
-    const dummy = new SpeechSynthesisUtterance(" ");
-    dummy.volume = 0.01;
-    dummy.rate = 10;
-    window.speechSynthesis.speak(dummy);
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
   } catch (_) {}
 };
 
@@ -723,6 +2184,10 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return null;
 
   try {
+    if (typeof window._activeCleanupKeepAlive === "function") {
+      window._activeCleanupKeepAlive();
+      window._activeCleanupKeepAlive = null;
+    }
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
@@ -736,9 +2201,6 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
     .trim();
   if (!cleanText) return null;
 
-  // Global Speech Lock flag
-  window._speakmate_ai_is_speaking = true;
-
   let keepAliveInterval = null;
   let wordTickerInterval = null;
 
@@ -749,7 +2211,7 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
     let wordIdx = 0;
     const intervalMs = Math.max(180, Math.min(340, Math.round(230 / (speedMultiplier || 1.0))));
 
-    // Emit initial word viseme immediately
+    // Emit initial word viseme immediately upon actual utterance playback start
     const firstWord = words[wordIdx++];
     const firstViseme = getPrimaryVisemeForWord(firstWord);
     EventBus.emit(AVATAR_EVENTS.LIP_SYNC_UPDATE, {
@@ -778,8 +2240,6 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
     }, intervalMs);
   };
 
-  EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText, speed: speedMultiplier });
-
   // Chrome keep-alive heartbeat (safely resumes without interrupting speech)
   keepAliveInterval = setInterval(() => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -799,12 +2259,23 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
       wordTickerInterval = null;
     }
     window._activeUtterance = null;
+    window._activeCleanupKeepAlive = null;
   };
+  window._activeCleanupKeepAlive = cleanupKeepAlive;
 
-  const utterance = new SpeechSynthesisUtterance(cleanText);
+  // Phonetic TTS pronunciation normalizations
+  // Maps "Doraemon" to "Dohraymon" so the speech synthesizer articulates the exact authentic pronunciation with zero awkward "Dora-E-mon" split
+  const spokenText = cleanText
+    .replace(/\bDoraemon\b/g, "Dohraymon")
+    .replace(/\bdoraemon\b/g, "dohraymon")
+    .replace(/\bDoremon\b/g, "Dohraymon")
+    .replace(/\bdoremon\b/g, "dohraymon");
+
+  const utterance = new SpeechSynthesisUtterance(spokenText);
   window._activeUtterance = utterance;
 
   utterance.onstart = (e) => {
+    // Only lock and start lip sync when audio words physically begin playing from the speaker!
     window._speakmate_ai_is_speaking = true;
     EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText, speed: speedMultiplier });
     startWordTicker();
@@ -829,13 +2300,10 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
 
   const handleFinish = () => {
     cleanupKeepAlive();
-    setTimeout(() => {
-      if (!window.speechSynthesis?.speaking && !window.speechSynthesis?.pending) {
-        window._speakmate_ai_is_speaking = false;
-      }
-      EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
-      if (options.onend) options.onend();
-    }, 200);
+    // Instantly unlock speech flag and trigger SPEECH_FINISHED with 0ms delay so mouth snaps shut
+    window._speakmate_ai_is_speaking = false;
+    EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
+    if (options.onend) options.onend();
   };
 
   utterance.onend = () => {
@@ -853,7 +2321,7 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
         window.speechSynthesis.cancel();
       }
       window.speechSynthesis.resume();
-      applyGlobalVoiceSettings(utterance, speedMultiplier, options.overrideVoiceCode);
+      applyGlobalVoiceSettings(utterance, speedMultiplier, options.overrideVoiceCode, options.avatarModel);
       window.speechSynthesis.speak(utterance);
       setTimeout(() => {
         if (window.speechSynthesis.paused) {
@@ -923,11 +2391,10 @@ export async function speakGlobalSequential(segments = [], speedMultiplier = 1.0
 export function getCurrentVoiceGender() {
   if (typeof window === 'undefined') return 'female';
   try {
-    const model = localStorage.getItem('speakmate_avatar_model');
-    if (model) {
-      const av = getAvatarById(model);
-      if (av?.id) return av.id;
-    }
+    const currentAvatarModel = (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase();
+    if (currentAvatarModel === "shizuku" || currentAvatarModel === "shizuka") return "female";
+    if (currentAvatarModel === "robopaws" || currentAvatarModel === "doraemon") return "male";
+    if (currentAvatarModel === "sparky" || currentAvatarModel === "bheem" || currentAvatarModel === "chhotabheem" || currentAvatarModel === "spongebob" || currentAvatarModel === "mao" || currentAvatarModel === "ben" || currentAvatarModel === "ben10" || currentAvatarModel === "koharu" || currentAvatarModel === "hattori" || currentAvatarModel === "ninjahattori" || currentAvatarModel === "haruto" || currentAvatarModel === "tom" || currentAvatarModel === "puppy" || currentAvatarModel === "wanko" || currentAvatarModel === "dog" || currentAvatarModel === "scooby" || currentAvatarModel === "scoobydoo" || currentAvatarModel === "chitose" || currentAvatarModel === "maleteacher") return "male";
 
     const directGender = localStorage.getItem('speakmate_voice_gender');
     if (directGender) return directGender;
@@ -939,8 +2406,8 @@ export function getCurrentVoiceGender() {
       localStorage.getItem('speakmate_voice_persona');
 
     if (savedVoice) {
-      if (savedVoice === 'robopaws' || savedVoice === 'Robo-Paws' || savedVoice.toLowerCase().includes('robo')) {
-        return 'robopaws';
+      if (savedVoice === 'robopaws' || savedVoice === 'Robo-Paws' || savedVoice === 'doraemon' || savedVoice === 'Doraemon' || savedVoice.toLowerCase().includes('robo') || savedVoice.toLowerCase().includes('doraemon')) {
+        return 'male';
       }
       const match = VOICE_PROFILES.find((p) => p.code === savedVoice || p.label === savedVoice);
       if (match?.gender) return match.gender;

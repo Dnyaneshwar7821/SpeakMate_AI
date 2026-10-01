@@ -19,8 +19,8 @@ const FEATURES = [
   {
     icon: "🎴",
     badge: "Gamified",
-    title: "3D Flashcards & Daily Drills",
-    desc: "Master CEFR A1-C2 vocabulary with interactive 3D flip card decks, pronunciation playback, and daily XP streak rewards.",
+    title: "Vocabulary Builder & Daily Drills",
+    desc: "Master CEFR A1-C2 vocabulary with interactive practice card decks, pronunciation playback, and daily XP streak rewards.",
   },
   {
     icon: "🌍",
@@ -77,7 +77,7 @@ export function LandingPage() {
             </h1>
 
             <p className="text-base sm:text-lg text-[var(--text-secondary)] max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
-              Engage in live voice conversations with intelligent AI avatars, receive spoken grammar corrections, master CEFR vocabulary with 3D flashcards, and build a daily speaking habit.
+              Engage in live voice conversations with intelligent AI avatars, receive spoken grammar corrections, master CEFR vocabulary with interactive builder cards, and build a daily speaking habit.
             </p>
 
             {/* Action Buttons */}

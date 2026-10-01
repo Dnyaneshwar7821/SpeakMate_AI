@@ -228,15 +228,49 @@ export function Profile() {
       return;
     }
     setPlayingTutor(av.id);
-    const greetingText = av.previewGreeting || `Hello! I'm ${av.name}, your AI speaking coach. Let's practice English together!`;
+    const greetingText =
+      av.id === 'spongebob'
+        ? "Hey! It's really nice to meet you! Let's practice English together!"
+        : (av.id === 'sparky' || av.id === 'bheem' || av.id === 'chhotabheem')
+        ? "Hello! I am Chhota Bheem from Dholakpur! Let's practice English together!"
+        : (av.id === 'mao' || av.id === 'ben' || av.id === 'ben10')
+        ? "Hello! I'm Ben 10! It's hero time! Let's practice English together!"
+        : (av.id === 'robopaws' || av.id === 'doraemon')
+        ? "Hii, I am Dohraymon, your AI speaking coach. Let's practice English together!"
+        : (av.id === 'shizuku' || av.id === 'shizuka')
+        ? "Hii, I am Shizuka, your AI speaking coach. Let's practice English together!"
+        : (av.id === 'koharu' || av.id === 'hattori' || av.id === 'ninjahattori')
+        ? "Hello! I am Ninja Hattori from Iga! Let's practice English together with ninja speed!"
+        : (av.id === 'haruto' || av.id === 'tom')
+        ? "Hey there! I'm Tom! Let's have fun and practice speaking English together!"
+        : (av.id === 'puppy' || av.id === 'wanko' || av.id === 'scoobydoo' || av.id === 'scooby')
+        ? (av.previewGreeting || "Ruh-roh! Hello! I'm Scooby-Doo! Let's practice English and solve some mysteries together!")
+        : (av.id === 'haru' || av.id === 'teacher')
+        ? "Hello! Welcome to SpeakMate. Today, we are going to practice speaking clearly and confidently."
+        : (av.id === 'chitose' || av.id === 'maleteacher')
+        ? "Hello! Welcome to SpeakMate. Today, we are going to practice speaking clearly and confidently in English."
+        : (av.previewGreeting || `Hii, I am ${av.name}, your AI speaking coach. Let's practice English together!`);
+
     speakGlobalText(greetingText, 1.0, {
       overrideVoiceCode: av.voiceProfile,
+      avatarModel: av.id,
       onend: () => setPlayingTutor(null),
       onerror: () => setPlayingTutor(null),
     });
   };
 
   const handleSelectTutor = (avatarInput) => {
+    // 1. Safe Speech Interruption: Cancel any active speech immediately
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+        window._speakmate_ai_is_speaking = false;
+        window._activeUtterance = null;
+      } catch (e) {}
+    }
+    // Return lip-sync system to resting smile state
+    EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
+
     const entry = typeof avatarInput === "object" ? avatarInput : getAvatarById(avatarInput);
     const model = entry.id;
     const gender = entry.gender;
@@ -841,8 +875,22 @@ export function Profile() {
               return (
                 <div className="p-6 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] shadow-inner flex flex-col sm:flex-row items-center justify-between gap-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#6C63FF] to-[#FF6584] text-white grid place-items-center text-3xl shadow-lg shrink-0">
-                      {activeTutorObj.emoji}
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[var(--bg-surface)] border-2 border-[#6C63FF]/30 grid place-items-center shadow-lg shrink-0 overflow-hidden relative">
+                      {activeTutorObj.thumbnail ? (
+                        <img
+                          src={activeTutorObj.thumbnail}
+                          alt={activeTutorObj.name}
+                          className="w-full h-full object-cover select-none pointer-events-none"
+                          style={{
+                            objectPosition: activeTutorObj.thumbnailPosition || "center",
+                            transform: activeTutorObj.thumbnailScale && activeTutorObj.thumbnailScale !== 1.0 ? `scale(${activeTutorObj.thumbnailScale})` : undefined,
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-tr from-[#6C63FF] to-[#FF6584] text-white grid place-items-center text-3xl">
+                          {activeTutorObj.emoji}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
@@ -1116,13 +1164,30 @@ export function Profile() {
                       key={av.id}
                       type="button"
                       onClick={() => handleSelectTutor(av)}
-                      className={`p-4 rounded-2xl border text-left font-black transition-all cursor-pointer active:scale-95 flex flex-col justify-between ${isSelected
+                      className={`p-4 rounded-2xl border text-left font-black transition-all cursor-pointer active:scale-95 flex flex-col justify-between group ${isSelected
                           ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md ring-2 ring-[#6C63FF]/30"
                           : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)] hover:border-[#6C63FF]/50"
                         }`}
                     >
                       <div className="flex items-start justify-between gap-2 w-full">
-                        <span className="text-2xl">{av.emoji}</span>
+                        <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] grid place-items-center text-3xl shadow-inner shrink-0 overflow-hidden group-hover:scale-105 transition-transform">
+                          {av.thumbnail ? (
+                            <img
+                              src={av.thumbnail}
+                              alt={av.name}
+                              loading="lazy"
+                              width="56"
+                              height="56"
+                              className="w-full h-full object-cover select-none pointer-events-none"
+                              style={{
+                                objectPosition: av.thumbnailPosition || "center",
+                                transform: av.thumbnailScale && av.thumbnailScale !== 1.0 ? `scale(${av.thumbnailScale})` : undefined,
+                              }}
+                            />
+                          ) : (
+                            av.emoji
+                          )}
+                        </div>
                         {isSelected && (
                           <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-[#6C63FF] text-white">
                             ✓ Active
@@ -1552,98 +1617,108 @@ export function Profile() {
               </button>
             </div>
 
-            {/* Scrollable Tutor Cards Grid */}
+            {/* AVATAR OPTIONS GRID */}
             <div className="p-5 sm:p-8 overflow-y-auto space-y-4 flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {AVATAR_LIST.map((av) => {
                   const isSelected = activeAvatarId === av.id;
                   const isPlaying = playingTutor === av.id;
-                  const displayVoice = av.voiceLabel.replace(/\s+Voice$/i, "");
+                  const displayVoice = (av.voiceLabel || av.voice || "Voice").replace(/\s+Voice$/i, "");
                   return (
                     <div
                       key={av.id}
                       onClick={() => {
                         handleSelectTutor(av);
-                        playAvatarPreview(av);
                         setShowTutorModal(false);
                       }}
-                      className={`p-5 rounded-3xl border-2 cursor-pointer transition-all duration-200 flex flex-col justify-between group relative overflow-hidden ${
-                        isSelected
-                          ? "border-[#6C63FF] bg-gradient-to-b from-[#6C63FF]/15 via-[#8B5CF6]/5 to-transparent dark:from-[#6C63FF]/25 dark:via-[#8B5CF6]/10 dark:to-transparent ring-4 ring-[#6C63FF]/20 shadow-xl shadow-[#6C63FF]/20 scale-[1.01]"
-                          : "border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-slate-900/60 hover:border-[#6C63FF]/60 hover:bg-white dark:hover:bg-slate-900 hover:shadow-xl hover:-translate-y-1"
-                      }`}
+                      className={`p-5 rounded-3xl border-2 cursor-pointer transition-all space-y-3 flex flex-col justify-between group ${isSelected
+                          ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102 ring-2 ring-[#6C63FF]/30"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
+                        }`}
                     >
                       <div>
-                        {/* Top: Avatar Icon + Badges */}
                         <div className="flex items-start justify-between gap-3">
-                          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${av.themeColor || "from-indigo-500/20 to-purple-500/20 border-indigo-500/30 text-indigo-500"} border flex items-center justify-center text-3xl shadow-sm shrink-0 group-hover:scale-105 transition-transform duration-200`}>
-                            {av.emoji}
+                          <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] grid place-items-center text-3xl shadow-inner shrink-0 overflow-hidden group-hover:scale-105 transition-transform">
+                            {av.thumbnail ? (
+                              <img
+                                src={av.thumbnail}
+                                alt={av.name}
+                                loading="lazy"
+                                width="56"
+                                height="56"
+                                className="w-full h-full object-cover select-none pointer-events-none"
+                                style={{
+                                  objectPosition: av.thumbnailPosition || "center",
+                                  transform: av.thumbnailScale && av.thumbnailScale !== 1.0 ? `scale(${av.thumbnailScale})` : undefined,
+                                }}
+                              />
+                            ) : (
+                              av.emoji
+                            )}
                           </div>
-                          <div className="flex flex-col items-end gap-1.5">
+                          <div className="flex flex-col items-end gap-1">
                             {isSelected && (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-md shadow-[#6C63FF]/30">
-                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                                Active
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
+                                ✓ Active
                               </span>
                             )}
                             <span
-                              className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
-                                av.category === "cartoon"
-                                  ? "bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30"
-                                  : "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30"
-                              }`}
-                            >
-                              {av.badge}
-                            </span>
+                              className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${av.category === "cartoon"
+                                  ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+                                  : "bg-purple-500/15 text-purple-400 border-purple-500/30"
+                                }`}
+                              >
+                                {av.badge}
+                              </span>
+                            </div>
                           </div>
+
+                          {/* Middle: Character Name + Subtitle */}
+                          <h4 className="font-black text-lg text-slate-900 dark:text-white group-hover:text-[#6C63FF] transition-colors mt-3.5 flex items-center gap-2">
+                            {av.name}
+                          </h4>
+                          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-2 mt-1 min-h-[32px] leading-relaxed">
+                            {av.subtitle}
+                          </p>
                         </div>
 
-                        {/* Middle: Character Name + Subtitle */}
-                        <h4 className="font-black text-lg text-slate-900 dark:text-white group-hover:text-[#6C63FF] transition-colors mt-3.5 flex items-center gap-2">
-                          {av.name}
-                        </h4>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-2 mt-1 min-h-[32px] leading-relaxed">
-                          {av.subtitle}
-                        </p>
-                      </div>
+                        {/* Bottom: Voice Info Tag + Action Button (NO Choose button) */}
+                        <div className="pt-3.5 mt-4 border-t border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-2">
+                          <div
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-300 min-w-0 flex-1"
+                            title={av.voiceLabel}
+                          >
+                            <span className="text-xs shrink-0">🎙️</span>
+                            <span className="truncate">{displayVoice}</span>
+                          </div>
 
-                      {/* Bottom: Voice Info Tag + Action Button (NO Choose button) */}
-                      <div className="pt-3.5 mt-4 border-t border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-2">
-                        <div
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-300 min-w-0 flex-1"
-                          title={av.voiceLabel}
-                        >
-                          <span className="text-xs shrink-0">🎙️</span>
-                          <span className="truncate">{displayVoice}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playAvatarPreview(av);
+                            }}
+                            className={`py-1.5 px-3 rounded-xl border text-xs font-black transition-all shrink-0 cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 ${
+                              isPlaying
+                                ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/30 animate-pulse"
+                                : "bg-[#6C63FF]/10 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white border-[#6C63FF]/25 shadow-sm"
+                            }`}
+                            title={`Test voice preview for ${av.name}`}
+                          >
+                            <span>{isPlaying ? "🔊 Speaking..." : "▶ Test Voice"}</span>
+                          </button>
                         </div>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playAvatarPreview(av);
-                          }}
-                          className={`py-1.5 px-3 rounded-xl border text-xs font-black transition-all shrink-0 cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 ${
-                            isPlaying
-                              ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/30 animate-pulse"
-                              : "bg-[#6C63FF]/10 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white border-[#6C63FF]/25 shadow-sm"
-                          }`}
-                          title={`Test voice preview for ${av.name}`}
-                        >
-                          <span>{isPlaying ? "🔊 Speaking..." : "▶ Test Voice"}</span>
-                        </button>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
-    </div>
-  );
-}
+          </div>,
+          document.body
+        )}
+      </div>
+    );
+  }
 
 export default Profile;

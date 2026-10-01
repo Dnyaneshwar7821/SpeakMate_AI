@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import ROUTES from "../constants/routes";
+import { dashboardService } from "../services/appServices";
+import { setCachedDashboardData, clearDashboardCache } from "../utils/dashboardCache";
 
 export function Login() {
   const { login } = useAuth();
@@ -109,6 +111,25 @@ export function Login() {
       if (res && res.user && !isCompleted) {
         navigate(ROUTES.ONBOARDING, { replace: true });
       } else {
+        try {
+          const userEmail = (res?.user?.email || form.email || "").toLowerCase().trim();
+
+          // Clear any stale cached data so previous sessions or other accounts cannot leak
+          clearDashboardCache();
+
+          // Approach 1: Fetch fresh dashboard data while submit button spinner is active (max 2.5s timeout)
+          // Eliminating artificial 1.6s delay so users transition seamlessly without 0-data flash
+          const prefetchPromise = dashboardService.summary().catch(() => null);
+          const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2500));
+          const freshSummary = await Promise.race([prefetchPromise, timeoutPromise]);
+
+          if (freshSummary) {
+            setCachedDashboardData(freshSummary, userEmail);
+          }
+        } catch (prepErr) {
+          console.warn("Dashboard prefetch error:", prepErr);
+        }
+
         navigate(ROUTES.DASHBOARD, { replace: true });
       }
     } catch (err) {

@@ -252,6 +252,16 @@ export const CurriculumCache = {
         }
       }
     } catch (_) {}
+
+    // Instantly notify React components across the app of completion
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("speakmate_curriculum_updated", {
+          detail: { lessonId, lessonTitle, completed: true },
+        })
+      );
+      window.dispatchEvent(new CustomEvent("speakmate_progress_updated"));
+    }
   },
 
   clear() {
@@ -259,6 +269,9 @@ export const CurriculumCache = {
     _lessonsMap.clear();
     _completedSet.clear();
     _completedSetLoaded = false;
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("speakmate_curriculum_updated", { detail: { cleared: true } }));
+    }
   },
 };
 

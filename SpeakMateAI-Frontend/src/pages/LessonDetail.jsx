@@ -4,7 +4,7 @@ import ROUTES from "../constants/routes";
 import { speakGlobalText } from "../utils/speechHelper";
 import { lessonModuleService, aiService } from "../services/appServices";
 import { recordLessonCompleted } from "../utils/progressTracker";
-import { findCurriculumLesson, MASTER_LESSONS } from "../constants/masterCurriculum";
+import { findCurriculumLesson, MASTER_LESSONS, getMasterclassForLesson } from "../constants/masterCurriculum";
 import { CurriculumCache } from "../utils/curriculumCache";
 
 // Helper to safely parse objectives and skills arrays regardless of API response type
@@ -105,12 +105,17 @@ export function LessonDetail() {
   const [showStudy, setShowStudy] = useState(false);
   const [studyStep, setStudyStep] = useState(0);
 
-  // Step 2: Auto AI Teaching & XP Condition Tracking
+  // Step 2: Interactive Masterclass & Audio State
   const [aiTeachContent, setAiTeachContent] = useState("");
   const [aiTeachLoading, setAiTeachLoading] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [listenedFullExplanation, setListenedFullExplanation] = useState(false);
-  const [explanationSkippedMidway, setExplanationSkippedMidway] = useState(false);
+  const [audioSpeed, setAudioSpeed] = useState(1.0);
+  const [activeAudioSection, setActiveAudioSection] = useState(null);
+  const [audioBonusAwarded, setAudioBonusAwarded] = useState(false);
+
+  // Instant 4-Pillar Pedagogical Masterclass Engine
+  const masterclass = lesson ? getMasterclassForLesson(lesson) : null;
 
   // Step 3: Contextual Examples State
   const [aiExamples, setAiExamples] = useState([]);
@@ -262,22 +267,10 @@ export function LessonDetail() {
     };
   }, [studyStep, showStudy]);
 
-  // Step 2: Automatic voice read-aloud when entering Step 2
+  // Reset active audio section on step change
   useEffect(() => {
-    if (!showStudy || studyStep !== 1 || !aiTeachContent) return;
-
-    // Autoplay voice as requested
-    if (!listenedFullExplanation) {
-      setIsAiSpeaking(true);
-      speakGlobalText(aiTeachContent, 1.0, {
-        onend: () => {
-          setIsAiSpeaking(false);
-          setListenedFullExplanation(true);
-          setExplanationSkippedMidway(false);
-        },
-      });
-    }
-  }, [showStudy, studyStep, aiTeachContent]);
+    setActiveAudioSection(null);
+  }, [studyStep, showStudy]);
 
   // Sync step progress with backend and instant cache
   useEffect(() => {
@@ -577,7 +570,8 @@ export function LessonDetail() {
     setQuizScore(0);
     setQuizFinished(false);
     setListenedFullExplanation(false);
-    setExplanationSkippedMidway(false);
+    setAudioBonusAwarded(false);
+    setActiveAudioSection(null);
     setShowStudy(true);
     setStudyStep(0); // Starts at Step 0 (Overview & Objectives)
     CurriculumCache.updateLessonProgress(
@@ -591,32 +585,85 @@ export function LessonDetail() {
     );
   };
 
-  // Toggle voice playback in Step 2 with XP tracking
-  const handleToggleTutorVoice = () => {
-    if (isAiSpeaking) {
+  // Play full 4-pillar masterclass sequentially
+  const handlePlayFullMasterclass = () => {
+    if (!masterclass) return;
+    if (isAiSpeaking && activeAudioSection === "all") {
       stopAllSpeech();
-      if (!listenedFullExplanation) {
-        setExplanationSkippedMidway(true);
-      }
-    } else {
-      setIsAiSpeaking(true);
-      speakGlobalText(aiTeachContent, 1.0, {
-        onend: () => {
-          setIsAiSpeaking(false);
-          setListenedFullExplanation(true);
-          setExplanationSkippedMidway(false);
-        },
-      });
+      setIsAiSpeaking(false);
+      setActiveAudioSection(null);
+      return;
     }
+
+    stopAllSpeech();
+    setIsAiSpeaking(true);
+    setActiveAudioSection("all");
+
+    const breakdownText = (masterclass.formula?.breakdown || [])
+      .map((b) => `${b.label}: ${b.detail}`)
+      .join(". ");
+    const examplesText = (masterclass.formula?.examples || []).join(". ");
+    const mistakesText = (masterclass.mistakes || [])
+      .map((m) => `Common Pitfall: ${m.incorrect}. Correct Native Usage: ${m.correct}. Why: ${m.why}`)
+      .join(". ");
+
+    const fullScript = `Masterclass on ${lesson?.title || "this topic"}. 
+      Core Concept: ${masterclass.coreConcept?.summary || ""}. ${masterclass.coreConcept?.context || ""}.
+      Golden Formula: ${masterclass.formula?.rule || ""}. ${breakdownText}. For example: ${examplesText}.
+      Common Mistakes to Avoid: ${mistakesText}.
+      Tutor Pro Fluency Tip: ${masterclass.fluencyTip?.tip || ""}. Practice phrase: ${masterclass.fluencyTip?.practicePhrase || ""}.`;
+
+    speakGlobalText(fullScript, audioSpeed, {
+      onend: () => {
+        setIsAiSpeaking(false);
+        setActiveAudioSection(null);
+        setListenedFullExplanation(true);
+        setAudioBonusAwarded(true);
+      },
+      onerror: () => {
+        setIsAiSpeaking(false);
+        setActiveAudioSection(null);
+      },
+    });
   };
 
-  // Step 2 to Step 3 transition with XP gate warning check
+  // Play a specific masterclass pillar section
+  const handlePlaySectionAudio = (sectionKey, text) => {
+    if (isAiSpeaking && activeAudioSection === sectionKey) {
+      stopAllSpeech();
+      setIsAiSpeaking(false);
+      setActiveAudioSection(null);
+      return;
+    }
+
+    stopAllSpeech();
+    setIsAiSpeaking(true);
+    setActiveAudioSection(sectionKey);
+
+    speakGlobalText(text, audioSpeed, {
+      onend: () => {
+        setIsAiSpeaking(false);
+        setActiveAudioSection(null);
+      },
+      onerror: () => {
+        setIsAiSpeaking(false);
+        setActiveAudioSection(null);
+      },
+    });
+  };
+
+  // Cycle playback speed: 0.75x -> 1.0x -> 1.25x
+  const handleCycleSpeed = () => {
+    const speeds = [0.75, 1.0, 1.25];
+    const nextIdx = (speeds.indexOf(audioSpeed) + 1) % speeds.length;
+    setAudioSpeed(speeds[nextIdx]);
+  };
+
+  // Step 2 to Step 3 advance: pure progression with ZERO XP penalties
   const handleAdvanceFromStep2 = () => {
     if (isAiSpeaking) {
       stopAllSpeech();
-      if (!listenedFullExplanation) {
-        setExplanationSkippedMidway(true);
-      }
+      setActiveAudioSection(null);
     }
     setStudyStep(2);
   };
@@ -721,14 +768,18 @@ export function LessonDetail() {
     setTutorChatList((prev) => [...prev, userMsg]);
 
     try {
-      const promptText = `Lesson Title: "${lesson?.title}" (${lesson?.category} - ${lesson?.level}). Student Question/Topic: "${query}"`;
+      const promptText = `You are a supportive, encouraging AI English tutor.
+Lesson: "${lesson?.title}" (${lesson?.category} - ${lesson?.level}).
+Core Formula / Rule: "${masterclass?.formula?.rule || ""}".
+Student Question / Request: "${query}".
+Explain concisely, warmly, and clearly in 2-3 friendly sentences with concrete examples.`;
       const res = await aiService.lessonTutor(promptText);
-      const clean = cleanAiText(res?.response || "Focus on practicing this concept daily in full sentences.");
+      const clean = cleanAiText(res?.response || "Focus on practicing this formula in complete spoken sentences every day.");
       const tutorMsg = { id: Date.now() + 1, sender: "tutor", text: clean };
       setTutorChatList((prev) => [...prev, tutorMsg]);
       handleSpeakText(clean);
     } catch {
-      const fallback = "Here is a quick tip: Focus on understanding the core formula and speaking 3 full sentences out loud.";
+      const fallback = `Great question! In ${lesson?.title || "this lesson"}, remember the golden rule: ${masterclass?.formula?.rule || "consistent sentence practice"}. Try practicing saying: "${masterclass?.fluencyTip?.practicePhrase || "I speak with confidence."}" out loud!`;
       setTutorChatList((prev) => [...prev, { id: Date.now() + 1, sender: "tutor", text: fallback }]);
       handleSpeakText(fallback);
     } finally {
@@ -876,73 +927,339 @@ export function LessonDetail() {
             </div>
           )}
 
-          {/* STEP 1 (Step 2 of 9): Core Concept Teaching with Voice Autoplay & Full-Listening XP Gate */}
+          {/* STEP 1 (Step 2 of 9): 4-Pillar Interactive Visual Masterclass */}
           {studyStep === 1 && (
-            <div className="space-y-4 animate-in fade-in">
-              <div className="flex items-center justify-between">
+            <div className="space-y-5 animate-in fade-in">
+              {/* Header Navigation & Master Audio Player */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
                 <div>
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#6c63ff]">
-                    STEP 2 • COMPREHENSIVE MASTERCLASS
+                    STEP 2 • INTERACTIVE MASTERCLASS
                   </span>
                   <h2 className="text-lg font-extrabold text-[var(--text-primary)]">
-                    🎓 AI Tutor Core Concept Explanation
+                    🎓 {lesson?.title || "Lesson Masterclass"}
                   </h2>
                 </div>
-                <button
-                  onClick={handleToggleTutorVoice}
-                  className={`px-3 py-1.5 rounded-xl text-white text-xs font-bold transition flex items-center gap-1.5 ${
-                    isAiSpeaking ? "bg-red-500 hover:bg-red-600" : "bg-[#6c63ff] hover:bg-[#5a52e0]"
-                  }`}
-                >
-                  <span>{isAiSpeaking ? "⏸️ Pause Audio" : "🔊 Listen Full Masterclass"}</span>
-                </button>
+
+                <div className="flex items-center gap-2">
+                  {/* Speed Selector Toggle */}
+                  <button
+                    onClick={handleCycleSpeed}
+                    title="Change voice playback speed"
+                    className="px-2.5 py-1.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs font-black text-[#6c63ff] hover:bg-[#6c63ff]/10 transition"
+                  >
+                    ⚡ {audioSpeed}x
+                  </button>
+
+                  {/* Play Full Masterclass Button */}
+                  <button
+                    onClick={handlePlayFullMasterclass}
+                    className={`px-4 py-2 rounded-xl text-white text-xs font-extrabold transition flex items-center gap-2 shadow-sm ${
+                      isAiSpeaking && activeAudioSection === "all"
+                        ? "bg-red-500 hover:bg-red-600 animate-pulse"
+                        : "bg-[#6c63ff] hover:bg-[#5a52e0]"
+                    }`}
+                  >
+                    <span>
+                      {isAiSpeaking && activeAudioSection === "all"
+                        ? "⏹️ Stop Audio"
+                        : "🔊 Listen Full Masterclass"}
+                    </span>
+                  </button>
+                </div>
               </div>
 
-              {/* XP Eligibility Status Pill */}
-              {listenedFullExplanation ? (
+              {/* Audio Status & Listener Bonus Pill */}
+              {(listenedFullExplanation || audioBonusAwarded) ? (
                 <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-xs font-bold text-emerald-600">
-                  <span>✅</span>
-                  <span>Full Masterclass Completed! You have unlocked full XP eligibility for this lesson.</span>
+                  <span>🎉</span>
+                  <span>Full Masterclass Audio Completed! +10 XP Audio Bonus unlocked for this session.</span>
                 </div>
-              ) : explanationSkippedMidway ? (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2 text-xs font-bold text-amber-700">
-                  <span>⚠️</span>
-                  <span>
-                    Voice explanation paused/skipped midway. You can continue practicing, but 0 XP will be awarded for this session because the full tutor explanation was not completed.
-                  </span>
+              ) : isAiSpeaking ? (
+                <div className="p-3 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 flex items-center justify-between text-xs font-bold text-[#6c63ff]">
+                  <div className="flex items-center gap-2">
+                    <span className="animate-spin">🔄</span>
+                    <span>
+                      AI Tutor reading {activeAudioSection === "all" ? "full masterclass" : "selected pillar"} aloud ({audioSpeed}x speed)...
+                    </span>
+                  </div>
+                  <button onClick={stopAllSpeech} className="text-xs underline text-red-500 hover:text-red-600">
+                    Stop
+                  </button>
                 </div>
               ) : (
                 <div className="p-3 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 flex items-center gap-2 text-xs font-bold text-[#6c63ff]">
                   <span>🎧</span>
                   <span>
-                    AI Tutor is reading the full lesson explanation. Listen until the end to unlock your +{lesson?.xpReward || 35} XP reward!
+                    Listen with AI voice or read each pillar below at your own pace. Full base XP is guaranteed!
                   </span>
                 </div>
               )}
 
-              {aiTeachLoading ? (
-                <div className="p-6 rounded-2xl bg-[var(--bg-elevated)] text-center text-xs font-bold text-[#6c63ff] animate-pulse">
-                  AI Tutor generating customized lesson concept...
+              {/* PILLAR 1: Core Concept & Real-World Context */}
+              <div
+                className={`p-5 rounded-2xl bg-[var(--bg-elevated)] border transition-all ${
+                  activeAudioSection === "coreConcept" || activeAudioSection === "all"
+                    ? "border-[#6c63ff] ring-2 ring-[#6c63ff]/20 shadow-md"
+                    : "border-[var(--border-default)]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-[#6c63ff]/15 text-[#6c63ff] text-[10px] font-black uppercase tracking-wider">
+                      PILLAR 1: CORE CONCEPT
+                    </span>
+                    <h3 className="text-sm font-extrabold text-[var(--text-primary)]">
+                      {masterclass?.coreConcept?.title || `Understanding ${lesson?.title}`}
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() =>
+                      handlePlaySectionAudio(
+                        "coreConcept",
+                        `Core Concept: ${masterclass?.coreConcept?.summary || ""}. Real-world context: ${masterclass?.coreConcept?.context || ""}. Key takeaway: ${masterclass?.coreConcept?.takeaway || ""}`
+                      )
+                    }
+                    className="p-1.5 rounded-lg bg-[var(--bg-surface)] hover:bg-[#6c63ff]/10 text-xs font-bold text-[#6c63ff] transition"
+                    title="Listen to Core Concept"
+                  >
+                    {isAiSpeaking && activeAudioSection === "coreConcept" ? "⏹️" : "🔊 Listen"}
+                  </button>
                 </div>
-              ) : (
-                <div className="p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-semibold text-[var(--text-primary)] whitespace-pre-line leading-relaxed max-h-[380px] overflow-y-auto">
-                  {aiTeachContent}
-                </div>
-              )}
 
-              {/* Still Confused? Ask AI Tutor Interactive Chat */}
+                <p className="text-xs font-medium text-[var(--text-primary)] leading-relaxed mb-3">
+                  {masterclass?.coreConcept?.summary}
+                </p>
+
+                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs space-y-1 mb-3">
+                  <div className="flex items-center gap-1.5 font-bold text-blue-600 dark:text-blue-400">
+                    <span>🌍</span>
+                    <span>Real-World Context & Relevance:</span>
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    {masterclass?.coreConcept?.context}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                  <span>💡</span>
+                  <span>{masterclass?.coreConcept?.takeaway}</span>
+                </div>
+              </div>
+
+              {/* PILLAR 2: Golden Rule & Structural Formula */}
+              <div
+                className={`p-5 rounded-2xl bg-[var(--bg-elevated)] border transition-all ${
+                  activeAudioSection === "formula" || activeAudioSection === "all"
+                    ? "border-[#6c63ff] ring-2 ring-[#6c63ff]/20 shadow-md"
+                    : "border-[var(--border-default)]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-wider">
+                      PILLAR 2: GOLDEN FORMULA
+                    </span>
+                    <h3 className="text-sm font-extrabold text-[var(--text-primary)]">
+                      Sentence Mechanics & Formula
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const breakdownText = (masterclass?.formula?.breakdown || [])
+                        .map((b) => `${b.label}: ${b.detail}`)
+                        .join(". ");
+                      handlePlaySectionAudio(
+                        "formula",
+                        `Golden Formula: ${masterclass?.formula?.rule || ""}. Structural breakdown: ${breakdownText}`
+                      );
+                    }}
+                    className="p-1.5 rounded-lg bg-[var(--bg-surface)] hover:bg-[#6c63ff]/10 text-xs font-bold text-[#6c63ff] transition"
+                    title="Listen to Formula"
+                  >
+                    {isAiSpeaking && activeAudioSection === "formula" ? "⏹️" : "🔊 Listen"}
+                  </button>
+                </div>
+
+                {/* Big Formula Banner */}
+                <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#6c63ff]/15 via-[#8B5CF6]/15 to-[#EC4899]/10 border border-[#6c63ff]/30 text-center mb-4">
+                  <span className="text-[10px] font-extrabold uppercase text-[#6c63ff] block mb-1">
+                    Universal Structure Rule
+                  </span>
+                  <span className="text-xs sm:text-sm font-black font-mono text-[var(--text-primary)] tracking-wide">
+                    {masterclass?.formula?.rule}
+                  </span>
+                </div>
+
+                {/* Syntax Component Breakdown Pills */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                  {(masterclass?.formula?.breakdown || []).map((b, bIdx) => (
+                    <div
+                      key={bIdx}
+                      className="p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] space-y-1"
+                    >
+                      <span className="inline-block px-2 py-0.5 rounded text-[9px] font-black bg-[#6c63ff]/10 text-[#6c63ff] uppercase">
+                        {b.badge}
+                      </span>
+                      <h4 className="text-xs font-extrabold text-[var(--text-primary)]">{b.label}</h4>
+                      <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">{b.detail}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Structured Examples */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
+                    Model Sentence Examples:
+                  </span>
+                  {(masterclass?.formula?.examples || []).map((ex, exIdx) => (
+                    <div
+                      key={exIdx}
+                      className="flex items-start gap-2 p-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-xs text-[var(--text-primary)] font-medium"
+                    >
+                      <span className="text-[#6c63ff] font-extrabold">▸</span>
+                      <span>{ex}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* PILLAR 3: Common Pitfalls vs. Native Corrections */}
+              <div
+                className={`p-5 rounded-2xl bg-[var(--bg-elevated)] border transition-all ${
+                  activeAudioSection === "mistakes" || activeAudioSection === "all"
+                    ? "border-[#6c63ff] ring-2 ring-[#6c63ff]/20 shadow-md"
+                    : "border-[var(--border-default)]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-wider">
+                      PILLAR 3: COMMON MISTAKES
+                    </span>
+                    <h3 className="text-sm font-extrabold text-[var(--text-primary)]">
+                      Pitfalls to Avoid vs. Native Usage
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const mistakesText = (masterclass?.mistakes || [])
+                        .map((m) => `Common Pitfall: ${m.incorrect}. Correct Native Usage: ${m.correct}. Why: ${m.why}`)
+                        .join(". ");
+                      handlePlaySectionAudio("mistakes", mistakesText);
+                    }}
+                    className="p-1.5 rounded-lg bg-[var(--bg-surface)] hover:bg-[#6c63ff]/10 text-xs font-bold text-[#6c63ff] transition"
+                    title="Listen to Common Mistakes"
+                  >
+                    {isAiSpeaking && activeAudioSection === "mistakes" ? "⏹️" : "🔊 Listen"}
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {(masterclass?.mistakes || []).map((m, mIdx) => (
+                    <div
+                      key={mIdx}
+                      className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] space-y-2.5"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {/* Common Mistake */}
+                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-xs space-y-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-red-600 flex items-center gap-1">
+                            <span>❌</span> Common Mistake:
+                          </span>
+                          <p className="font-semibold text-red-700 dark:text-red-300">{m.incorrect}</p>
+                        </div>
+
+                        {/* Native Alternative */}
+                        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1">
+                            <span>✅</span> Native Correction:
+                          </span>
+                          <p className="font-semibold text-emerald-700 dark:text-emerald-300">{m.correct}</p>
+                        </div>
+                      </div>
+
+                      {/* Why / Linguistic Explanation */}
+                      <div className="text-[11px] text-[var(--text-secondary)] flex items-start gap-1.5 pt-1">
+                        <span className="text-amber-500 font-extrabold">🧠 Why:</span>
+                        <span>{m.why}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* PILLAR 4: Tutor Pro Fluency Tip */}
+              <div
+                className={`p-5 rounded-2xl bg-[var(--bg-elevated)] border transition-all ${
+                  activeAudioSection === "fluencyTip" || activeAudioSection === "all"
+                    ? "border-[#6c63ff] ring-2 ring-[#6c63ff]/20 shadow-md"
+                    : "border-[var(--border-default)]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-600 dark:text-purple-400 text-[10px] font-black uppercase tracking-wider">
+                      PILLAR 4: PRO FLUENCY TIP
+                    </span>
+                    <h3 className="text-sm font-extrabold text-[var(--text-primary)]">
+                      {masterclass?.fluencyTip?.title || "Tutor Spoken Fluency Cue"}
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() =>
+                      handlePlaySectionAudio(
+                        "fluencyTip",
+                        `Pro Fluency Tip: ${masterclass?.fluencyTip?.tip || ""}. Practice saying out loud: ${masterclass?.fluencyTip?.practicePhrase || ""}`
+                      )
+                    }
+                    className="p-1.5 rounded-lg bg-[var(--bg-surface)] hover:bg-[#6c63ff]/10 text-xs font-bold text-[#6c63ff] transition"
+                    title="Listen to Fluency Tip"
+                  >
+                    {isAiSpeaking && activeAudioSection === "fluencyTip" ? "⏹️" : "🔊 Listen"}
+                  </button>
+                </div>
+
+                <p className="text-xs font-medium text-[var(--text-primary)] leading-relaxed mb-3">
+                  {masterclass?.fluencyTip?.tip}
+                </p>
+
+                {masterclass?.fluencyTip?.practicePhrase && (
+                  <div className="p-3 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 flex items-center justify-between gap-2">
+                    <div className="text-xs">
+                      <span className="text-[10px] uppercase font-extrabold text-[#6c63ff] block">
+                        🗣️ Speak Aloud Practice Phrase:
+                      </span>
+                      <span className="font-bold text-[var(--text-primary)]">
+                        "{masterclass.fluencyTip.practicePhrase}"
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleSpeakText(masterclass.fluencyTip.practicePhrase)}
+                      className="px-2.5 py-1 rounded-lg bg-[#6c63ff] text-white text-[11px] font-bold hover:bg-[#5a52e0] transition flex items-center gap-1"
+                    >
+                      <span>🔊 Drill</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Context-Aware In-Lesson AI Tutor Q&A */}
               <div className="p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[#8B5CF6]/30 space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="text-base">💬</span>
-                  <h3 className="text-xs font-extrabold text-[var(--text-primary)]">Still Confused? Ask Your AI Tutor</h3>
+                  <h3 className="text-xs font-extrabold text-[var(--text-primary)]">
+                    Still Confused? Ask Your AI Tutor
+                  </h3>
                 </div>
 
-                {/* Quick Prompts */}
+                {/* Grounded Quick Prompts */}
                 <div className="flex flex-wrap gap-2">
                   {[
-                    "Give me a simpler example",
-                    "What is the main mistake to avoid?",
-                    "How do I use this in casual conversation?",
+                    "Give me a simpler explanation",
+                    "2 more real-life examples",
+                    "Why is the common mistake wrong?",
+                    "How do native speakers say this casually?",
                   ].map((prompt, pIdx) => (
                     <button
                       key={pIdx}
@@ -971,7 +1288,11 @@ export function LessonDetail() {
                             {msg.sender === "user" ? "You" : "🤖 AI Tutor"}
                           </span>
                           {msg.sender === "tutor" && (
-                            <button onClick={() => handleSpeakText(msg.text)} className="text-xs hover:scale-110">
+                            <button
+                              onClick={() => handleSpeakText(msg.text)}
+                              className="text-xs hover:scale-110"
+                              title="Listen to response"
+                            >
                               🔊
                             </button>
                           )}
@@ -986,7 +1307,7 @@ export function LessonDetail() {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Ask anything about this topic..."
+                    placeholder={`Ask anything about "${lesson?.title || "this topic"}"...`}
                     value={tutorInput}
                     onChange={(e) => setTutorInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -997,13 +1318,14 @@ export function LessonDetail() {
                   <button
                     disabled={tutorLoading || !tutorInput.trim()}
                     onClick={() => handleAskAiTutor()}
-                    className="px-5 py-2.5 rounded-xl bg-[#6c63ff] disabled:opacity-50 text-white text-xs font-extrabold"
+                    className="px-5 py-2.5 rounded-xl bg-[#6c63ff] disabled:opacity-50 text-white text-xs font-extrabold hover:bg-[#5a52e0] transition"
                   >
                     {tutorLoading ? "Thinking..." : "Ask Tutor"}
                   </button>
                 </div>
               </div>
 
+              {/* Step Navigation */}
               <div className="flex justify-between pt-2">
                 <button
                   onClick={() => setStudyStep(0)}
@@ -1013,7 +1335,7 @@ export function LessonDetail() {
                 </button>
                 <button
                   onClick={handleAdvanceFromStep2}
-                  className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold hover:bg-[#5a52e0] transition"
+                  className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold hover:bg-[#5a52e0] transition shadow-md"
                 >
                   Next: Real-World Examples →
                 </button>
@@ -1556,22 +1878,18 @@ export function LessonDetail() {
                           setQuizSelectedAnswer(null);
                           setQuizSubmitted(false);
                         } else {
-                          // XP Gate check
-                          if (listenedFullExplanation) {
-                            const baseXP = (lesson?.xpReward || 35);
-                            const bonus = quizScore * (quizLevel === "Advanced" ? 10 : quizLevel === "Intermediate" ? 7 : 5);
-                            const total = Math.max(20, baseXP + bonus - blankPenalty);
-                            setEarnedXP(total);
-                            recordLessonCompleted(lesson?.title || "English Lesson");
-                            CurriculumCache.markLessonCompleted(lesson?.id, lesson?.title);
-                            if (lesson?.id) {
-                              lessonModuleService.complete(Number(lesson.id) || lesson.id).catch((err) => {
-                                console.warn("Backend lesson complete sync error:", err);
-                              });
-                            }
-                          } else {
-                            setEarnedXP(0);
-                            CurriculumCache.markLessonCompleted(lesson?.id, lesson?.title);
+                          // Full Lesson Completion: Base XP + Quiz Accuracy Bonus + Optional Audio Bonus (NO 0 XP PENALTY)
+                          const baseXP = (lesson?.xpReward || 35);
+                          const bonus = quizScore * (quizLevel === "Advanced" ? 10 : quizLevel === "Intermediate" ? 7 : 5);
+                          const audioBonus = (listenedFullExplanation || audioBonusAwarded) ? 10 : 0;
+                          const total = Math.max(20, baseXP + bonus + audioBonus - blankPenalty);
+                          setEarnedXP(total);
+                          recordLessonCompleted(lesson?.title || "English Lesson");
+                          CurriculumCache.markLessonCompleted(lesson?.id, lesson?.title);
+                          if (lesson?.id) {
+                            lessonModuleService.complete(Number(lesson.id) || lesson.id).catch((err) => {
+                              console.warn("Backend lesson complete sync error:", err);
+                            });
                           }
                           setQuizFinished(true);
                           setStudyStep(8);
@@ -1589,45 +1907,46 @@ export function LessonDetail() {
             </div>
           )}
 
-          {/* STEP 8 (Step 9 of 9): Lesson Summary & Mastery Rewards with XP Gate */}
+          {/* STEP 8 (Step 9 of 9): Lesson Summary & Mastery Rewards */}
           {studyStep === 8 && (
             <div className="p-8 rounded-3xl bg-gradient-to-r from-[#1E1B4B] via-[#6c63ff] to-[#ff6584] text-white text-center space-y-5 shadow-xl animate-in zoom-in-95">
-              <span className="text-5xl">{listenedFullExplanation ? "🏆" : "⚠️"}</span>
+              <span className="text-5xl">🏆</span>
               <div className="space-y-1">
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#FDE047]">
                   STEP 9 OF 9 • LESSON SUMMARY
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-extrabold">
-                  {listenedFullExplanation ? "Lesson Mastered with Full Rewards!" : "Practice Session Completed"}
+                  Lesson Mastered with Full Rewards!
                 </h2>
                 <p className="text-xs sm:text-sm opacity-90 max-w-md mx-auto">
-                  {listenedFullExplanation
-                    ? `You successfully listened to the AI Tutor masterclass and completed all 9 steps of "${lesson?.title}"!`
-                    : `You completed the practice exercises for "${lesson?.title}".`}
+                  {`Congratulations! You completed all exercises and drills for "${lesson?.title}".`}
                 </p>
               </div>
 
-              {/* XP Condition Gate Feedback Card */}
-              {!listenedFullExplanation ? (
-                <div className="p-4 rounded-2xl bg-amber-500/25 border border-amber-300/40 text-amber-100 text-xs font-semibold max-w-md mx-auto space-y-1">
-                  <p className="font-extrabold text-white text-sm">⚡ 0 XP Awarded for this Session</p>
-                  <p>
-                    You paused or skipped the AI Tutor voice explanation in Step 2. To earn your +{lesson?.xpReward || 35} XP reward and keep your streak active, re-open this lesson and listen to the complete masterclass!
-                  </p>
+              {/* Rewards Stats Card */}
+              <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto text-center pt-2">
+                <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                  <span className="text-xl font-extrabold text-[#FDE047]">+{earnedXP || lesson?.xpReward || 35}</span>
+                  <p className="text-[10px] uppercase font-bold opacity-80">XP Earned</p>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                  <span className="text-xl font-extrabold text-emerald-300">
+                    {Math.round((quizScore / (quizQuestions.length || 1)) * 100)}%
+                  </span>
+                  <p className="text-[10px] uppercase font-bold opacity-80">Quiz Accuracy</p>
+                </div>
+              </div>
+
+              {/* Audio Bonus Confirmation / Tip Banner */}
+              {(listenedFullExplanation || audioBonusAwarded) ? (
+                <div className="p-3 rounded-2xl bg-emerald-500/25 border border-emerald-300/40 text-emerald-100 text-xs font-semibold max-w-md mx-auto flex items-center justify-center gap-2">
+                  <span>🎧</span>
+                  <span>Audio Masterclass Completed: +10 XP bonus included in your rewards!</span>
                 </div>
               ) : (
-                /* Rewards Stats Card */
-                <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto text-center pt-2">
-                  <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-                    <span className="text-xl font-extrabold text-[#FDE047]">+{earnedXP || lesson?.xpReward || 35}</span>
-                    <p className="text-[10px] uppercase font-bold opacity-80">XP Earned</p>
-                  </div>
-                  <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-                    <span className="text-xl font-extrabold text-emerald-300">
-                      {Math.round((quizScore / (quizQuestions.length || 1)) * 100)}%
-                    </span>
-                    <p className="text-[10px] uppercase font-bold opacity-80">Quiz Accuracy</p>
-                  </div>
+                <div className="p-3 rounded-2xl bg-white/10 border border-white/20 text-white/90 text-xs font-semibold max-w-md mx-auto flex items-center justify-center gap-2">
+                  <span>💡</span>
+                  <span>Tip: Next time, listen to the full audio masterclass to claim the +10 XP audio listener bonus!</span>
                 </div>
               )}
 
@@ -1646,11 +1965,11 @@ export function LessonDetail() {
                   onClick={() => {
                     setStudyStep(0);
                     setListenedFullExplanation(false);
-                    setExplanationSkippedMidway(false);
+                    setAudioBonusAwarded(false);
                   }}
                   className="px-6 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-extrabold text-xs transition"
                 >
-                  🔄 Re-take Lesson (Earn Full XP)
+                  🔄 Practice Again
                 </button>
                 <button
                   onClick={() => navigate(ROUTES.LESSONS)}

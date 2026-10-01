@@ -524,7 +524,7 @@ public class DashboardServiceImpl implements DashboardService {
 
 		int dailyGoalMinutes = (onboarding != null && onboarding.getDailyGoalMinutes() != null)
 				? onboarding.getDailyGoalMinutes()
-				: 15;
+				: (user != null && user.getDailyGoalMinutes() != null ? user.getDailyGoalMinutes() : 15);
 
 		double minutesScore = dailyGoalMinutes > 0 ? (double) speakingMinutesToday / dailyGoalMinutes : 0;
 		double vocabScore = (double) vocabularyCompleted / 5.0;
@@ -541,6 +541,8 @@ public class DashboardServiceImpl implements DashboardService {
 				.vocabularyTarget(5)
 				.percentage(percentage)
 				.remainingLessons(remainingLessons)
+				.dailyGoalMinutes(dailyGoalMinutes)
+				.targetSpeakingMinutes(dailyGoalMinutes)
 				.build();
 	}
 
@@ -639,14 +641,29 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	public StatisticsResponse getStatistics() {
 		User user = getCurrentUser();
-		List<SpeakingSession> completedSessions = speakingSessionRepository.findByUserAndCompletedTrue(user);
+		List<SpeakingSession> rawCompletedSessions = speakingSessionRepository.findByUserAndCompletedTrue(user);
+		List<SpeakingSession> completedSessions = (rawCompletedSessions != null)
+				? rawCompletedSessions.stream()
+						.filter(s -> s != null && Boolean.TRUE.equals(s.getCompleted())
+								&& (s.getDuration() != null && s.getDuration() > 0)
+								&& (s.getOverallScore() == null || s.getOverallScore() > 0)
+								&& (s.getFeedback() == null || !s.getFeedback().contains("no speaking activity")))
+						.toList()
+				: List.of();
 		List<Vocabulary> vocabs = vocabularyRepository.findByUser(user);
 		List<GrammarHistory> grammars = grammarHistoryRepository.findByUser(user);
 		Progress progress = progressRepository.findByUser(user).orElse(null);
-		List<Lesson> lessons = lessonRepository.findByActiveTrue();
 
-		int totalLessons = lessons.size();
-		int completedLessons = lessonProgressRepository.findByUserAndCompleted(user, true).size();
+		// Every user's personalized curriculum track consists of exactly 20 lessons
+		int totalLessons = 20;
+		int completedLessons = 0;
+		if (user != null && user.getId() != null) {
+			List<LessonProgress> comp = lessonProgressRepository.findByUserIdAndCompleted(user.getId(), true);
+			if (comp.isEmpty()) {
+				comp = lessonProgressRepository.findByUserAndCompleted(user, true);
+			}
+			completedLessons = Math.min(totalLessons, comp.size());
+		}
 		int speakingSessions = completedSessions.size();
 		int distinctScenarios = (int) completedSessions.stream()
 				.map(s -> {

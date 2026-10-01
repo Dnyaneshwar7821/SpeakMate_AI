@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ROUTES from "../constants/routes";
+import { SpeakMateLoader } from "../components/common/SpeakMateLoader";
 
 export function ProtectedRoute({ children }) {
   const { isAuthenticated, user, onboardingCompleted, loading } = useAuth();
@@ -8,14 +9,8 @@ export function ProtectedRoute({ children }) {
 
   const hasToken = Boolean(localStorage.getItem("speakmate_token"));
 
-  if (loading && !hasToken) {
-    return (
-      <div className="min-h-screen grid place-items-center bg-[var(--bg-base)] text-[var(--text-primary)]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 border-4 border-[#6c63ff] border-t-transparent rounded-full animate-spin" />
-        </div>
-      </div>
-    );
+  if (loading && !user) {
+    return <SpeakMateLoader fullScreen message="Verifying session..." subMessage="Setting up your personalized learning environment" />;
   }
 
   if (!isAuthenticated) {

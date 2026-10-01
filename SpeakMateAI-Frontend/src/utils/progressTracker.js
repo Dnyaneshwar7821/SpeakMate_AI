@@ -166,20 +166,27 @@ export const getLiveProgressStats = (userContext = null) => {
   if (stored.speakingMins >= 30) badges += 1;
   stored.badgesUnlocked = badges;
 
-  // Generate 7-day visual calendar data
-  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  // Generate 7-day visual calendar data aligned Monday to Sunday for the current week
+  const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const weeklyData = [];
   const curr = new Date();
+  const currentDay = curr.getDay(); // 0 is Sun, 1 is Mon...
+  const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+  const monday = new Date(curr);
+  monday.setDate(curr.getDate() + mondayOffset);
 
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(curr.getDate() - i);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
     const dStr = getLocalDateStr(d);
-    const dayName = daysOfWeek[d.getDay()];
+    const dayName = daysOfWeek[i];
     const record = stored.streakHistory[dStr];
     const isToday = dStr === today;
     const mins = isToday ? (stored.todayMins || 0) : (record?.mins || 0);
-    const status = record?.status || (mins >= 15 ? "completed" : isToday ? "active" : mins > 0 ? "completed" : "missed");
+    const isFuture = d > curr && !isToday;
+    const status = isFuture
+      ? "upcoming"
+      : (record?.status || (mins >= 15 ? "completed" : isToday ? "active" : mins > 0 ? "completed" : "missed"));
 
     weeklyData.push({
       dateStr: dStr,
@@ -187,6 +194,7 @@ export const getLiveProgressStats = (userContext = null) => {
       studyMinutes: mins,
       status,
       isToday,
+      isFuture,
       isGoalMet: mins >= 15,
     });
   }
@@ -388,6 +396,14 @@ export const recordWordAdded = (count = 1, userContext = null) => {
   return stats;
 };
 
+// 4b. Record Word Deleted
+export const recordWordDeleted = (count = 1, userContext = null) => {
+  const stats = getLiveProgressStats(userContext);
+  stats.wordsLearned = Math.max(0, (stats.wordsLearned || 0) - count);
+  saveProgressStats(stats, userContext);
+  return stats;
+};
+
 // 5. Record AI Chat Message (+5 XP)
 export const recordChatMessage = (count = 1, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
@@ -505,8 +521,8 @@ export const claimStreakMilestoneReward = (days = 3, userContext = null) => {
   return { success: true, stats, message: `🎉 Claimed +${milestone.xp} Bonus XP for ${milestone.title}!` };
 };
 
-// 11. Claim Daily Inspiration Quote XP (+50 XP)
-export const claimDailyQuoteXP = (amount = 50, userContext = null) => {
+// 11. Claim Daily Inspiration Quote XP (+20 XP)
+export const claimDailyQuoteXP = (amount = 20, userContext = null) => {
   const today = getLocalDateStr();
   const stats = getLiveProgressStats(userContext);
 

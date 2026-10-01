@@ -9,6 +9,7 @@ import {
   getLessonsForAgeGroup,
 } from "../constants/masterCurriculum";
 import { CurriculumCache, areListsIdentical } from "../utils/curriculumCache";
+import { SpeakMateLoader } from "../components/common/SpeakMateLoader";
 
 const DIFFICULTY_TABS = ["All", "Beginner", "Intermediate", "Advanced"];
 
@@ -24,10 +25,43 @@ export function Lessons() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearchQuery = searchParams.get("search") || "";
 
-  // User Profile
-  const accountType = localStorage.getItem("speakmate_account_type") || user?.accountType || user?.role || "INDIVIDUAL_USER";
-  const rawGrade = localStorage.getItem("speakmate_school_grade") || localStorage.getItem("speakmate_standard") || user?.schoolGrade || user?.standard || "1st Std";
-  const rawAge = localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional";
+  // Reactive User Profile State
+  const [accountType, setAccountType] = useState(
+    () => user?.accountType || user?.role || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER"
+  );
+  const [rawGrade, setRawGrade] = useState(
+    () => user?.schoolGrade || user?.standard || localStorage.getItem("speakmate_school_grade") || localStorage.getItem("speakmate_standard") || "1st Std"
+  );
+  const [rawAge, setRawAge] = useState(
+    () => user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional"
+  );
+
+  useEffect(() => {
+    if (user?.accountType) setAccountType(user.accountType);
+    if (user?.schoolGrade) setRawGrade(user.schoolGrade);
+    if (user?.ageGroup) setRawAge(user.ageGroup);
+  }, [user?.accountType, user?.schoolGrade, user?.ageGroup]);
+
+  useEffect(() => {
+    const handleSettings = (e) => {
+      const d = e?.detail;
+      if (d?.schoolGrade) setRawGrade(d.schoolGrade);
+      if (d?.ageGroup) setRawAge(d.ageGroup);
+      if (d?.accountType) setAccountType(d.accountType);
+    };
+    const handleAge = (e) => {
+      const a = e?.detail?.ageGroup || (typeof e?.detail === "string" ? e.detail : null);
+      if (a) setRawAge(a);
+    };
+
+    window.addEventListener("speakmate_settings_updated", handleSettings);
+    window.addEventListener("speakmate_age_group_changed", handleAge);
+    return () => {
+      window.removeEventListener("speakmate_settings_updated", handleSettings);
+      window.removeEventListener("speakmate_age_group_changed", handleAge);
+    };
+  }, []);
+
   const isStudent = accountType === "STUDENT" || user?.role === "STUDENT" || Boolean(user?.isSchoolStudent) || Boolean(user?.schoolGrade) || Boolean(user?.standard) || Boolean(localStorage.getItem("speakmate_school_grade"));
 
   const normalizeGradeStr = (raw) => {
@@ -80,6 +114,13 @@ export function Lessons() {
   const [searchResults, setSearchResults] = useState(null);
   const [activeTab, setActiveTab] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Sync lessons and continue items reactively when profile changes
+  useEffect(() => {
+    const cached = CurriculumCache.getLessons(user?.id, profileKey);
+    setLessons(cached && cached.length > 0 ? cached : profileLessons);
+    setContinueItems(CurriculumCache.getContinueItems(user?.id, profileKey, profileLessons) || []);
+  }, [profileLessons, profileKey, user?.id]);
 
   // Distinct categories computed strictly from user's profile lessons
   const categories = useMemo(() => {
@@ -230,7 +271,13 @@ export function Lessons() {
       loadData();
     };
     window.addEventListener("speakmate_settings_updated", handleSettingsUpdated);
-    return () => window.removeEventListener("speakmate_settings_updated", handleSettingsUpdated);
+    window.addEventListener("speakmate_curriculum_updated", handleSettingsUpdated);
+    window.addEventListener("speakmate_progress_updated", handleSettingsUpdated);
+    return () => {
+      window.removeEventListener("speakmate_settings_updated", handleSettingsUpdated);
+      window.removeEventListener("speakmate_curriculum_updated", handleSettingsUpdated);
+      window.removeEventListener("speakmate_progress_updated", handleSettingsUpdated);
+    };
   }, []);
 
   const handleOpenLesson = useCallback((lessonItem) => {
@@ -540,9 +587,9 @@ export function Lessons() {
           </span>
         </div>
 
-        {loading ? (
-          <div className="p-16 text-center font-extrabold text-sm text-[var(--text-secondary)]">
-            Loading lessons...
+        {loading && filteredLessons.length === 0 ? (
+          <div className="py-12">
+            <SpeakMateLoader message="Loading your 20-lesson curriculum..." subMessage="Fetching progress and lesson modules" />
           </div>
         ) : filteredLessons.length === 0 ? (
           <div className="p-12 text-center text-[var(--text-secondary)] space-y-2 glass-card rounded-3xl">

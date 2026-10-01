@@ -1,6 +1,7 @@
 package com.rslsolution.speakmateai.assistant.provider;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,6 @@ import com.rslsolution.speakmateai.repository.AssignmentRepository;
 import com.rslsolution.speakmateai.repository.LessonRepository;
 
 import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Caller's own learning progress, available to both STUDENT and USER (Learner) roles.
@@ -295,30 +295,105 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		}
 		data.put("completedLessonTitles", completedLessonTitles);
 
-		// Available lessons catalog & recommended next lesson
+		// Available lessons catalog & recommended next lesson (Master 120 Academic Curriculum)
+		List<String> masterFoundationalTitles = List.of(
+				"Mastering Short & Long Vowels",
+				"Sounds of Blends & Digraphs",
+				"Naming Words: All About Nouns",
+				"Common vs. Proper Nouns",
+				"Singular & Plural Nouns",
+				"Pronouns: Replacing Names",
+				"Action Verbs in Motion",
+				"Helping Verbs: Am, Is & Are",
+				"Adjectives: Describing Words",
+				"Opposite Words & Antonyms",
+				"Prepositions of Place",
+				"Building Complete Sentences",
+				"Using Articles: A, An & The",
+				"Simple Present Tense & Habits",
+				"The 8 Parts of Speech",
+				"Mastering the 12 Verb Tenses"
+		);
+
+		String recommendedNextLesson = "Mastering Short & Long Vowels";
+		String userStd = user.getStandard() != null ? user.getStandard() : user.getSchoolGrade();
+		String userAge = user.getAgeGroup();
+		if (userStd != null && !userStd.isBlank()) {
+			int gradeNum = 1;
+			try {
+				java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+").matcher(userStd);
+				if (m.find()) gradeNum = Integer.parseInt(m.group());
+			} catch (Exception ignored) {}
+			if (gradeNum >= 9) {
+				recommendedNextLesson = "Board Exam Viva & Oral Prep";
+			} else if (gradeNum >= 5) {
+				recommendedNextLesson = "The 8 Parts of Speech";
+			} else {
+				recommendedNextLesson = "Mastering Short & Long Vowels";
+			}
+		} else if (userAge != null && !userAge.isBlank()) {
+			String ageLower = userAge.toLowerCase(java.util.Locale.ROOT);
+			if (ageLower.contains("kid") || ageLower.contains("6-12")) {
+				recommendedNextLesson = "Rhyming Words & Word Families";
+			} else if (ageLower.contains("teen") || ageLower.contains("13-24") || ageLower.contains("young")) {
+				recommendedNextLesson = "Fixing Run-ons & Fragments";
+			} else if (ageLower.contains("senior") || ageLower.contains("prof") || ageLower.contains("25+")) {
+				recommendedNextLesson = "Executive Precision & Grammar";
+			}
+		}
+
 		long totalAvailableLessons = 0;
-		List<String> availableLessonTitles = List.of();
-		String recommendedNextLesson = "Everyday Introductions & Small Talk";
+		List<String> availableLessonTitles = new ArrayList<>();
 		try {
 			totalAvailableLessons = lessonRepository.countByActiveTrue();
 			List<Lesson> activeList = lessonRepository.findByActiveTrue();
-			availableLessonTitles = activeList.stream()
-					.map(Lesson::getTitle)
-					.filter(t -> t != null && !t.isBlank())
-					.limit(10)
-					.collect(Collectors.toList());
-			for (Lesson l : activeList) {
-				if (l.getTitle() != null && !completedLessonTitles.contains(l.getTitle().trim())) {
-					recommendedNextLesson = l.getTitle().trim();
-					break;
+			if (activeList != null && !activeList.isEmpty()) {
+				List<Lesson> sortedList = activeList.stream()
+						.filter(l -> l.getTitle() != null && !l.getTitle().isBlank() && !l.getTitle().matches("(?i)^Lesson\\s+\\d+$"))
+						.sorted(Comparator.comparing((Lesson l) -> l.getOrderIndex() != null ? l.getOrderIndex() : 9999))
+						.collect(Collectors.toList());
+
+				if (!sortedList.isEmpty()) {
+					availableLessonTitles = sortedList.stream()
+							.map(Lesson::getTitle)
+							.filter(t -> t != null && !t.isBlank())
+							.distinct()
+							.limit(12)
+							.collect(Collectors.toList());
+
+					for (Lesson l : sortedList) {
+						String title = l.getTitle().trim();
+						if (!completedLessonTitles.contains(title)) {
+							recommendedNextLesson = title;
+							break;
+						}
+					}
 				}
 			}
 		} catch (Exception e) {
 			// fallback
 		}
-		data.put("totalAvailableLessons", totalAvailableLessons > 0 ? totalAvailableLessons : 15L);
+
+		if (availableLessonTitles.isEmpty()) {
+			availableLessonTitles = new ArrayList<>(masterFoundationalTitles);
+			for (String t : masterFoundationalTitles) {
+				if (!completedLessonTitles.contains(t)) {
+					recommendedNextLesson = t;
+					break;
+				}
+			}
+		}
+
+		long resolvedLessonsCount = Math.max(totalAvailableLessons, 120L);
+		data.put("totalAvailableLessons", resolvedLessonsCount);
 		data.put("availableLessonTitles", availableLessonTitles);
 		data.put("recommendedNextLesson", recommendedNextLesson);
+		data.put("curriculumBreakdown", "120 Academic Lessons across Beginner (1-40), Intermediate (41-80), and Advanced (81-120)");
+		data.put("curriculumLevels", Map.of(
+				"Beginner", "40 Lessons (Lessons 1-40: Phonics, Nouns, Pronouns, Verbs, Articles, Simple Sentences)",
+				"Intermediate", "40 Lessons (Lessons 41-80: 12 Verb Tenses, Modals, Active/Passive Voice, Reported Speech)",
+				"Advanced", "40 Lessons (Lessons 81-120: Complex Clauses, Executive Oratory, Workplace & Professional Fluency)"
+		));
 
 		// Achievements milestones
 		int unlockedAchievementsCount = 0;
@@ -363,7 +438,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		data.put("scenariosNeededForConfidentBadge", scenariosNeededForConfidentBadge);
 		data.put("confidentConversationalistUnlocked", distinctScenariosCount >= 5);
 
-		// AI Avatars and Speaking Scenarios catalog
+		// AI Avatars and Speaking Scenarios catalog (100+ Scenarios Library across Age Groups & School Standards)
 		data.put("availableAvatars", List.of(
 				"Haru (Friendly English Tutor)",
 				"Chitose (Casual Conversation)",
@@ -372,19 +447,28 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 				"Motu (Expressive Companion)"
 		));
 		data.put("availableScenarios", List.of(
-				"Job Interview",
-				"Coffee Shop Order",
-				"Airport Check-in",
-				"Hotel Reservation",
-				"Daily Small Talk",
-				"Doctor's Appointment",
-				"Business Meeting",
-				"Travel & Directions"
+				"Job Interview Practice (Career & Professional)",
+				"Campus Coffee Shop (Young Adult)",
+				"Show & Tell (Kids)",
+				"First Day at High School (Teens)",
+				"Business Meeting & Executive Coaching (Workplace)",
+				"10th Board Oral Exam Simulation (High School 10th Std)",
+				"Inter-School Debate & MUN Resolution (Middle School 8th Std)",
+				"Science Project Idea Pitch (5th Std)",
+				"Alphabet Phonics & Animal Friends (1st Std)",
+				"Airport Customs & Hotel Check-in (Travel)",
+				"Tea Time & Gardening (Senior)",
+				"Salary & Contract Negotiation (Career)",
+				"Public Speaking & Keynote Address (Advanced Oratory)"
 		));
+		data.put("totalAvailableScenarios", "100+ Interactive Scenarios (50 Age-Wise + 100 School Standard 1st–10th)");
+		data.put("scenariosBreakdown", "50 Age-Wise Scenarios (Kids, Teens, Young Adult, Professional, Senior) and 100 Grade Scenarios (1st–10th Std)");
+		data.put("ageWiseScenariosCount", 50);
+		data.put("schoolStandardScenariosCount", 100);
 
 		// Badges Roadmap & exact requirements
 		Map<String, String> badgesRoadmap = new LinkedHashMap<>();
-		badgesRoadmap.put("Confident Conversationalist", "Complete speaking sessions across 5 distinct conversation scenarios (e.g. Job Interview, Coffee Shop, Airport, Hotel, Daily Small Talk) to unlock the Silver badge and earn 120 XP.");
+		badgesRoadmap.put("Confident Conversationalist", "Complete speaking sessions across 5 distinct conversation scenarios (e.g. Job Interview Practice, Campus Coffee Shop, Show & Tell, Airport Customs, Business Meeting) to unlock the Silver badge and earn 120 XP.");
 		badgesRoadmap.put("Consistent Achiever", "Reach Level 5 strictly by earning 2,500 total XP through regular speaking and lesson practice.");
 		badgesRoadmap.put("Streak Master", "Maintain a 7-day practice streak.");
 		badgesRoadmap.put("Vocabulary Virtuoso", "Master 50 vocabulary words in the word bank.");

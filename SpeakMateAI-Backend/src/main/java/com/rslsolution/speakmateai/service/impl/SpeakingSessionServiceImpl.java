@@ -1149,7 +1149,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		session.setFluencyScore(fluencyScore);
 		session.setPronunciationScore(pronunciationScore);
 		session.setFeedback(summary);
-		session.setCompleted(true);
+		boolean isLegitimateSession = userMessageCount > 0 && userWordCount > 0 && xp > 0;
+		session.setCompleted(isLegitimateSession);
 		speakingSessionRepository.save(session);
 
 		// Update user's progress ONLY if the user actively practiced (XP > 0)
@@ -1228,14 +1229,23 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	@Override
 	public List<SpeakingHistoryResponse> getSessionHistory() {
 		User user = currentUser();
-		return speakingSessionRepository.findByUserOrderByCreatedAtDesc(user).stream()
-				.filter(s -> Boolean.TRUE.equals(s.getCompleted()))
+		if (user == null || user.getId() == null) {
+			return List.of();
+		}
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdAndCompletedTrueOrderByCreatedAtDesc(user.getId());
+		return sessions.stream()
+				.filter(s -> s != null && Boolean.TRUE.equals(s.getCompleted())
+						&& (s.getDuration() != null && s.getDuration() > 0)
+						&& (s.getOverallScore() == null || s.getOverallScore() > 0)
+						&& (s.getFeedback() == null || !s.getFeedback().contains("no speaking activity")))
 				.map(s -> {
 					String preview = "";
-					if (s.getMessages() != null && !s.getMessages().isEmpty()) {
-						preview = s.getMessages().get(s.getMessages().size() - 1).getMessage();
-					} else if (s.getTranscript() != null) {
+					if (s.getFeedback() != null && !s.getFeedback().isBlank()) {
+						preview = s.getFeedback();
+					} else if (s.getTranscript() != null && !s.getTranscript().isBlank()) {
 						preview = s.getTranscript();
+					} else if (s.getTopic() != null && !s.getTopic().isBlank()) {
+						preview = s.getTopic();
 					}
 					if (preview.length() > 100)
 						preview = preview.substring(0, 97) + "...";

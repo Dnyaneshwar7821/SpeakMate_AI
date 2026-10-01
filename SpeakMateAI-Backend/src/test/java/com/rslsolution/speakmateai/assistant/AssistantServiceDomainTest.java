@@ -23,7 +23,6 @@ import com.rslsolution.speakmateai.assistant.provider.NavigationDataProvider;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
 import com.rslsolution.speakmateai.dto.assistant.AssistantRequest;
 import com.rslsolution.speakmateai.dto.assistant.AssistantResponse;
-import com.rslsolution.speakmateai.dto.assistant.SynthesizedAnswer;
 import com.rslsolution.speakmateai.enums.Role;
 
 /**

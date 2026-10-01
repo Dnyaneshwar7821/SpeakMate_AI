@@ -1,32 +1,44 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, useLocation, Link } from "react-router-dom";
 import { speakGlobalText } from "../utils/speechHelper";
 import ROUTES from "../constants/routes";
 import { speakingService } from "../services/appServices";
 
 export function SpeakingHistoryDetail() {
   const { id } = useParams();
-  const [sessionData, setSessionData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const effectiveId = id && id !== ":id" ? id : searchParams.get("sessionId");
+
+  const initialData = location.state?.session || null;
+  const [sessionData, setSessionData] = useState(() => initialData);
+  const [loading, setLoading] = useState(() => !initialData?.messages);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
+    if (!effectiveId) {
+      if (!initialData) setError(true);
+      setLoading(false);
+      return;
+    }
+    if (!sessionData?.messages) {
+      setLoading(true);
+    }
     setError(false);
     speakingService
-      .detail(id)
+      .detail(effectiveId)
       .then((data) => {
         if (data && (data.id || data.scenario)) {
           setSessionData(data);
-        } else {
+        } else if (!sessionData) {
           setError(true);
         }
       })
       .catch(() => {
-        setError(true);
+        if (!sessionData) setError(true);
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [effectiveId]);
 
   const handleSpeakText = (text) => {
     speakGlobalText(text);

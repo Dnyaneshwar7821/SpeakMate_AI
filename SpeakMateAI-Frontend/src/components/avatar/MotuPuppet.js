@@ -267,14 +267,19 @@ export class MotuPuppet extends PIXI.Container {
   }
 
   setMouthOpen(y, form = 0) {
-    this.mouthY = Math.max(0, Math.min(1.0, y));
+    this.mouthY = this.isSpeaking ? Math.max(0, Math.min(1.0, y)) : 0;
     this.mouthForm = Math.max(-1.0, Math.min(1.0, form));
+    if (this.mouthY === 0 || !this.isSpeaking) {
+      this.renderMouth();
+    }
   }
 
   setSpeaking(speaking) {
     this.isSpeaking = Boolean(speaking);
     if (!this.isSpeaking) {
       this.mouthY = 0;
+      this.mouthForm = 0;
+      this.renderMouth();
     }
   }
 

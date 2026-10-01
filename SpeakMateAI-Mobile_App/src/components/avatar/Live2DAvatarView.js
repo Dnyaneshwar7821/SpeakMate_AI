@@ -1,7 +1,9 @@
 import React, { memo, useEffect, useRef, useState, useMemo } from 'react';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Image } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { getLive2DAvatarHtml } from '../../utils/live2dHtml';
+import { getPixiPuppetHtml } from '../../utils/puppetHtmlEngine';
+import { AVATAR_IMAGES, getAvatarById } from '../../config/AvatarCatalog';
+import { TEACHER_DATA_URI } from '../../utils/puppets/TeacherBase64';
 
 export const Live2DAvatarView = memo(function Live2DAvatarView({
   isSpeaking = false,
@@ -19,16 +21,33 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
   const [hasError, setHasError] = useState(false);
   const normalizedModel = (model || 'haru').toLowerCase();
 
+  const assetUri = useMemo(() => {
+    try {
+      if (normalizedModel === 'haru' || normalizedModel === 'teacher') {
+        return TEACHER_DATA_URI;
+      }
+      const avatarMeta = getAvatarById(normalizedModel);
+      const img = AVATAR_IMAGES[avatarMeta.id] || AVATAR_IMAGES[normalizedModel];
+      if (img) {
+        const resolved = Image.resolveAssetSource(img);
+        return resolved?.uri || '';
+      }
+    } catch (e) {
+      console.warn('[Live2DAvatarView] Asset resolve error:', e);
+    }
+    return '';
+  }, [normalizedModel]);
+
   const webViewSource = useMemo(() => {
     const customUrl = process.env.EXPO_PUBLIC_WEB_AVATAR_URL;
     if (customUrl) {
       return { uri: `${customUrl}?model=${normalizedModel}&framing=faceToChest` };
     }
     return {
-      html: getLive2DAvatarHtml(normalizedModel),
-      baseUrl: 'https://cdn.jsdelivr.net',
+      html: getPixiPuppetHtml(normalizedModel, assetUri),
+      baseUrl: 'https://cdnjs.cloudflare.com',
     };
-  }, [normalizedModel]);
+  }, [normalizedModel, assetUri]);
 
   // Send state and spoken text updates to embedded web avatar
   useEffect(() => {
@@ -69,14 +88,14 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
     }
   }, [normalizedModel, isReady]);
 
-  // Safety guard: if not ready within 5 seconds, notify parent to prevent infinite spinner
+  // Safety guard: guarantee spinner is dismissed within 3s
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!isReady) {
         setIsReady(true);
         if (onLoaded) onLoaded();
       }
-    }, 5000);
+    }, 3000);
     return () => clearTimeout(timer);
   }, [isReady, onLoaded]);
 
@@ -92,7 +111,7 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
         if (onError) onError(new Error(data.message));
       }
     } catch (e) {
-      // ignore
+      // ignore non-json messages
     }
   };
 

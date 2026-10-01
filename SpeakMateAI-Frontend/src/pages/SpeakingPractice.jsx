@@ -211,17 +211,33 @@ const normalizeAgeGroup = (rawAge) => {
   return "Professional";
 };
 
+const SPEAKING_HISTORY_CACHE_KEY = "speakmate_speaking_history_cache";
+
+const getCachedSpeakingHistory = () => {
+  try {
+    const raw = localStorage.getItem(SPEAKING_HISTORY_CACHE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const setCachedSpeakingHistory = (data) => {
+  try {
+    localStorage.setItem(SPEAKING_HISTORY_CACHE_KEY, JSON.stringify(data));
+  } catch {}
+};
+
 export function SpeakingPractice() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showConfirm } = useModal();
   const toast = useToast();
 
-  const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
-  const isStudent = accountType === "STUDENT" || Boolean(user?.schoolGrade);
+  const accountType = localStorage.getItem("speakmate_account_type") || user?.accountType || "INDIVIDUAL_USER";
+  const isStudent = accountType === "STUDENT" || Boolean(user?.schoolGrade) || Boolean(user?.isSchoolStudent);
 
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState(() => getCachedSpeakingHistory());
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
@@ -233,32 +249,25 @@ export function SpeakingPractice() {
   );
 
   const loadData = async () => {
-    setLoading(true);
     try {
-      const [rawHistory, meData] = await Promise.all([
-        speakingService.history().catch(() => []),
-        authService.me().catch(() => null),
-      ]);
+      const rawHistory = await speakingService.history().catch(() => []);
       const validHistory = Array.isArray(rawHistory)
-        ? rawHistory.filter(item => item && (item.completed === true || item.status === 'COMPLETED' || (item.duration && item.duration > 0 && (item.overallScore > 0 || item.score > 0))))
+        ? rawHistory.filter(item => item && (Number(item.overallScore || item.score || 0) > 0) && !String(item.previewMessage || '').includes('no speaking activity'))
         : [];
       setHistory(validHistory);
+      setCachedSpeakingHistory(validHistory);
 
-      const effectiveAge = meData?.ageGroup || user?.ageGroup || localStorage.getItem("speakmate_age_group");
+      const effectiveAge = user?.ageGroup || localStorage.getItem("speakmate_age_group");
       if (effectiveAge) {
         const norm = normalizeAgeGroup(effectiveAge);
         setSelectedAgeGroup(norm);
-        localStorage.setItem("speakmate_age_group", norm);
       }
-      const effectiveGrade = meData?.schoolGrade || user?.schoolGrade || localStorage.getItem("speakmate_school_grade");
+      const effectiveGrade = user?.schoolGrade || localStorage.getItem("speakmate_school_grade");
       if (effectiveGrade) {
         setSelectedGrade(effectiveGrade);
-        localStorage.setItem("speakmate_school_grade", effectiveGrade);
       }
     } catch (e) {
       console.warn("Failed to load speaking data", e);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -276,14 +285,26 @@ export function SpeakingPractice() {
 
   useEffect(() => {
     loadData();
-    const handleProgressUpdate = () => {
-      const storedAge = user?.ageGroup || localStorage.getItem("speakmate_age_group");
-      if (storedAge) setSelectedAgeGroup(normalizeAgeGroup(storedAge));
+    const handleProgressUpdate = (e) => {
+      const d = e?.detail;
+      if (d?.schoolGrade) {
+        setSelectedGrade(d.schoolGrade);
+        localStorage.setItem("speakmate_school_grade", d.schoolGrade);
+      }
+      if (d?.ageGroup) {
+        const norm = normalizeAgeGroup(d.ageGroup);
+        setSelectedAgeGroup(norm);
+        localStorage.setItem("speakmate_age_group", norm);
+      }
       loadData();
     };
     const handleAgeChange = (e) => {
       const newAge = e?.detail?.ageGroup || user?.ageGroup || localStorage.getItem("speakmate_age_group");
-      if (newAge) setSelectedAgeGroup(normalizeAgeGroup(newAge));
+      if (newAge) {
+        const norm = normalizeAgeGroup(newAge);
+        setSelectedAgeGroup(norm);
+        localStorage.setItem("speakmate_age_group", norm);
+      }
     };
 
     window.addEventListener("focus", handleProgressUpdate);
@@ -298,10 +319,12 @@ export function SpeakingPractice() {
     };
   }, []);
 
+  const liveStats = getLiveProgressStats(user);
+  // Strictly speaking-specific stats: minutes spent on speaking, XP earned from speaking sessions, and completed sessions
   const totalMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
   const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
   const totalSessions = history.length;
-  const streakDays = Number(getLiveProgressStats().streak ?? 0);
+  const streakDays = Number(liveStats.streak ?? 0);
 
   const effAge = normalizeAgeGroup(selectedAgeGroup);
   const currentScenarios = isStudent
@@ -351,7 +374,11 @@ export function SpeakingPractice() {
     if (confirmed) {
       try {
         await speakingService.deleteHistory(id);
-        setHistory((prev) => prev.filter((h) => h.id !== id));
+        setHistory((prev) => {
+          const updated = prev.filter((h) => h.id !== id);
+          setCachedSpeakingHistory(updated);
+          return updated;
+        });
         toast.success("Practice record deleted successfully!");
       } catch (err) {
         console.error("Failed to delete history item:", err);
@@ -518,7 +545,7 @@ export function SpeakingPractice() {
             {history.map((item) => (
               <div
                 key={item.id}
-                onClick={() => navigate(`${ROUTES.SPEAKING_HISTORY_DETAIL}?sessionId=${item.id}`)}
+                onClick={() => navigate(`/speaking/history/${item.id}`, { state: { session: item } })}
                 className="group p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all flex items-start justify-between gap-4 cursor-pointer shadow-sm hover:shadow-md"
               >
                 <div className="flex items-start gap-3.5 min-w-0">

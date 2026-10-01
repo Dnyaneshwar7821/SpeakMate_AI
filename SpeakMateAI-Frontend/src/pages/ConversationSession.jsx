@@ -5,13 +5,12 @@ import ROUTES from "../constants/routes";
 import { aiService, speakingService } from "../services/appServices";
 import { generateDynamicCoachingResponse, cleanDialogueText } from "../utils/aiConversationEngine";
 import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
-import { speakGlobalText, warmupSpeechAutoplay } from "../utils/speechHelper";
+import { speakGlobalText, stopSpeaking } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { recordSpeakingSession } from "../utils/progressTracker";
 
 // Avatar Hooks
-import { useLipSync } from "../hooks/useLipSync";
 import { useBlink } from "../hooks/useBlink";
 import { useMouseTracking } from "../hooks/useMouseTracking";
 import { useExpressions } from "../hooks/useExpressions";
@@ -112,7 +111,7 @@ export function ConversationSession() {
   const [model, setModel] = useState(null);
   const containerRef = useRef(null);
 
-  useLipSync(model, isAiSpeaking);
+  // useLipSync is managed directly by AvatarCanvas via isSpeaking prop to avoid dual competing RAF loops
   useBlink(model);
   useMouseTracking(model, containerRef);
   const { setExpression } = useExpressions(model);
@@ -145,6 +144,7 @@ export function ConversationSession() {
   // Clean up incomplete session draft if user navigated away without finishing
   useEffect(() => {
     return () => {
+      stopSpeaking();
       if (!hasFinishedRef.current && sessionIdRef.current && !String(sessionIdRef.current).startsWith("sim_")) {
         speakingService.deleteHistory(sessionIdRef.current).catch(() => { });
       }
@@ -197,7 +197,6 @@ export function ConversationSession() {
       if (onComplete) onComplete();
       return;
     }
-    warmupSpeechAutoplay();
     speakGlobalText(text, speechSpeed, {
       onstart: () => {
         setIsAiSpeaking(true);
@@ -218,16 +217,16 @@ export function ConversationSession() {
   // Speak initial greeting reliably on mount
   useEffect(() => {
     let active = true;
-    warmupSpeechAutoplay();
     const timerId = setTimeout(() => {
       if (active && initialGreeting) {
         handleSpeakText(initialGreeting);
       }
-    }, 250);
+    }, 350);
 
     return () => {
       active = false;
       clearTimeout(timerId);
+      stopSpeaking();
     };
   }, [initialGreeting]);
 
@@ -447,6 +446,15 @@ export function ConversationSession() {
   handleStopListeningAndSendRef.current = handleStopListeningAndSend;
 
   const sendUserText = async (text) => {
+    // Stop any ongoing speech and ensure mouth is firmly at REST
+    stopSpeaking();
+    setIsAiSpeaking(false);
+    setViseme("REST");
+    if (coachingTimerRef.current) {
+      clearTimeout(coachingTimerRef.current);
+      coachingTimerRef.current = null;
+    }
+
     setHints([]);
     setCurrentTranscript("");
     setIsThinking(true);
@@ -532,17 +540,14 @@ export function ConversationSession() {
         coachingTimerRef.current = null;
       }
 
-      warmupSpeechAutoplay();
-      setTimeout(() => {
-        handleSpeakText(fullSpeakableText, () => {
-          if (coachingTipSentence && !isMuted) {
-            coachingTimerRef.current = setTimeout(() => {
-              const coachingSpeech = `A better way to say that is: ${coachingTipSentence}`;
-              handleSpeakText(coachingSpeech);
-            }, 300); // 0.30 sec pause before coaching tip
-          }
-        });
-      }, 200);
+      handleSpeakText(fullSpeakableText, () => {
+        if (coachingTipSentence && !isMuted) {
+          coachingTimerRef.current = setTimeout(() => {
+            const coachingSpeech = `A better way to say that is: ${coachingTipSentence}`;
+            handleSpeakText(coachingSpeech);
+          }, 300); // 0.30 sec pause before coaching tip
+        }
+      });
     } catch (e) {
       setIsThinking(false);
     }
@@ -734,7 +739,7 @@ export function ConversationSession() {
             ? "bg-gradient-to-b from-[#0F172A] via-[#111827] to-[#0B0F19]"
             : "bg-gradient-to-b from-sky-50 via-indigo-50/70 to-purple-50/60"
           }`}>
-          <AvatarCanvas className="w-full h-full" onModelLoaded={setModel} framing="faceToChest" />
+          <AvatarCanvas isSpeaking={isAiSpeaking} className="w-full h-full" onModelLoaded={setModel} framing="faceToChest" />
 
           {/* Subtle Stage Lighting Overlay */}
           <div className={`absolute inset-0 pointer-events-none ${isDark
@@ -901,7 +906,12 @@ export function ConversationSession() {
               {activeHints.map((hint, idx) => (
                 <button
                   key={idx}
-                  onClick={() => sendUserText(hint)}
+                  onClick={() => {
+                    stopSpeaking();
+                    setIsAiSpeaking(false);
+                    setViseme("REST");
+                    sendUserText(hint);
+                  }}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all border shadow-sm whitespace-nowrap ${isDark
                       ? "bg-slate-800/80 hover:bg-[#6c63ff] hover:text-white text-slate-200 border-white/10"
                       : "bg-white hover:bg-[#6c63ff] hover:text-white text-slate-700 border-slate-200"

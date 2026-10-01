@@ -289,6 +289,7 @@ export const DashboardHeader = memo(function DashboardHeader({
                 </View>
               )}
             </View>
+            <View style={styles.heroMetaRow}>
               <TouchableOpacity
                 onPress={onLeaderboardPress}
                 activeOpacity={0.8}
@@ -412,7 +413,11 @@ export const DailyGoalCard = memo(function DailyGoalCard({ goal, onContinue }) {
 
       <View style={styles.goalGrid}>
         <GoalMetric icon="checkmark-done" label="Lessons Today" value={goal.lessonsCompletedToday} />
-        <GoalMetric icon="mic" label="Speaking Min" value={goal.speakingMinutesToday} />
+        <GoalMetric
+          icon="mic"
+          label="Speaking Min"
+          value={`${goal.speakingMinutesToday || 0}/${goal.targetSpeakingMinutes || goal.dailyGoalMinutes || 15}m`}
+        />
         <GoalMetric icon="library" label="Vocabulary" value={`${goal.vocabularyCompleted}/${goal.vocabularyTarget}`} />
       </View>
 

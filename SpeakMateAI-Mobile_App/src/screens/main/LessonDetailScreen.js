@@ -31,7 +31,7 @@ import { useToast } from '../../context/ToastContext';
 import { lessonModuleService, settingsService, aiService, progressService, speechService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
 import { COLORS } from '../../constants/colors';
-import { findStandardLesson } from '../../constants/standardLessons';
+import { findStandardLesson, getMasterclassForLesson } from '../../constants/standardLessons';
 import { CurriculumCache } from '../../utils/dashboardCache';
 
 // ─── Helpers & Quizzes ────────────────────────────────────────────────────────
@@ -206,7 +206,12 @@ export default function LessonDetailScreen({ navigation, route }) {
   const [availableVoices, setAvailableVoices] = useState([]);
   const [isSpeakingContent, setIsSpeakingContent] = useState(false);
   const [listenedFullExplanation, setListenedFullExplanation] = useState(false);
-  const [explanationSkippedMidway, setExplanationSkippedMidway] = useState(false);
+  const [audioSpeed, setAudioSpeed] = useState(1.0);
+  const [activeAudioSection, setActiveAudioSection] = useState(null);
+  const [audioBonusAwarded, setAudioBonusAwarded] = useState(false);
+
+  // Instant 4-Pillar Pedagogical Masterclass Engine
+  const masterclass = lesson ? getMasterclassForLesson(lesson) : null;
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const fadeIn = useRef(new Animated.Value(initialLesson ? 1 : 0)).current;
@@ -497,64 +502,88 @@ export default function LessonDetailScreen({ navigation, route }) {
       .trim();
   };
 
-  const readLessonStep = (text) => {
-    if (isSpeakingContent) {
+  const handlePlayFullMasterclass = () => {
+    if (!masterclass) return;
+    if (isSpeakingContent && activeAudioSection === 'all') {
       VoiceService.stop();
       setIsSpeakingContent(false);
+      setActiveAudioSection(null);
       return;
     }
-    
+
+    VoiceService.stop();
     setIsSpeakingContent(true);
+    setActiveAudioSection('all');
+
+    const breakdownText = (masterclass.formula?.breakdown || [])
+      .map((b) => `${b.label}: ${b.detail}`)
+      .join('. ');
+    const examplesText = (masterclass.formula?.examples || []).join('. ');
+    const mistakesText = (masterclass.mistakes || [])
+      .map((m) => `Common Pitfall: ${m.incorrect}. Native Correction: ${m.correct}. Why: ${m.why}`)
+      .join('. ');
+
+    const fullScript = `Masterclass on ${lesson?.title || 'this topic'}. 
+      Core Concept: ${masterclass.coreConcept?.summary || ''}. ${masterclass.coreConcept?.context || ''}.
+      Golden Formula: ${masterclass.formula?.rule || ''}. ${breakdownText}. For example: ${examplesText}.
+      Common Mistakes to Avoid: ${mistakesText}.
+      Tutor Pro Fluency Tip: ${masterclass.fluencyTip?.tip || ''}. Practice phrase: ${masterclass.fluencyTip?.practicePhrase || ''}.`;
+
+    VoiceService.speak(sanitizeForSpeech(fullScript), {
+      voiceType: settings?.aiVoice || 'Default',
+      availableVoices,
+      speechSpeed: audioSpeed,
+      onDone: () => {
+        setIsSpeakingContent(false);
+        setActiveAudioSection(null);
+        setListenedFullExplanation(true);
+        setAudioBonusAwarded(true);
+      },
+      onError: () => {
+        setIsSpeakingContent(false);
+        setActiveAudioSection(null);
+      },
+    });
+  };
+
+  const handlePlaySectionAudio = (sectionKey, text) => {
+    if (isSpeakingContent && activeAudioSection === sectionKey) {
+      VoiceService.stop();
+      setIsSpeakingContent(false);
+      setActiveAudioSection(null);
+      return;
+    }
+
+    VoiceService.stop();
+    setIsSpeakingContent(true);
+    setActiveAudioSection(sectionKey);
+
     VoiceService.speak(sanitizeForSpeech(text), {
       voiceType: settings?.aiVoice || 'Default',
       availableVoices,
-      onDone: () => setIsSpeakingContent(false),
-      onError: () => setIsSpeakingContent(false),
+      speechSpeed: audioSpeed,
+      onDone: () => {
+        setIsSpeakingContent(false);
+        setActiveAudioSection(null);
+      },
+      onError: () => {
+        setIsSpeakingContent(false);
+        setActiveAudioSection(null);
+      },
     });
+  };
+
+  const handleCycleSpeed = () => {
+    const speeds = [0.75, 1.0, 1.25];
+    const nextIdx = (speeds.indexOf(audioSpeed) + 1) % speeds.length;
+    setAudioSpeed(speeds[nextIdx]);
   };
 
   useEffect(() => {
     VoiceService.stop();
     setIsSpeakingContent(false);
+    setActiveAudioSection(null);
   }, [studyStep, showStudy]);
-
-  // ── Auto AI Teaching: fires automatically on Step 2 with instant speech ──
-  useEffect(() => {
-    if (!showStudy || studyStep !== 1 || !lesson) return;
-
-    if (!listenedFullExplanation) {
-      const textToSpeak = aiTeachContent || `Welcome to your detailed masterclass on ${lesson.title}! Mastering this concept will significantly boost your English fluency and confidence.`;
-      setIsSpeakingContent(true);
-      VoiceService.speak(sanitizeForSpeech(textToSpeak), {
-        voiceType: settings?.aiVoice || 'Default',
-        availableVoices,
-        onDone: () => {
-          setIsSpeakingContent(false);
-          setListenedFullExplanation(true);
-          setExplanationSkippedMidway(false);
-        },
-        onError: () => setIsSpeakingContent(false),
-      });
-    }
-
-    // Background enhancement without blocking UI
-    const fetchDynamicTeach = async () => {
-      try {
-        const prompt = `Teach the complete comprehensive masterclass on "${lesson.title}" (${lesson.category} - ${lesson.level}). Explain the core concept with real-world analogies, sentence formulas (positive, negative, question), 4 real-life dialogue examples (daily life, school, work, travel), common mistakes vs corrections, and native pro-tips.`;
-        const res = await aiService.lessonTutor(prompt);
-        if (res?.response) {
-          const clean = cleanAiText(res.response);
-          if (clean && clean.length > 50) {
-            setAiTeachContent(clean);
-          }
-        }
-      } catch (err) {
-        console.warn('Dynamic teach background fetch:', err?.message);
-      }
-    };
-
-    fetchDynamicTeach();
-  }, [showStudy, studyStep, lesson]);
 
   // ── Auto AI Examples: fires automatically on Step 3 ─────────────────
   useEffect(() => {
@@ -833,7 +862,8 @@ export default function LessonDetailScreen({ navigation, route }) {
     setTutorChatList((prev) => [...prev, userMsg]);
 
     try {
-      const promptText = `Lesson Title: "${lesson?.title}" (${lesson?.category} - ${lesson?.level}). Student Question/Topic: "${query}"`;
+      const formulaContext = masterclass ? `Formula: "${masterclass.formula?.rule}". Key concept: "${masterclass.coreConcept?.summary}". Pro tip: "${masterclass.fluencyTip?.tip}".` : '';
+      const promptText = `Lesson: "${lesson?.title}" (${lesson?.category} - ${lesson?.level}). ${formulaContext} Student Question/Topic: "${query}". Provide a concise, clear, encouraging explanation with 1 practical conversational example.`;
       const res = await aiService.lessonTutor(promptText);
       const clean = cleanAiText(res?.response || "That is a great question! Practice this concept by speaking full sentences daily.");
       const tutorMsg = { id: Date.now() + 1, sender: 'tutor', text: clean };
@@ -843,6 +873,7 @@ export default function LessonDetailScreen({ navigation, route }) {
       VoiceService.speak(sanitizeForSpeech(clean), {
         voiceType: settings?.aiVoice || 'Default',
         availableVoices,
+        speechSpeed: audioSpeed,
       });
     } catch {
       const fallback = "Here is a quick tip: Focus on understanding the core formula and speaking 3 full sentences out loud.";
@@ -1073,7 +1104,8 @@ export default function LessonDetailScreen({ navigation, route }) {
       setSpeakingInput('');
       setSpeakingFeedback(null);
       setListenedFullExplanation(false);
-      setExplanationSkippedMidway(false);
+      setAudioBonusAwarded(false);
+      setActiveAudioSection(null);
       setShowStudy(true);
 
       if (initialStep === 7 || quizQuestions.length === 0) {
@@ -1090,11 +1122,9 @@ export default function LessonDetailScreen({ navigation, route }) {
 
   const handleNextStep = async () => {
     if (!lesson) return;
-    if (studyStep === 1 && !listenedFullExplanation) {
-      setExplanationSkippedMidway(true);
-    }
     VoiceService.stop();
     setIsSpeakingContent(false);
+    setActiveAudioSection(null);
     const nextStep = studyStep + 1;
     setStudyStep(nextStep);
 
@@ -1266,7 +1296,8 @@ export default function LessonDetailScreen({ navigation, route }) {
 
     const baseXP = finalScore * multiplier;
     const perfectBonus = (finalScore === totalQ && totalQ > 0) ? perfectBonusAmount : 0;
-    const totalAwarded = Math.max(15, baseXP + perfectBonus - blankPenalty);
+    const audioBonus = (listenedFullExplanation || audioBonusAwarded) ? 10 : 0;
+    const totalAwarded = Math.max(20, baseXP + perfectBonus + audioBonus - blankPenalty);
     setEarnedXP(totalAwarded);
 
     await markLessonAsDone(totalAwarded);
@@ -1279,7 +1310,8 @@ export default function LessonDetailScreen({ navigation, route }) {
     if (!lesson) return;
     setActionLoading(true);
     try {
-      const xpToAdd = earnedXP > 0 ? earnedXP : (lesson.xpReward || 35);
+      const audioBonus = (listenedFullExplanation || audioBonusAwarded) ? 10 : 0;
+      const xpToAdd = earnedXP > 0 ? earnedXP : ((lesson.xpReward || 35) + audioBonus);
       await markLessonAsDone(xpToAdd);
       triggerConfetti();
       showToast('Lesson Mastered! 🎉', 'success', `Unlocked +${xpToAdd} XP`);
@@ -1631,193 +1663,507 @@ export default function LessonDetailScreen({ navigation, route }) {
               </View>
             )}
 
-            {/* STEP 2: AI EXPLAINS THE TOPIC — Auto-teaches, no button press needed */}
+            {/* STEP 2: INTERACTIVE VISUAL MASTERCLASS */}
             {studyStep === 1 && (
               <View style={styles.stepContainer}>
-                <Text style={styles.stepEyebrow}>STEP 2 • AI TUTOR IS TEACHING</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <Text style={[styles.stepTitle, { color: theme.textPrimary }]}>Your AI Tutor Explains</Text>
-                  {!aiTeachLoading && !!aiTeachContent && (
+                <Text style={styles.stepEyebrow}>STEP 2 • INTERACTIVE VISUAL MASTERCLASS</Text>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={[styles.stepTitle, { color: theme.textPrimary, fontSize: 18 }]}>
+                      Visual Masterclass
+                    </Text>
+                    <Text style={{ fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>
+                      {lesson?.title}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    {/* Speed toggle */}
                     <TouchableOpacity
-                      style={[styles.tutorSpeakBtn, isSpeakingContent && styles.tutorSpeakBtnActive]}
-                      onPress={() => {
-                        if (isSpeakingContent) {
-                          VoiceService.stop();
-                          setIsSpeakingContent(false);
-                          if (!listenedFullExplanation) {
-                            setExplanationSkippedMidway(true);
-                          }
-                        } else {
-                          setIsSpeakingContent(true);
-                          VoiceService.speak(sanitizeForSpeech(aiTeachContent), {
-                            voiceType: settings?.aiVoice || 'Default',
-                            availableVoices,
-                            onDone: () => {
-                              setIsSpeakingContent(false);
-                              setListenedFullExplanation(true);
-                              setExplanationSkippedMidway(false);
-                            },
-                            onError: () => setIsSpeakingContent(false),
-                          });
-                        }
+                      onPress={handleCycleSpeed}
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 6,
+                        borderRadius: 8,
+                        backgroundColor: isDark ? '#334155' : '#EEF2FF',
+                        borderWidth: 1,
+                        borderColor: isDark ? '#475569' : '#C7D2FE',
                       }}
-                      activeOpacity={0.8}
+                      activeOpacity={0.7}
                     >
-                      <Ionicons name={isSpeakingContent ? 'stop' : 'volume-medium'} size={16} color={isSpeakingContent ? '#EF4444' : COLORS.primary} />
-                      <Text style={[styles.tutorSpeakBtnText, isSpeakingContent && { color: '#EF4444' }]}>
-                        {isSpeakingContent ? 'Stop' : 'Re-play'}
+                      <Text style={{ fontSize: 11, fontWeight: '800', color: COLORS.primary }}>
+                        {audioSpeed}x
                       </Text>
                     </TouchableOpacity>
-                  )}
+
+                    {/* Master Audio Button */}
+                    <TouchableOpacity
+                      style={[
+                        styles.tutorSpeakBtn,
+                        isSpeakingContent && activeAudioSection === 'all' && styles.tutorSpeakBtnActive,
+                      ]}
+                      onPress={handlePlayFullMasterclass}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons
+                        name={isSpeakingContent && activeAudioSection === 'all' ? 'stop-circle' : 'volume-high'}
+                        size={16}
+                        color={isSpeakingContent && activeAudioSection === 'all' ? '#EF4444' : COLORS.primary}
+                      />
+                      <Text
+                        style={[
+                          styles.tutorSpeakBtnText,
+                          isSpeakingContent && activeAudioSection === 'all' && { color: '#EF4444' },
+                        ]}
+                      >
+                        {isSpeakingContent && activeAudioSection === 'all' ? 'Stop' : 'Full Audio'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
-                {/* XP Qualification Banner */}
-                {listenedFullExplanation ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: '#10B981', borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12, gap: 8 }}>
-                    <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                {/* Audio Status & Listener Bonus Banner */}
+                {(listenedFullExplanation || audioBonusAwarded) ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: '#10B981', borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 14, gap: 8 }}>
+                    <Ionicons name="sparkles" size={18} color="#10B981" />
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#10B981', flex: 1 }}>
-                      Full Masterclass Completed! Full XP eligibility unlocked.
+                      Full Masterclass Audio Completed! +10 XP Audio Bonus unlocked.
                     </Text>
                   </View>
-                ) : explanationSkippedMidway ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#451A03' : '#FFFBEB', borderColor: '#F59E0B', borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12, gap: 8 }}>
-                    <Ionicons name="warning" size={18} color="#F59E0B" />
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#F59E0B', flex: 1 }}>
-                      Voice explanation paused or skipped midway. 0 XP will be awarded for this session. Re-play completely to unlock full XP!
-                    </Text>
+                ) : isSpeakingContent ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', borderColor: '#6366F1', borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 14 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                      <Ionicons name="mic" size={18} color="#6366F1" />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#6366F1', flex: 1 }}>
+                        Reading {activeAudioSection === 'all' ? 'full masterclass' : 'selected section'} ({audioSpeed}x)…
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        VoiceService.stop();
+                        setIsSpeakingContent(false);
+                        setActiveAudioSection(null);
+                      }}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '800', color: '#EF4444' }}>Stop</Text>
+                    </TouchableOpacity>
                   </View>
                 ) : (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', borderColor: '#6366F1', borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12, gap: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', borderColor: '#818CF8', borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 14, gap: 8 }}>
                     <Ionicons name="headset" size={18} color="#6366F1" />
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: '#6366F1', flex: 1 }}>
-                      AI Tutor is reading the full lesson explanation. Listen until the end to unlock your full XP reward!
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: isDark ? '#C7D2FE' : '#4338CA', flex: 1 }}>
+                      Listen with AI voice or explore each pillar below. Full base XP is always guaranteed!
                     </Text>
                   </View>
                 )}
 
-                {/* AI Teaching Content — Auto-loaded */}
-                <View style={[styles.studyCard, { backgroundColor: isDark ? '#0F172A' : '#EEF2FF', borderColor: isDark ? '#4F46E5' : '#C7D2FE', borderWidth: 1.5 }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                    <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' }}>
-                      <Ionicons name="school" size={16} color="#FFF" />
+                {/* PILLAR 1: Core Concept & Real-World Context */}
+                <View
+                  style={[
+                    styles.studyCard,
+                    {
+                      backgroundColor: theme.cardBg,
+                      borderColor: (activeAudioSection === 'coreConcept' || activeAudioSection === 'all') ? COLORS.primary : theme.cardBorder,
+                      borderWidth: (activeAudioSection === 'coreConcept' || activeAudioSection === 'all') ? 2 : 1,
+                      marginBottom: 14,
+                    },
+                  ]}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <View style={{ backgroundColor: '#EEF2FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                      <Text style={{ fontSize: 10, fontWeight: '900', color: '#4F46E5' }}>PILLAR 1: CORE CONCEPT</Text>
                     </View>
-                    <Text style={{ fontSize: 13, fontWeight: '800', color: COLORS.primary }}>AI Tutor</Text>
-                    {isSpeakingContent && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                        {[0, 1, 2].map(i => (
-                          <View key={i} style={{ width: 4, height: 4 + i * 3, borderRadius: 2, backgroundColor: COLORS.primary, opacity: 0.7 + i * 0.15 }} />
-                        ))}
-                        <Text style={{ fontSize: 11, color: COLORS.primary, marginLeft: 4 }}>Speaking…</Text>
-                      </View>
-                    )}
+                    <TouchableOpacity
+                      onPress={() => {
+                        const text = `Core Concept: ${masterclass?.coreConcept?.summary || ''}. Real world context: ${masterclass?.coreConcept?.context || ''}. Key takeaway: ${masterclass?.coreConcept?.takeaway || ''}`;
+                        handlePlaySectionAudio('coreConcept', text);
+                      }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? '#334155' : '#F1F5F9' }}
+                    >
+                      <Ionicons
+                        name={isSpeakingContent && activeAudioSection === 'coreConcept' ? 'stop' : 'volume-medium'}
+                        size={14}
+                        color={COLORS.primary}
+                      />
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.primary }}>
+                        {isSpeakingContent && activeAudioSection === 'coreConcept' ? 'Stop' : 'Listen'}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
 
-                  {aiTeachLoading ? (
-                    <View style={{ alignItems: 'center', paddingVertical: 24, gap: 10 }}>
-                      <Ionicons name="chatbubble-ellipses-outline" size={32} color={COLORS.primary} />
-                      <Text style={{ color: COLORS.primary, fontSize: 14, fontWeight: '700' }}>AI Tutor is preparing your lesson…</Text>
-                      <Text style={{ color: theme.textSecondary, fontSize: 12, textAlign: 'center' }}>Crafting a personalized explanation just for you</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: theme.textPrimary, marginBottom: 6 }}>
+                    {masterclass?.coreConcept?.title || `Understanding ${lesson?.title}`}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: theme.textPrimary, lineHeight: 20, marginBottom: 12 }}>
+                    {masterclass?.coreConcept?.summary}
+                  </Text>
+
+                  {/* Real-World Context Box */}
+                  <View style={{ backgroundColor: isDark ? '#1E293B' : '#EFF6FF', borderColor: isDark ? '#3B82F6' : '#BFDBFE', borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 10 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <Ionicons name="globe-outline" size={15} color="#2563EB" />
+                      <Text style={{ fontSize: 11, fontWeight: '800', color: '#2563EB' }}>Real-World Context & Relevance</Text>
                     </View>
-                  ) : (
-                    <Text style={{ fontSize: 14, color: theme.textPrimary, lineHeight: 22 }}>{aiTeachContent}</Text>
+                    <Text style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 18 }}>
+                      {masterclass?.coreConcept?.context}
+                    </Text>
+                  </View>
+
+                  {/* Key Takeaway Pill */}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: '#A7F3D0', borderWidth: 1, borderRadius: 10, padding: 10 }}>
+                    <Ionicons name="bulb-outline" size={16} color="#059669" />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: isDark ? '#6EE7B7' : '#047857', flex: 1 }}>
+                      {masterclass?.coreConcept?.takeaway}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* PILLAR 2: Golden Rule & Structural Formula */}
+                <View
+                  style={[
+                    styles.studyCard,
+                    {
+                      backgroundColor: theme.cardBg,
+                      borderColor: (activeAudioSection === 'formula' || activeAudioSection === 'all') ? COLORS.primary : theme.cardBorder,
+                      borderWidth: (activeAudioSection === 'formula' || activeAudioSection === 'all') ? 2 : 1,
+                      marginBottom: 14,
+                    },
+                  ]}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                      <Text style={{ fontSize: 10, fontWeight: '900', color: '#B45309' }}>PILLAR 2: GOLDEN FORMULA</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        const breakdownText = (masterclass?.formula?.breakdown || []).map(b => `${b.label}: ${b.detail}`).join('. ');
+                        const text = `Golden Formula: ${masterclass?.formula?.rule || ''}. Structural breakdown: ${breakdownText}`;
+                        handlePlaySectionAudio('formula', text);
+                      }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? '#334155' : '#F1F5F9' }}
+                    >
+                      <Ionicons
+                        name={isSpeakingContent && activeAudioSection === 'formula' ? 'stop' : 'volume-medium'}
+                        size={14}
+                        color={COLORS.primary}
+                      />
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.primary }}>
+                        {isSpeakingContent && activeAudioSection === 'formula' ? 'Stop' : 'Listen'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: theme.textPrimary, marginBottom: 10 }}>
+                    Sentence Mechanics & Formula
+                  </Text>
+
+                  {/* Formula Banner */}
+                  <LinearGradient
+                    colors={isDark ? ['#312E81', '#1E1B4B'] : ['#EEF2FF', '#E0E7FF']}
+                    style={{ borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#818CF8', marginBottom: 12 }}
+                  >
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#6366F1', textTransform: 'uppercase', marginBottom: 4 }}>
+                      Universal Structure Rule
+                    </Text>
+                    <Text style={{ fontSize: 14, fontWeight: '900', color: isDark ? '#FFF' : '#312E81', textAlign: 'center', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }}>
+                      {masterclass?.formula?.rule}
+                    </Text>
+                  </LinearGradient>
+
+                  {/* Breakdown Pills */}
+                  <View style={{ gap: 8, marginBottom: 12 }}>
+                    {(masterclass?.formula?.breakdown || []).map((b, bIdx) => (
+                      <View
+                        key={bIdx}
+                        style={{
+                          padding: 10,
+                          borderRadius: 10,
+                          backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
+                          borderWidth: 1,
+                          borderColor: theme.cardBorder,
+                        }}
+                      >
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                          <View style={{ backgroundColor: '#EEF2FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                            <Text style={{ fontSize: 9, fontWeight: '900', color: COLORS.primary }}>{b.badge}</Text>
+                          </View>
+                          <Text style={{ fontSize: 12, fontWeight: '800', color: theme.textPrimary }}>{b.label}</Text>
+                        </View>
+                        <Text style={{ fontSize: 11, color: theme.textSecondary, lineHeight: 16 }}>{b.detail}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Model Sentence Examples */}
+                  <View style={{ gap: 6 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: theme.textSecondary, textTransform: 'uppercase', marginBottom: 2 }}>
+                      Model Sentence Examples
+                    </Text>
+                    {(masterclass?.formula?.examples || []).map((ex, exIdx) => (
+                      <View
+                        key={exIdx}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 8,
+                          padding: 9,
+                          borderRadius: 10,
+                          backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
+                          borderWidth: 1,
+                          borderColor: theme.cardBorder,
+                        }}
+                      >
+                        <Ionicons name="play" size={10} color={COLORS.primary} />
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: theme.textPrimary, flex: 1 }}>{ex}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+                {/* PILLAR 3: Common Pitfalls vs. Native Corrections */}
+                <View
+                  style={[
+                    styles.studyCard,
+                    {
+                      backgroundColor: theme.cardBg,
+                      borderColor: (activeAudioSection === 'mistakes' || activeAudioSection === 'all') ? COLORS.primary : theme.cardBorder,
+                      borderWidth: (activeAudioSection === 'mistakes' || activeAudioSection === 'all') ? 2 : 1,
+                      marginBottom: 14,
+                    },
+                  ]}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <View style={{ backgroundColor: '#FFE4E6', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                      <Text style={{ fontSize: 10, fontWeight: '900', color: '#E11D48' }}>PILLAR 3: COMMON MISTAKES</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        const mistakesText = (masterclass?.mistakes || []).map(m => `Common Pitfall: ${m.incorrect}. Correct Native Usage: ${m.correct}. Why: ${m.why}`).join('. ');
+                        handlePlaySectionAudio('mistakes', mistakesText);
+                      }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? '#334155' : '#F1F5F9' }}
+                    >
+                      <Ionicons
+                        name={isSpeakingContent && activeAudioSection === 'mistakes' ? 'stop' : 'volume-medium'}
+                        size={14}
+                        color={COLORS.primary}
+                      />
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.primary }}>
+                        {isSpeakingContent && activeAudioSection === 'mistakes' ? 'Stop' : 'Listen'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: theme.textPrimary, marginBottom: 10 }}>
+                    Pitfalls to Avoid vs. Native Usage
+                  </Text>
+
+                  <View style={{ gap: 10 }}>
+                    {(masterclass?.mistakes || []).map((m, mIdx) => (
+                      <View
+                        key={mIdx}
+                        style={{
+                          padding: 12,
+                          borderRadius: 12,
+                          backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
+                          borderWidth: 1,
+                          borderColor: theme.cardBorder,
+                          gap: 8,
+                        }}
+                      >
+                        {/* Incorrect */}
+                        <View style={{ backgroundColor: isDark ? '#450A0A' : '#FEF2F2', borderColor: '#FECACA', borderWidth: 1, borderRadius: 8, padding: 8 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+                            <Ionicons name="close-circle" size={14} color="#DC2626" />
+                            <Text style={{ fontSize: 10, fontWeight: '900', color: '#DC2626', textTransform: 'uppercase' }}>Common Mistake</Text>
+                          </View>
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: isDark ? '#FCA5A5' : '#B91C1C' }}>{m.incorrect}</Text>
+                        </View>
+
+                        {/* Correct */}
+                        <View style={{ backgroundColor: isDark ? '#022C22' : '#F0FDF4', borderColor: '#BBF7D0', borderWidth: 1, borderRadius: 8, padding: 8 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+                            <Ionicons name="checkmark-circle" size={14} color="#16A34A" />
+                            <Text style={{ fontSize: 10, fontWeight: '900', color: '#16A34A', textTransform: 'uppercase' }}>Native Correction</Text>
+                          </View>
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: isDark ? '#86EFAC' : '#15803D' }}>{m.correct}</Text>
+                        </View>
+
+                        {/* Why */}
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingTop: 2 }}>
+                          <Text style={{ fontSize: 11, fontWeight: '900', color: '#D97706' }}>🧠 Why:</Text>
+                          <Text style={{ fontSize: 11, color: theme.textSecondary, flex: 1, lineHeight: 16 }}>{m.why}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+                {/* PILLAR 4: Tutor Pro Fluency Tip */}
+                <View
+                  style={[
+                    styles.studyCard,
+                    {
+                      backgroundColor: theme.cardBg,
+                      borderColor: (activeAudioSection === 'fluencyTip' || activeAudioSection === 'all') ? COLORS.primary : theme.cardBorder,
+                      borderWidth: (activeAudioSection === 'fluencyTip' || activeAudioSection === 'all') ? 2 : 1,
+                      marginBottom: 14,
+                    },
+                  ]}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <View style={{ backgroundColor: '#F3E8FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                      <Text style={{ fontSize: 10, fontWeight: '900', color: '#7E22CE' }}>PILLAR 4: PRO FLUENCY TIP</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        const text = `Pro Fluency Tip: ${masterclass?.fluencyTip?.tip || ''}. Practice saying out loud: ${masterclass?.fluencyTip?.practicePhrase || ''}`;
+                        handlePlaySectionAudio('fluencyTip', text);
+                      }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? '#334155' : '#F1F5F9' }}
+                    >
+                      <Ionicons
+                        name={isSpeakingContent && activeAudioSection === 'fluencyTip' ? 'stop' : 'volume-medium'}
+                        size={14}
+                        color={COLORS.primary}
+                      />
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.primary }}>
+                        {isSpeakingContent && activeAudioSection === 'fluencyTip' ? 'Stop' : 'Listen'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: theme.textPrimary, marginBottom: 6 }}>
+                    {masterclass?.fluencyTip?.title || 'Tutor Spoken Fluency Cue'}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: theme.textPrimary, lineHeight: 20, marginBottom: 12 }}>
+                    {masterclass?.fluencyTip?.tip}
+                  </Text>
+
+                  {masterclass?.fluencyTip?.practicePhrase && (
+                    <View style={{ backgroundColor: isDark ? '#312E81' : '#EEF2FF', borderColor: '#818CF8', borderWidth: 1, borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 10, fontWeight: '900', color: '#6366F1', textTransform: 'uppercase', marginBottom: 2 }}>
+                          🗣️ Speak Aloud Practice Phrase
+                        </Text>
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: theme.textPrimary }}>
+                          "{masterclass.fluencyTip.practicePhrase}"
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => {
+                          VoiceService.speak(sanitizeForSpeech(masterclass.fluencyTip.practicePhrase), {
+                            voiceType: settings?.aiVoice || 'Default',
+                            availableVoices,
+                            speechSpeed: audioSpeed,
+                          });
+                        }}
+                        style={{ backgroundColor: COLORS.primary, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                      >
+                        <Ionicons name="volume-high" size={14} color="#FFF" />
+                        <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>Drill</Text>
+                      </TouchableOpacity>
+                    </View>
                   )}
                 </View>
 
-                {/* Ask a Follow-up Question / Interactive Chat */}
-                {!aiTeachLoading && !!aiTeachContent && (
-                  <View style={[styles.studyCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: theme.cardBorder }]}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <Ionicons name="chatbubble-ellipses" size={18} color={'#8B5CF6'} />
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: theme.textPrimary }}>Still confused? Ask AI Tutor</Text>
-                    </View>
+                {/* Context-Aware In-Lesson AI Tutor Q&A */}
+                <View style={[styles.studyCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: '#8B5CF6', borderWidth: 1.5, marginBottom: 14 }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <Ionicons name="chatbubble-ellipses" size={18} color="#8B5CF6" />
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: theme.textPrimary }}>
+                      Still confused? Ask AI Tutor
+                    </Text>
+                  </View>
 
-                    {/* Quick Suggestion Chips */}
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 10 }}>
-                      {[
-                        'Give me a simpler example',
-                        'What is the main mistake to avoid?',
-                        'How do I practice in real life?',
-                      ].map((prompt, pIdx) => (
-                        <TouchableOpacity
-                          key={pIdx}
-                          onPress={() => askAiTutor(prompt)}
+                  {/* Quick Suggestion Chips */}
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 10 }}>
+                    {[
+                      'Give me a simpler explanation',
+                      '2 more real-life examples',
+                      'Why is the common mistake wrong?',
+                      'How do native speakers say this casually?',
+                    ].map((prompt, pIdx) => (
+                      <TouchableOpacity
+                        key={pIdx}
+                        onPress={() => askAiTutor(prompt)}
+                        style={{
+                          paddingHorizontal: 10,
+                          paddingVertical: 6,
+                          borderRadius: 8,
+                          backgroundColor: isDark ? '#334155' : '#EEF2FF',
+                          borderWidth: 1,
+                          borderColor: isDark ? '#475569' : '#C7D2FE',
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#6366F1' }}>💡 {prompt}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  {/* Multi-turn Chat History */}
+                  {tutorChatList.length > 0 && (
+                    <View style={{ gap: 8, marginBottom: 12 }}>
+                      {tutorChatList.map((msg) => (
+                        <View
+                          key={msg.id}
                           style={{
-                            paddingHorizontal: 10,
-                            paddingVertical: 6,
-                            borderRadius: 8,
-                            backgroundColor: isDark ? '#334155' : '#EEF2FF',
-                            borderWidth: 1,
-                            borderColor: isDark ? '#475569' : '#C7D2FE',
+                            padding: 10,
+                            borderRadius: 12,
+                            backgroundColor: msg.sender === 'user' ? (isDark ? '#3B82F6' : '#EEF2FF') : (isDark ? '#334155' : '#F1F5F9'),
+                            alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                            maxWidth: '92%',
                           }}
                         >
-                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#6366F1' }}>💡 {prompt}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-
-                    {/* Multi-turn Chat History */}
-                    {tutorChatList.length > 0 && (
-                      <View style={{ gap: 8, marginBottom: 12 }}>
-                        {tutorChatList.map((msg) => (
-                          <View
-                            key={msg.id}
-                            style={{
-                              padding: 10,
-                              borderRadius: 12,
-                              backgroundColor: msg.sender === 'user' ? (isDark ? '#3B82F6' : '#EEF2FF') : (isDark ? '#334155' : '#F1F5F9'),
-                              alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                              maxWidth: '92%',
-                            }}
-                          >
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                              <Text style={{ fontSize: 10, fontWeight: '800', color: msg.sender === 'user' ? (isDark ? '#FFF' : '#4F46E5') : '#8B5CF6' }}>
-                                {msg.sender === 'user' ? 'You' : '🤖 AI Tutor'}
-                              </Text>
-                              {msg.sender === 'tutor' && (
-                                <TouchableOpacity
-                                  onPress={() =>
-                                    VoiceService.speak(sanitizeForSpeech(msg.text), {
-                                      voiceType: settings?.aiVoice || 'Default',
-                                      availableVoices,
-                                    })
-                                  }
-                                >
-                                  <Ionicons name="volume-high" size={14} color="#8B5CF6" />
-                                </TouchableOpacity>
-                              )}
-                            </View>
-                            <Text style={{ fontSize: 12, color: msg.sender === 'user' && isDark ? '#FFF' : theme.textPrimary, lineHeight: 18 }}>
-                              {msg.text}
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <Text style={{ fontSize: 10, fontWeight: '800', color: msg.sender === 'user' ? (isDark ? '#FFF' : '#4F46E5') : '#8B5CF6' }}>
+                              {msg.sender === 'user' ? 'You' : '🤖 AI Tutor'}
                             </Text>
+                            {msg.sender === 'tutor' && (
+                              <TouchableOpacity
+                                onPress={() =>
+                                  VoiceService.speak(sanitizeForSpeech(msg.text), {
+                                    voiceType: settings?.aiVoice || 'Default',
+                                    availableVoices,
+                                    speechSpeed: audioSpeed,
+                                  })
+                                }
+                              >
+                                <Ionicons name="volume-high" size={14} color="#8B5CF6" />
+                              </TouchableOpacity>
+                            )}
                           </View>
-                        ))}
-                      </View>
-                    )}
-
-                    {/* Input Row */}
-                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-                      <TextInput
-                        style={[styles.tutorInput, { backgroundColor: isDark ? '#334155' : '#FFF', color: theme.textPrimary, borderColor: theme.cardBorder, flex: 1 }]}
-                        placeholder="Ask anything about this topic…"
-                        placeholderTextColor={theme.textSecondary}
-                        value={tutorInput}
-                        onChangeText={setTutorInput}
-                        onSubmitEditing={() => askAiTutor()}
-                        maxLength={500}
-                      />
-                      <TouchableOpacity
-                        style={styles.tutorSendBtn}
-                        onPress={() => askAiTutor()}
-                        disabled={tutorLoading || !tutorInput.trim()}
-                      >
-                        <Ionicons name="send" size={16} color="#FFF" />
-                      </TouchableOpacity>
+                          <Text style={{ fontSize: 12, color: msg.sender === 'user' && isDark ? '#FFF' : theme.textPrimary, lineHeight: 18 }}>
+                            {msg.text}
+                          </Text>
+                        </View>
+                      ))}
                     </View>
-                    {tutorLoading && (
-                      <Text style={{ fontSize: 12, color: COLORS.primary, marginTop: 8, fontStyle: 'italic' }}>AI Tutor is explaining…</Text>
-                    )}
+                  )}
+
+                  {/* Input Row */}
+                  <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                    <TextInput
+                      style={[styles.tutorInput, { backgroundColor: isDark ? '#334155' : '#FFF', color: theme.textPrimary, borderColor: theme.cardBorder, flex: 1 }]}
+                      placeholder="Ask anything about this topic…"
+                      placeholderTextColor={theme.textSecondary}
+                      value={tutorInput}
+                      onChangeText={setTutorInput}
+                      onSubmitEditing={() => askAiTutor()}
+                      maxLength={500}
+                    />
+                    <TouchableOpacity
+                      style={styles.tutorSendBtn}
+                      onPress={() => askAiTutor()}
+                      disabled={tutorLoading || !tutorInput.trim()}
+                    >
+                      <Ionicons name="send" size={16} color="#FFF" />
+                    </TouchableOpacity>
                   </View>
-                )}
+                  {tutorLoading && (
+                    <Text style={{ fontSize: 12, color: COLORS.primary, marginTop: 8, fontStyle: 'italic' }}>AI Tutor is explaining…</Text>
+                  )}
+                </View>
               </View>
             )}
 
@@ -2408,18 +2754,17 @@ export default function LessonDetailScreen({ navigation, route }) {
                         </View>
                       )}
 
+                      {(listenedFullExplanation || audioBonusAwarded) && (
+                        <View style={styles.xpBreakdownRow}>
+                          <Text style={[styles.xpBreakdownLabel, { color: theme.textSecondary }]}>🎧 Audio Masterclass Listener</Text>
+                          <Text style={[styles.xpBreakdownVal, { color: '#10B981' }]}>+10 XP</Text>
+                        </View>
+                      )}
+
                       <View style={[styles.xpTotalRow, { borderTopColor: theme.cardBorder }]}>
                         <Text style={[styles.xpTotalLabel, { color: theme.textPrimary }]}>Total XP Added to Profile</Text>
                         <Text style={styles.xpTotalVal}>+{earnedXP} XP</Text>
                       </View>
-
-                      {!listenedFullExplanation && (
-                        <View style={{ marginTop: 8, padding: 8, backgroundColor: isDark ? '#451A03' : '#FEF3C7', borderRadius: 8 }}>
-                          <Text style={{ fontSize: 11, color: '#D97706', textAlign: 'center', fontWeight: '700' }}>
-                            ⚠️ 0 XP applied: AI Tutor explanation in Step 2 was paused/skipped midway.
-                          </Text>
-                        </View>
-                      )}
                     </View>
 
                     <TouchableOpacity style={styles.quizNextBtn} onPress={handleNextStep}>
@@ -2447,8 +2792,8 @@ export default function LessonDetailScreen({ navigation, route }) {
 
                 <View style={styles.rewardContainer}>
                   <View style={[styles.rewardBox, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }]}>
-                    <Text style={[styles.rewardValue, !listenedFullExplanation && { color: '#94A3B8' }]}>
-                      +{listenedFullExplanation ? (earnedXP > 0 ? earnedXP : (lesson?.xpReward || 50)) : 0}
+                    <Text style={styles.rewardValue}>
+                      +{earnedXP > 0 ? earnedXP : ((lesson?.xpReward || 50) + ((listenedFullExplanation || audioBonusAwarded) ? 10 : 0))}
                     </Text>
                     <Text style={[styles.rewardLabel, { color: theme.textSecondary }]}>XP Rewarded</Text>
                   </View>
@@ -2458,26 +2803,12 @@ export default function LessonDetailScreen({ navigation, route }) {
                   </View>
                 </View>
 
-                {/* 0 XP Warning if Step 2 explanation was skipped midway */}
-                {!listenedFullExplanation && (
-                  <View style={{ width: '100%', backgroundColor: isDark ? '#451A03' : '#FFFBEB', borderColor: '#F59E0B', borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 14 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                      <Ionicons name="warning" size={20} color="#F59E0B" />
-                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#B45309' }}>0 XP Awarded for this Session</Text>
-                    </View>
-                    <Text style={{ fontSize: 12, color: isDark ? '#FDE68A' : '#92400E', lineHeight: 18, marginBottom: 10 }}>
-                      You paused or skipped the AI Tutor voice explanation in Step 2. To earn your full XP reward, re-open this lesson and listen to the complete explanation.
+                {(listenedFullExplanation || audioBonusAwarded) && (
+                  <View style={{ width: '100%', backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: '#10B981', borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <Ionicons name="sparkles" size={20} color="#10B981" />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#10B981', flex: 1 }}>
+                      Audio Masterclass Bonus (+10 XP) earned for completing speech audio!
                     </Text>
-                    <TouchableOpacity
-                      style={{ backgroundColor: '#F59E0B', borderRadius: 8, paddingVertical: 8, alignItems: 'center' }}
-                      onPress={() => {
-                        setStudyStep(0);
-                        setListenedFullExplanation(false);
-                        setExplanationSkippedMidway(false);
-                      }}
-                    >
-                      <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 12 }}>Re-take Lesson (Earn Full XP)</Text>
-                    </TouchableOpacity>
                   </View>
                 )}
 

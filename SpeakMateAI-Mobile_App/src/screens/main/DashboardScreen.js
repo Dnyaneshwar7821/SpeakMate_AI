@@ -72,7 +72,7 @@ export default function DashboardScreen({ navigation }) {
   const currentUserId = user?.id || user?._id;
   const initialCache = DashboardCache.get(currentUserId);
   const [state, setState] = useState(() => ({
-    loading: !initialCache && !user,
+    loading: !initialCache,
     refreshing: false,
     error: '',
     dashboard: initialCache,
@@ -85,7 +85,7 @@ export default function DashboardScreen({ navigation }) {
     const cached = DashboardCache.get(currentUserId);
     setState((current) => ({
       ...current,
-      loading: refreshing ? false : (!current.dashboard && !cached && !user),
+      loading: refreshing ? false : (!current.dashboard && !cached),
       refreshing,
       error: '',
     }));
@@ -176,6 +176,8 @@ export default function DashboardScreen({ navigation }) {
           title: "Today Practice Goal",
           lessonsCompletedToday: 0,
           speakingMinutesToday: 0,
+          dailyGoalMinutes: Number(user?.dailyGoalMinutes || 15),
+          targetSpeakingMinutes: Number(user?.dailyGoalMinutes || 15),
           vocabularyCompleted: 0,
           vocabularyTarget: 5,
           percentage: 0,
@@ -229,8 +231,11 @@ export default function DashboardScreen({ navigation }) {
       streakFreezes: Number(progress.streakFreezes ?? d.streakFreezes ?? user?.streakFreezes ?? 1),
       rank: d.rank,
       activeLesson: d.activeLessons?.[0] || null,
-      upcomingLessons: d.upcomingLessons || [],
-      dailyGoal: d.dailyGoal || {},
+      dailyGoal: {
+        ...(d.dailyGoal || {}),
+        dailyGoalMinutes: Number(d.dailyGoal?.dailyGoalMinutes || d.dailyGoal?.targetSpeakingMinutes || user?.dailyGoalMinutes || 15),
+        targetSpeakingMinutes: Number(d.dailyGoal?.dailyGoalMinutes || d.dailyGoal?.targetSpeakingMinutes || user?.dailyGoalMinutes || 15),
+      },
       weeklyProgress: d.weeklyProgress || [],
       recentActivity: d.recentActivity || [],
       statistics: {
@@ -355,22 +360,22 @@ export default function DashboardScreen({ navigation }) {
   const topSafeBg = '#0F172A';
   const contentBg = isDark ? '#0F172A' : '#F8FAFC';
 
-  if (state.loading && !user && !state.dashboard) {
-    return (
-      <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
-        <ScrollView style={[styles.scroll, { backgroundColor: contentBg }]} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <DashboardSkeleton />
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
-  if (state.error && !state.dashboard && !user) {
+  if (state.error && !state.dashboard) {
     return (
       <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
         <View style={styles.errorContainer}>
           <StateView error={state.error} onRetry={() => loadDashboard(false)} />
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!state.dashboard) {
+    return (
+      <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
+        <ScrollView style={[styles.scroll, { backgroundColor: contentBg }]} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <DashboardSkeleton />
+        </ScrollView>
       </SafeAreaView>
     );
   }
