@@ -26,6 +26,7 @@ import { SHIZUKA_DATA_URI } from './puppets/ShizukaBase64';
 import { DORAEMON_DATA_URI } from './puppets/DoraemonBase64';
 import { SPONGEBOB_DATA_URI } from './puppets/SpongeBobBase64';
 import { CHHOTA_BHEEM_DATA_URI } from './puppets/ChhotaBheemBase64';
+import { NINJA_HATTORI_DATA_URI } from './puppets/NinjaHattoriBase64';
 
 const ALIAS_MAP = {
   haru: 'haru',
@@ -99,7 +100,7 @@ const PUPPET_REGISTRY = {
     className: 'NinjaHattoriPuppet',
     code: NinjaHattoriPuppetCode,
     scaleW: 220,
-    scaleH: 270,
+    scaleH: 224,
     yRatio: 0.50,
   },
   haruto: {
@@ -142,6 +143,8 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
     finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : SPONGEBOB_DATA_URI;
   } else if (canonicalId === 'sparky') {
     finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : CHHOTA_BHEEM_DATA_URI;
+  } else if (canonicalId === 'koharu') {
+    finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : NINJA_HATTORI_DATA_URI;
   }
 
   return `<!DOCTYPE html>
