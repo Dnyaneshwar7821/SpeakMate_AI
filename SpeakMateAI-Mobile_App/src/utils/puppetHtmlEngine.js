@@ -29,6 +29,7 @@ import { CHHOTA_BHEEM_DATA_URI } from './puppets/ChhotaBheemBase64';
 import { NINJA_HATTORI_DATA_URI } from './puppets/NinjaHattoriBase64';
 import { TOM_DATA_URI } from './puppets/TomBase64';
 import { BEN_TEN_DATA_URI } from './puppets/BenTenBase64';
+import { SCOOBY_DATA_URI } from './puppets/ScoobyBase64';
 
 const ALIAS_MAP = {
   haru: 'haru',
@@ -123,7 +124,7 @@ const PUPPET_REGISTRY = {
     className: 'PuppyPuppet',
     code: PuppyPuppetCode,
     scaleW: 220,
-    scaleH: 270,
+    scaleH: 224,
     yRatio: 0.50,
   },
 };
@@ -151,6 +152,8 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
     finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : TOM_DATA_URI;
   } else if (canonicalId === 'mao') {
     finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : BEN_TEN_DATA_URI;
+  } else if (canonicalId === 'puppy') {
+    finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : SCOOBY_DATA_URI;
   }
 
   return `<!DOCTYPE html>

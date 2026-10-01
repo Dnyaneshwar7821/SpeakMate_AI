@@ -12,6 +12,7 @@ import { CHHOTA_BHEEM_DATA_URI } from '../../utils/puppets/ChhotaBheemBase64';
 import { NINJA_HATTORI_DATA_URI } from '../../utils/puppets/NinjaHattoriBase64';
 import { TOM_DATA_URI } from '../../utils/puppets/TomBase64';
 import { BEN_TEN_DATA_URI } from '../../utils/puppets/BenTenBase64';
+import { SCOOBY_DATA_URI } from '../../utils/puppets/ScoobyBase64';
 
 export const Live2DAvatarView = memo(function Live2DAvatarView({
   isSpeaking = false,
@@ -57,6 +58,9 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
       }
       if (normalizedModel === 'mao' || normalizedModel === 'ben10') {
         return BEN_TEN_DATA_URI;
+      }
+      if (normalizedModel === 'puppy' || normalizedModel === 'scooby' || normalizedModel === 'scoobydoo') {
+        return SCOOBY_DATA_URI;
       }
       const avatarMeta = getAvatarById(normalizedModel);
       const img = AVATAR_IMAGES[avatarMeta.id] || AVATAR_IMAGES[normalizedModel];
