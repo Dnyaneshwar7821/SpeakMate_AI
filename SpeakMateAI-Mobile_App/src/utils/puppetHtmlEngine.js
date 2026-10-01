@@ -22,6 +22,7 @@ import { BenTenPuppetCode } from './puppets/BenTenPuppetCode';
 import { PuppyPuppetCode } from './puppets/PuppyPuppetCode';
 import { TEACHER_DATA_URI } from './puppets/TeacherBase64';
 import { MALE_TEACHER_DATA_URI } from './puppets/MaleTeacherBase64';
+import { SHIZUKA_DATA_URI } from './puppets/ShizukaBase64';
 
 const ALIAS_MAP = {
   haru: 'haru',
@@ -67,8 +68,8 @@ const PUPPET_REGISTRY = {
     className: 'ShizukaPuppet',
     code: ShizukaPuppetCode,
     scaleW: 230,
-    scaleH: 270,
-    yRatio: 0.52,
+    scaleH: 260,
+    yRatio: 0.55,
   },
   robopaws: {
     className: 'DoraemonPuppet',
@@ -130,6 +131,8 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
     finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : TEACHER_DATA_URI;
   } else if (canonicalId === 'chitose') {
     finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : MALE_TEACHER_DATA_URI;
+  } else if (canonicalId === 'shizuku') {
+    finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : SHIZUKA_DATA_URI;
   }
 
   return `<!DOCTYPE html>
