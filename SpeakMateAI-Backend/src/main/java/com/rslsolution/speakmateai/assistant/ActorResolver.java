@@ -32,11 +32,15 @@ public class ActorResolver {
 	private final UserRepository userRepository;
 	private final AdminRepository adminRepository;
 	private final ProgressRepository progressRepository;
+	private final com.rslsolution.speakmateai.repository.SchoolRepository schoolRepository;
 
-	public ActorResolver(UserRepository userRepository, AdminRepository adminRepository, ProgressRepository progressRepository) {
+	public ActorResolver(UserRepository userRepository, AdminRepository adminRepository,
+			ProgressRepository progressRepository,
+			com.rslsolution.speakmateai.repository.SchoolRepository schoolRepository) {
 		this.userRepository = userRepository;
 		this.adminRepository = adminRepository;
 		this.progressRepository = progressRepository;
+		this.schoolRepository = schoolRepository;
 	}
 
 	public ActorContext resolve(String email) {
@@ -62,11 +66,23 @@ public class ActorResolver {
 			int userXp = (progress.isPresent() && progress.get().getXp() != null) ? progress.get().getXp() : 0;
 			int currentStreak = (progress.isPresent() && progress.get().getCurrentStreak() != null) ? progress.get().getCurrentStreak() : 0;
 			int longestStreak = (progress.isPresent() && progress.get().getLongestStreak() != null) ? progress.get().getLongestStreak() : 0;
+
+			String schoolName = u.getSchoolName();
+			if ((schoolName == null || schoolName.isBlank()) && u.getSchoolId() != null) {
+				try {
+					schoolName = schoolRepository.findById(u.getSchoolId())
+							.map(s -> s.getSchoolName() != null && !s.getSchoolName().isBlank() ? s.getSchoolName() : s.getName())
+							.orElse(null);
+				} catch (Exception ignored) {
+				}
+			}
+
 			return ActorContext.builder()
 					.email(email)
 					.role(role)
 					.userId(u.getId())
 					.schoolId(u.getSchoolId())
+					.schoolName(schoolName)
 					.teacherId(role == Role.TEACHER ? u.getId() : null)
 					.studentId((role == Role.STUDENT || role == Role.USER) ? u.getId() : null)
 					.displayName(displayName(u.getFirstName(), u.getLastName()))

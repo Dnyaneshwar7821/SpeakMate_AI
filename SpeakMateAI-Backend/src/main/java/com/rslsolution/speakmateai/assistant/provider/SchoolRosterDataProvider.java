@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -85,8 +86,56 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 
 	@Override
 	public String provide(ActorContext actor, Map<String, Object> params) {
-		// Teachers see ONLY their own assigned students.
+		// Teachers see ONLY their own assigned students for their assigned school.
 		if (actor.getRole() == Role.TEACHER && actor.getTeacherId() != null) {
+			School teacherSchool = null;
+			if (actor.getSchoolId() != null) {
+				teacherSchool = schoolRepository.findById(actor.getSchoolId()).orElse(null);
+			}
+			String teacherSchoolName = actor.getSchoolName();
+			if (teacherSchoolName == null || teacherSchoolName.isBlank()) {
+				if (teacherSchool != null) {
+					teacherSchoolName = displayName(teacherSchool);
+				} else {
+					teacherSchoolName = "your assigned school";
+				}
+			}
+
+			String reqSchoolName = strParam(params, "schoolName").trim();
+			String userMsg = strParam(params, "userMessage").trim();
+			School detectedSchool = (!userMsg.isEmpty()) ? detectMentionedSchool(userMsg) : null;
+
+			// Check 1: User requested a foreign school (either explicitly in DB or by extracted name)
+			if (detectedSchool != null && teacherSchool != null && !detectedSchool.getId().equals(teacherSchool.getId())) {
+				Map<String, Object> denied = new LinkedHashMap<>();
+				denied.put("status", "FOREIGN_SCHOOL_ACCESS_DENIED");
+				denied.put("requestedSchool", displayName(detectedSchool));
+				denied.put("assignedSchool", teacherSchoolName);
+				denied.put("message", "I do not have access to information for " + displayName(detectedSchool)
+						+ ". As a teacher assigned to " + teacherSchoolName + ", you can only access student and class information for " + teacherSchoolName + ".");
+				return toJson(denied);
+			}
+
+			if (!reqSchoolName.isEmpty() && teacherSchool != null && !isSameSchool(reqSchoolName, teacherSchool)) {
+				Map<String, Object> denied = new LinkedHashMap<>();
+				denied.put("status", "FOREIGN_SCHOOL_ACCESS_DENIED");
+				denied.put("requestedSchool", reqSchoolName);
+				denied.put("assignedSchool", teacherSchoolName);
+				denied.put("message", "I do not have access to information for " + reqSchoolName
+						+ ". As a teacher assigned to " + teacherSchoolName + ", you can only access student and class information for " + teacherSchoolName + ".");
+				return toJson(denied);
+			}
+
+			// Check 2: User asked about "school students" without specifying a school name
+			if (reqSchoolName.isEmpty() && detectedSchool == null && isGenericSchoolStudentsQuery(userMsg)) {
+				Map<String, Object> unspecified = new LinkedHashMap<>();
+				unspecified.put("status", "SCHOOL_UNSPECIFIED");
+				unspecified.put("teacherSchoolName", teacherSchoolName);
+				unspecified.put("message", "Which school are you asking about? Please specify the school name so I can provide the relevant student information.");
+				return toJson(unspecified);
+			}
+
+			// Check 3: Verified for teacher's assigned school (or personal query like "my students")
 			List<Student> assigned = teacherAssignmentResolver.resolveAssignedStudents(actor.getTeacherId(), actor.getSchoolId());
 			String filterStd = strParam(params, "standard");
 			String filterDiv = strParam(params, "division");
@@ -124,6 +173,8 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			Map<String, Object> data = new LinkedHashMap<>();
 			data.put("scope", "SELF (assigned students only)");
 			data.put("entityType", "STUDENTS");
+			data.put("schoolName", teacherSchoolName);
+			data.put("status", "ASSIGNED_STUDENTS");
 			data.put("field", strParam(params, "field"));
 			data.put("focusName", focusName);
 			data.put("requestedSpecificStudent", requestedSpecificStudent);
@@ -135,13 +186,13 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			if (!classLabel.isEmpty()) {
 				data.put("standard", filterStd);
 				data.put("division", filterDiv);
-				data.put("studentsText", assigned.size() + " student" + (assigned.size() == 1 ? "" : "s") + " assigned to you in " + classLabel);
+				data.put("studentsText", assigned.size() + " student" + (assigned.size() == 1 ? "" : "s") + " assigned to you in " + classLabel + " at " + teacherSchoolName);
 				data.put("summary", "You have " + assigned.size() + " student"
-						+ (assigned.size() == 1 ? "" : "s") + " assigned to you in " + classLabel + ".");
+						+ (assigned.size() == 1 ? "" : "s") + " assigned to you at " + teacherSchoolName + " in " + classLabel + ".");
 			} else {
-				data.put("studentsText", assigned.size() + " student" + (assigned.size() == 1 ? "" : "s") + " assigned to you");
+				data.put("studentsText", assigned.size() + " student" + (assigned.size() == 1 ? "" : "s") + " assigned to you at " + teacherSchoolName);
 				data.put("summary", "You are currently assigned " + assigned.size() + " student"
-						+ (assigned.size() == 1 ? "" : "s") + ".");
+						+ (assigned.size() == 1 ? "" : "s") + " at " + teacherSchoolName + ".");
 			}
 			return toJson(data);
 		}
@@ -985,6 +1036,101 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			return "";
 		}
 		return value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+	}
+
+	private String schoolRootKey(String value) {
+		if (value == null) {
+			return "";
+		}
+		return value.toLowerCase(Locale.ROOT)
+				.replaceAll("\\b(school|schools|highschool|high school|academy|college|institute|university|vidyalaya|public|international|campus|vidyamandir|gurukul|high)\\b", "")
+				.replaceAll("[^a-z0-9]", "")
+				.trim();
+	}
+
+	private boolean isSameSchool(String candidate, School school) {
+		if (candidate == null || candidate.isBlank() || school == null) {
+			return false;
+		}
+		String reqKey = schoolKey(candidate);
+		String ownKey = schoolKey(displayName(school));
+		String ownShort = schoolKey(school.getName());
+		String ownCode = schoolKey(school.getSchoolCode());
+
+		if (reqKey.equals(ownKey) || reqKey.equals(ownShort) || (!ownCode.isEmpty() && reqKey.equals(ownCode))) {
+			return true;
+		}
+		if (ownKey.contains(reqKey) || reqKey.contains(ownKey)
+				|| (!ownShort.isEmpty() && (ownShort.contains(reqKey) || reqKey.contains(ownShort)))) {
+			return true;
+		}
+
+		String reqRoot = schoolRootKey(candidate);
+		String ownRoot = schoolRootKey(displayName(school));
+		String shortRoot = schoolRootKey(school.getName());
+
+		if (!reqRoot.isEmpty()) {
+			if (!ownRoot.isEmpty() && (reqRoot.equals(ownRoot) || reqRoot.contains(ownRoot) || ownRoot.contains(reqRoot))) {
+				return true;
+			}
+			if (!shortRoot.isEmpty() && (reqRoot.equals(shortRoot) || reqRoot.contains(shortRoot) || shortRoot.contains(reqRoot))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private School detectMentionedSchool(String message) {
+		if (message == null || message.isBlank()) {
+			return null;
+		}
+		String m = message.toLowerCase(Locale.ROOT);
+		List<School> all = new ArrayList<>(schoolRepository.findAll());
+		all.sort((a, b) -> Integer.compare(
+				displayName(b).length(),
+				displayName(a).length()
+		));
+		for (School s : all) {
+			String name = s.getName() != null ? s.getName().toLowerCase(Locale.ROOT) : "";
+			String disp = displayName(s).toLowerCase(Locale.ROOT);
+			String code = s.getSchoolCode() != null ? s.getSchoolCode().toLowerCase(Locale.ROOT) : "";
+			String root = schoolRootKey(disp);
+
+			if (!name.isEmpty() && m.contains(name)) {
+				return s;
+			}
+			if (!disp.isEmpty() && m.contains(disp)) {
+				return s;
+			}
+			if (!code.isEmpty() && m.matches(".*\\b" + Pattern.quote(code) + "\\b.*")) {
+				return s;
+			}
+			if (!root.isEmpty() && root.length() >= 3 && m.matches(".*\\b" + Pattern.quote(root) + "\\b.*")) {
+				return s;
+			}
+		}
+		return null;
+	}
+
+	private boolean isGenericSchoolStudentsQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		boolean hasSchoolWord = m.contains("school");
+		if (!hasSchoolWord) {
+			return false;
+		}
+		boolean hasStudentWord = m.contains("student") || m.contains("learner") || m.contains("teacher");
+		if (!hasStudentWord) {
+			return false;
+		}
+		if (m.contains("my school") || m.contains("our school") || m.contains("assigned school")
+				|| m.contains("my student") || m.contains("my students") || m.contains("assigned to me")
+				|| m.contains("i teach")) {
+			return false;
+		}
+		return true;
 	}
 
 	private String displayName(School school) {

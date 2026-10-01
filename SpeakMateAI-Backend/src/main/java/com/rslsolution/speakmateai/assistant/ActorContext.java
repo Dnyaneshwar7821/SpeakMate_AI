@@ -15,6 +15,7 @@ public class ActorContext {
 	private final Role role;
 	private final Long userId;
 	private final Long schoolId;
+	private final String schoolName;
 	private final Long teacherId;
 	private final Long studentId;
 	private final Long adminId;
@@ -35,6 +36,7 @@ public class ActorContext {
 		this.role = b.role;
 		this.userId = b.userId;
 		this.schoolId = b.schoolId;
+		this.schoolName = b.schoolName;
 		this.teacherId = b.teacherId;
 		this.studentId = b.studentId;
 		this.adminId = b.adminId;
@@ -59,6 +61,7 @@ public class ActorContext {
 	public Role getRole() { return role; }
 	public Long getUserId() { return userId; }
 	public Long getSchoolId() { return schoolId; }
+	public String getSchoolName() { return schoolName; }
 	public Long getTeacherId() { return teacherId; }
 	public Long getStudentId() { return studentId; }
 	public Long getAdminId() { return adminId; }
@@ -79,6 +82,7 @@ public class ActorContext {
 		private Role role;
 		private Long userId;
 		private Long schoolId;
+		private String schoolName;
 		private Long teacherId;
 		private Long studentId;
 		private Long adminId;
@@ -98,6 +102,7 @@ public class ActorContext {
 		public Builder role(Role v) { this.role = v; return this; }
 		public Builder userId(Long v) { this.userId = v; return this; }
 		public Builder schoolId(Long v) { this.schoolId = v; return this; }
+		public Builder schoolName(String v) { this.schoolName = v; return this; }
 		public Builder teacherId(Long v) { this.teacherId = v; return this; }
 		public Builder studentId(Long v) { this.studentId = v; return this; }
 		public Builder adminId(Long v) { this.adminId = v; return this; }
