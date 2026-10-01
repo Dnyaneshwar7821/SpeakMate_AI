@@ -24,6 +24,7 @@ import { TEACHER_DATA_URI } from './puppets/TeacherBase64';
 import { MALE_TEACHER_DATA_URI } from './puppets/MaleTeacherBase64';
 import { SHIZUKA_DATA_URI } from './puppets/ShizukaBase64';
 import { DORAEMON_DATA_URI } from './puppets/DoraemonBase64';
+import { SPONGEBOB_DATA_URI } from './puppets/SpongeBobBase64';
 
 const ALIAS_MAP = {
   haru: 'haru',
@@ -83,7 +84,7 @@ const PUPPET_REGISTRY = {
     className: 'SpongeBobPuppet',
     code: SpongeBobPuppetCode,
     scaleW: 230,
-    scaleH: 270,
+    scaleH: 224,
     yRatio: 0.50,
   },
   sparky: {
@@ -136,6 +137,8 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
     finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : SHIZUKA_DATA_URI;
   } else if (canonicalId === 'robopaws') {
     finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : DORAEMON_DATA_URI;
+  } else if (canonicalId === 'spongebob') {
+    finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : SPONGEBOB_DATA_URI;
   }
 
   return `<!DOCTYPE html>
