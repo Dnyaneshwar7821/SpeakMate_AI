@@ -68,8 +68,8 @@ const PUPPET_REGISTRY = {
     className: 'ShizukaPuppet',
     code: ShizukaPuppetCode,
     scaleW: 230,
-    scaleH: 260,
-    yRatio: 0.55,
+    scaleH: 224,
+    yRatio: 0.50,
   },
   robopaws: {
     className: 'DoraemonPuppet',
