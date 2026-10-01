@@ -8,6 +8,7 @@ import { MALE_TEACHER_DATA_URI } from '../../utils/puppets/MaleTeacherBase64';
 import { SHIZUKA_DATA_URI } from '../../utils/puppets/ShizukaBase64';
 import { DORAEMON_DATA_URI } from '../../utils/puppets/DoraemonBase64';
 import { SPONGEBOB_DATA_URI } from '../../utils/puppets/SpongeBobBase64';
+import { CHHOTA_BHEEM_DATA_URI } from '../../utils/puppets/ChhotaBheemBase64';
 
 export const Live2DAvatarView = memo(function Live2DAvatarView({
   isSpeaking = false,
@@ -41,6 +42,9 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
       }
       if (normalizedModel === 'spongebob') {
         return SPONGEBOB_DATA_URI;
+      }
+      if (normalizedModel === 'sparky' || normalizedModel === 'bheem' || normalizedModel === 'chhotabheem') {
+        return CHHOTA_BHEEM_DATA_URI;
       }
       const avatarMeta = getAvatarById(normalizedModel);
       const img = AVATAR_IMAGES[avatarMeta.id] || AVATAR_IMAGES[normalizedModel];
