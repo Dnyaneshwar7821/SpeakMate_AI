@@ -88,6 +88,11 @@ public class AssistantService {
 			IntentResult classified = intentClassifier.classify(request.getMessage(), actor.getRole(), request.getHistory());
 			AssistantIntent intent = classified.getIntent();
 
+			// Chatbot identity fast-path: return identity response directly without DB or data provider calls
+			if (intent == AssistantIntent.CHATBOT_IDENTITY || isBotIdentityQuery(request.getMessage())) {
+				return chatbotIdentityResponse(request, actor);
+			}
+
 			Map<String, Object> params = new LinkedHashMap<>(classified.getParams() != null ? classified.getParams() : Map.of());
 			// Attach frontend currentRoute to params so navigation can contextualize suggestions if needed
 			if (request.getCurrentRoute() != null && !request.getCurrentRoute().isBlank()) {
@@ -636,8 +641,25 @@ public class AssistantService {
 			switch (intent) {
 				case CLASS_PERFORMANCE -> {
 					if (role == Role.TEACHER) {
-						candidates.add(suggestion("View class analytics", "/teacher/analytics", "TEACHER"));
-						candidates.add(suggestion("View class reports", "/teacher/reports", "TEACHER"));
+						if (m.contains("which classes") || m.contains("classes do i teach") || m.contains("assigned classes")
+								|| m.contains("my classes") || m.contains("classes assigned") || m.contains("which divisions")
+								|| m.contains("divisions do i teach") || m.contains("assigned divisions") || m.contains("my divisions")
+								|| m.contains("grades do i teach") || m.contains("divisions am i teaching") || m.contains("what classes")
+								|| m.contains("show my assigned") || m.contains("what divisions")
+								|| m.contains("students performing") || m.contains("students doing")
+								|| m.contains("students' performance") || m.contains("students performance")
+								|| m.contains("performance of my students") || m.contains("progress of my students")
+								|| m.contains("student performance summary") || m.contains("overall student performance")
+								|| m.contains("actively learning") || m.contains("active learners")
+								|| m.contains("active students") || m.contains("currently active")
+								|| m.contains("currently learning") || m.contains("number of active")
+								|| (m.contains("lesson") && m.contains("my students") && (m.contains("completed") || m.contains("finished")))
+								|| m.contains("lessons completed by my students") || m.contains("lessons my students")) {
+							// For specific class/division lookup queries, performance summaries, active learner counts, and lesson completion counts, do NOT append analytics/reports action buttons
+						} else {
+							candidates.add(suggestion("View class analytics", "/teacher/analytics", "TEACHER"));
+							candidates.add(suggestion("View class reports", "/teacher/reports", "TEACHER"));
+						}
 					} else if (role == Role.SCHOOL_ADMIN) {
 						candidates.add(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"));
 						candidates.add(suggestion("View students", "/school-admin/students", "SCHOOL_ADMIN"));
@@ -843,5 +865,32 @@ public class AssistantService {
 
 	private Suggestion suggestion(String label, String route, String targetRole) {
 		return Suggestion.builder().label(label).route(route).targetRole(targetRole).build();
+	}
+
+	private boolean isBotIdentityQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		return containsAnyPhrase(m, List.of(
+				"what is your name", "what's your name", "whats your name", "what is ur name", "what's ur name",
+				"who are you", "who are u", "who r u",
+				"what should i call you", "what should i call u", "what can i call you", "what can i call u",
+				"tell me your name", "tell me ur name", "tell your name",
+				"what are you called", "what are u called", "what are you named",
+				"your name", "ur name",
+				"what are you", "introduce yourself", "who made you"
+		));
+	}
+
+	private AssistantResponse chatbotIdentityResponse(AssistantRequest request, ActorContext actor) {
+		Role role = (actor != null && actor.getRole() != null) ? actor.getRole() : Role.USER;
+		return AssistantResponse.builder()
+				.markdown("My name is SpeakMate AI. I’m your AI English learning assistant.")
+				.intent(AssistantIntent.CHATBOT_IDENTITY.name())
+				.accessDenied(false)
+				.sessionId(request != null ? request.getSessionId() : null)
+				.suggestions(suggestionsFor(AssistantIntent.CHATBOT_IDENTITY, role, false, request != null ? request.getMessage() : null))
+				.build();
 	}
 }
