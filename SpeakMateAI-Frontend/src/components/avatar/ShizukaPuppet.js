@@ -300,10 +300,10 @@ export class ShizukaPuppet extends PIXI.Container {
     const cy = -392;
 
     // S1 Concealment: Soft rounded rectangle covering baked-in smile
-    // X span: [-68, +84], Y span: [-420, -364]
+    // X span: [-72, +88], Y span: [-422, -362]
     // Completely conceals baked smile while clearing nose (+15, -424) and chin (+3, -324)
     g.beginFill(0xF9C8A7);
-    g.drawRoundedRect(cx - 76, cy - 28, 152, 56, 24);
+    g.drawRoundedRect(cx - 80, cy - 30, 160, 60, 24);
     g.endFill();
 
     // ── 1. RESTING STATE (FROZEN S1 BASELINE) ──
@@ -328,48 +328,59 @@ export class ShizukaPuppet extends PIXI.Container {
     }
 
     // ── 2. DYNAMIC ARTICULATION (PHONETIC VISEME MOUTH) ──
-    // Width modulates by mouthForm: -1.0 (narrow OO) -> 82px, 0.0 (AA) -> 115px, +1.0 (wide EE) -> 146px
-    const halfW = (115 + mouthForm * 31) / 2.0;
-    const openH = mouthY * 50.0;
+    // Width modulates by mouthForm: -1.0 (narrow OO) -> 92px, 0.0 (AA) -> 124px, +1.0 (wide EE) -> 156px
+    const halfW = (124 + mouthForm * 32) / 2.0;
+    const openH = 2.0 + mouthY * 48.0;
 
     const topY = cy - 18;
     const botY = topY + openH;
     const leftX = cx - halfW;
     const rightX = cx + halfW;
-    const cornerY = topY - (mouthForm < 0 ? 2 : 5);
+    const cornerY = topY - (mouthForm < 0 ? 2 : 4);
+
+    const upperCtrlY = 2 * topY - cornerY;
+    const lowerCtrlY = 2 * botY - cornerY;
 
     // Dynamic Anime Cavity Polygon (Ruby #881B2B)
     g.beginFill(0x881B2B, 1.0);
     g.lineStyle(0);
     g.moveTo(leftX, cornerY);
-    g.quadraticCurveTo(cx, topY, rightX, cornerY);
-    g.quadraticCurveTo(cx, botY, leftX, cornerY);
+    g.quadraticCurveTo(cx, upperCtrlY, rightX, cornerY);
+    g.quadraticCurveTo(cx, lowerCtrlY, leftX, cornerY);
     g.endFill();
 
     // Progressive Soft Tongue Arch (Coral Rose #F06292)
+    // Sits nestled inside cavity and touches the bottom mouth edge
     if (mouthY > 0.22) {
-      const tongueH = Math.min(openH * 0.48, (mouthY - 0.20) * 16.0);
-      const tHalfW = halfW * 0.60;
-      const tTopY = botY - tongueH;
+      const cavityH = botY - topY;
+      const tH = cavityH * 0.46;
+      const tHalfW = halfW * 0.58;
+      const ratio = tHalfW / halfW;
+      const yTw = botY + (cornerY - botY) * (ratio * ratio);
+      const tTopY = botY - tH;
+      const tTopCtrl = 2 * tTopY - yTw;
+      const tBotCtrl = 2 * botY - yTw;
 
       g.beginFill(0xF06292, 1.0);
-      g.moveTo(cx - tHalfW, botY);
-      g.quadraticCurveTo(cx, tTopY, cx + tHalfW, botY);
+      g.lineStyle(0);
+      g.moveTo(cx - tHalfW, yTw);
+      g.quadraticCurveTo(cx, tTopCtrl, cx + tHalfW, yTw);
+      g.quadraticCurveTo(cx, tBotCtrl, cx - tHalfW, yTw);
       g.closePath();
       g.endFill();
     }
 
     // Refined Anime Outline Stroke (#130000 near-black warm brown)
-    g.lineStyle(2.4, 0x130000, 1.0);
+    g.lineStyle(2.6, 0x130000, 1.0);
     g.moveTo(leftX, cornerY);
-    g.quadraticCurveTo(cx, topY, rightX, cornerY);
-    g.quadraticCurveTo(cx, botY, leftX, cornerY);
+    g.quadraticCurveTo(cx, upperCtrlY, rightX, cornerY);
+    g.quadraticCurveTo(cx, lowerCtrlY, leftX, cornerY);
 
-    // Lower Lip Shadow Accent (moves subtley with lower jaw)
-    const creaseY = Math.min(cy + 24, botY + 10);
+    // Lower Lip Shadow Accent (moves subtly with lower jaw)
+    const creaseY = Math.min(cy + 34, botY + 12);
     g.lineStyle(1.8, 0x6A3E36, 0.85);
-    g.moveTo(cx - 15, creaseY);
-    g.lineTo(cx + 15, creaseY);
+    g.moveTo(cx - 16, creaseY);
+    g.lineTo(cx + 16, creaseY);
   }
 
   destroy(options) {

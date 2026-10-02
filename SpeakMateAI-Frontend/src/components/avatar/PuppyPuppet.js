@@ -128,6 +128,22 @@ export function getScoobyTexture(onReady) {
           }
         }
 
+        // Fade out remaining lower body parts beneath the SD collar medallion (tag tip at Y ≈ 938)
+        // Between Y = 940 and Y = 1040, smoothly ramp alpha to 0.0 using hermite curve
+        const Y_FADE_START = 940;
+        const Y_FADE_END = 1040;
+        for (let y = Y_FADE_START; y < h; y++) {
+          const t = (y - Y_FADE_START) / (Y_FADE_END - Y_FADE_START);
+          const alphaMult = y >= Y_FADE_END ? 0 : 1.0 - (3 * t * t - 2 * t * t * t);
+          const rowStart = y * w * 4;
+          for (let x = 0; x < w; x++) {
+            const aIdx = rowStart + x * 4 + 3;
+            if (data[aIdx] > 0) {
+              data[aIdx] = Math.round(data[aIdx] * alphaMult);
+            }
+          }
+        }
+
         ctx.putImageData(imgData, 0, 0);
         cachedScoobyCanvas = canvas;
         cachedScoobyTexture = PIXI.Texture.from(canvas);
@@ -171,35 +187,62 @@ export function getScoobyTexture(onReady) {
 
 // Sampled vertices along exact underside of canonical smile line
 export const S2_UPPER_SMILE_LOCAL_PTS = [
-  [-305.5, -259.5], // Native (278.0, 537.0)
-  [-298.5, -262.5], // Native (285.0, 534.0) - Left Inner Anchor
-  [-288.5, -260.5], // Native (295.0, 536.0)
-  [-278.5, -256.5], // Native (305.0, 540.0)
-  [-268.5, -251.5], // Native (315.0, 545.0)
-  [-258.5, -247.5], // Native (325.0, 549.0)
-  [-248.5, -245.0], // Native (335.0, 551.5)
-  [-238.5, -244.0], // Native (345.0, 552.5)
-  [-225.5, -243.5], // Native (358.0, 553.0) - Central Trough
-  [-213.5, -245.0], // Native (370.0, 551.5)
-  [-198.5, -249.5], // Native (385.0, 547.0)
-  [-185.5, -255.5], // Native (398.0, 541.0)
-  [-173.5, -265.5], // Native (410.0, 531.0)
-  [-165.5, -275.5], // Native (418.0, 521.0) - Right Inner Anchor
+  [-309.5, -255.5], // Native (274.0, 541.0) - Left corner notch
+  [-301.5, -260.5], // Native (282.0, 536.0)
+  [-293.5, -262.5], // Native (290.0, 534.0)
+  [-283.5, -261.0], // Native (300.0, 535.5)
+  [-271.5, -255.5], // Native (312.0, 541.0)
+  [-258.5, -250.0], // Native (325.0, 546.5)
+  [-245.5, -246.5], // Native (338.0, 550.0)
+  [-231.5, -244.0], // Native (352.0, 552.5) - Central trough
+  [-215.5, -244.5], // Native (368.0, 552.0)
+  [-198.5, -248.5], // Native (385.0, 548.0)
+  [-181.5, -259.0], // Native (402.0, 537.5)
+  [-165.5, -275.0], // Native (418.0, 521.5)
+  [-151.5, -294.0], // Native (432.0, 502.5)
+  [-145.5, -307.5], // Native (438.0, 489.0) - Right smile crease anchor
 ];
 
-export function getUpperSmileY(x) {
-  if (x <= S2_UPPER_SMILE_LOCAL_PTS[0][0]) return S2_UPPER_SMILE_LOCAL_PTS[0][1];
-  const last = S2_UPPER_SMILE_LOCAL_PTS[S2_UPPER_SMILE_LOCAL_PTS.length - 1];
+// Target bottom boundary vertices at MAX opening (cleanly envelops resting lower lip)
+export const S2_BOT_MAX_LOCAL_PTS = [
+  [-309.5, -255.5], // Native (274.0, 541.0) - Left corner notch
+  [-297.8, -222.7], // Native (285.7, 573.8) - Cleanly envelops resting lower lip
+  [-286.1, -212.7], // Native (297.4, 583.8)
+  [-274.4, -206.6], // Native (309.1, 589.9)
+  [-262.6, -202.3], // Native (320.9, 594.2)
+  [-250.9, -200.6], // Native (332.6, 595.9)
+  [-239.2, -199.6], // Native (344.3, 596.9) - Lowest jaw drop floor
+  [-227.5, -199.8], // Native (356.0, 596.7)
+  [-215.8, -201.7], // Native (367.7, 594.8)
+  [-204.1, -205.1], // Native (379.4, 591.4)
+  [-192.4, -212.6], // Native (391.1, 583.9)
+  [-180.6, -223.5], // Native (402.9, 573.0)
+  [-168.9, -240.9], // Native (414.6, 555.6)
+  [-157.2, -267.3], // Native (426.3, 529.2)
+  [-145.5, -307.5], // Native (438.0, 489.0) - Right smile crease anchor
+];
+
+export function interpLocalPts(pts, x) {
+  if (x <= pts[0][0]) return pts[0][1];
+  const last = pts[pts.length - 1];
   if (x >= last[0]) return last[1];
-  for (let i = 0; i < S2_UPPER_SMILE_LOCAL_PTS.length - 1; i++) {
-    const p1 = S2_UPPER_SMILE_LOCAL_PTS[i];
-    const p2 = S2_UPPER_SMILE_LOCAL_PTS[i + 1];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
     if (x >= p1[0] && x <= p2[0]) {
       const frac = (x - p1[0]) / (p2[0] - p1[0]);
       return p1[1] + frac * (p2[1] - p1[1]);
     }
   }
-  return -243.5;
+  return last[1];
+}
+
+export function getUpperSmileY(x) {
+  return interpLocalPts(S2_UPPER_SMILE_LOCAL_PTS, x);
+}
+
+export function getBotMaxY(x) {
+  return interpLocalPts(S2_BOT_MAX_LOCAL_PTS, x);
 }
 
 export const S2_STATES = {
@@ -292,10 +335,11 @@ export class PuppyPuppet extends PIXI.Container {
     this.rootContainer = new PIXI.Container();
     this.addChild(this.rootContainer);
 
-    // Uniformly scaled content container so Sprite & Overlays share coordinate space
-    // Scale 0.18 maps 1126x1536 (character bounds 811x1419) to ~146x255, matching 220x270 reference box
+    // Uniformly scaled Content Container (Upper-Bust Portrait Framing)
+    // Scale 0.36 with offset (53.5, 117.5) frames Scooby-Doo's head, collar, and SD tag prominently (~2x larger)
     this.contentContainer = new PIXI.Container();
-    this.contentContainer.scale.set(0.18);
+    this.contentContainer.scale.set(0.36);
+    this.contentContainer.position.set(53.5, 117.5);
     this.rootContainer.addChild(this.contentContainer);
 
     // 1. Base Canonical Scooby-Doo Sprite (Untouched original canonical artwork)
@@ -323,6 +367,10 @@ export class PuppyPuppet extends PIXI.Container {
     // Small subtle tongue (#C26470) with subtle darker contour (#7E2C37)
     this.tongueGraphics = new PIXI.Graphics();
     this.mouthRig.addChild(this.tongueGraphics);
+
+    // Outer contour lines
+    this.mouthBorder = new PIXI.Graphics();
+    this.mouthRig.addChild(this.mouthBorder);
 
     // Initial render at REST
     this.renderControlledMouth(0.0, 0.0);
@@ -427,59 +475,43 @@ export class PuppyPuppet extends PIXI.Container {
       this.mouthRig.visible = false;
       this.mouthCavity.clear();
       this.tongueGraphics.clear();
+      if (this.mouthBorder) this.mouthBorder.clear();
       return;
     }
 
     this.mouthRig.visible = true;
     this.mouthCavity.clear();
     this.tongueGraphics.clear();
+    if (this.mouthBorder) this.mouthBorder.clear();
 
     const m = Math.max(0.0, Math.min(1.0, mouthOpen));
     const form = Math.max(-1.0, Math.min(1.0, Number(mouthForm) || 0.0));
 
-    // Dynamic horizontal span in local coordinates
-    // Origin (0, 0) = Character BBox Center (583.5, 796.5)
-    // Native X Start: ~282 px (Local: -301.5 px)
-    // Native X End:   ~416 px (Local: -167.5 px) - strictly below cheek fold
-    const localXStart = -301.5 + (1.0 - form) * 2.5;
-    const localXEnd = -167.5 + form * 3.5;
+    const spanMod = 1.0 + form * 0.03;
+    const midX = -233.5;
+    const xStart = -309.5;
+    const xEnd = -145.5;
 
-    // Target maximum opening depth: 47.5 px in native space (Local space 1:1 before container 0.18 scale)
-    const currentDepth = 47.5 * m;
-
-    const steps = 45;
+    const steps = 60;
     const topPts = [];
     const botPts = [];
-    const uCenter = 0.46 + form * 0.03;
 
     for (let i = 0; i <= steps; i++) {
       const u = i / steps;
-      const x = localXStart + u * (localXEnd - localXStart);
-      const yTop = getUpperSmileY(x);
+      const baseX = xStart + u * (xEnd - xStart);
+      const x = midX + (baseX - midX) * spanMod;
+
+      const yTop = getUpperSmileY(baseX);
+      const yBotMax = getBotMaxY(baseX);
+      const yBot = yTop + m * (yBotMax - yTop);
+
       topPts.push({ x, y: yTop });
-
-      let dist;
-      if (u < uCenter) {
-        dist = (uCenter - u) / uCenter;
-      } else {
-        dist = (u - uCenter) / (1.0 - uCenter);
-      }
-      dist = Math.max(0.0, Math.min(1.0, dist));
-
-      // Continuous rounded cartoon bowl profile (exponent 2.4 produces wide rounded bottom with smooth walls)
-      const shape = Math.max(0.0, Math.min(1.0, 1.0 - Math.pow(dist, 2.4)));
-      const depthMod = 1.0 - form * 0.10;
-      const h = currentDepth * shape * depthMod;
-
-      // Safe region clamp: Native Y <= 595 (Local Y <= -201.5, well above safe limit 600)
-      const botY = Math.min(-201.5, yTop + h);
-      botPts.push({ x, y: botY });
+      botPts.push({ x, y: yBot });
     }
 
-    // 1. Fill deep warm brown-black oral cavity (#1F0B06) with dark border (#0F0502)
+    // 1. Fill deep warm brown-black oral cavity (#1F0B06)
     const g = this.mouthCavity;
     g.beginFill(0x1F0B06, 1.0);
-    g.lineStyle(3.0, 0x0F0502, 1.0);
 
     g.moveTo(topPts[0].x, topPts[0].y);
     for (let i = 1; i < topPts.length; i++) {
@@ -491,27 +523,24 @@ export class PuppyPuppet extends PIXI.Container {
     g.closePath();
     g.endFill();
 
-    // 2. Draw organic rounded tongue inside cavity if mouthOpen >= 0.28
-    if (m >= 0.28) {
-      const tReveal = Math.max(0.0, Math.min(1.0, (m - 0.28) / 0.72));
-      // Native Width: 28.0..46.0 px, Native Height: 6.0..21.5 px
-      // Prominent, clearly visible, yet strictly contained within the cavity floor
-      const tW = (28.0 + 18.0 * tReveal) * (1.0 + form * 0.08);
-      const tH = (6.0 + 15.5 * tReveal) * (1.0 - form * 0.10);
+    // 2. Draw organic rounded tongue inside cavity if mouthOpen >= 0.18
+    if (m >= 0.18) {
+      const tReveal = Math.max(0.0, Math.min(1.0, (m - 0.18) / 0.82));
+      const tW = (20.0 + 22.0 * tReveal) * (1.0 + form * 0.08);
+      const tH = (5.0 + 14.0 * tReveal) * (1.0 - form * 0.10);
 
-      // Centered on lower jaw mass (Local X = -240.5 -> Native X = 343.0)
-      const tCx = -240.5 + form * 2.0;
-      const depthMod = 1.0 - form * 0.10;
-      const floorY = Math.min(-201.5, getUpperSmileY(tCx) + currentDepth * depthMod);
+      const tCx = midX + form * 3.0;
+      const tYTop = getUpperSmileY(tCx);
+      const tYBotMax = getBotMaxY(tCx);
+      const floorY = tYTop + m * (tYBotMax - tYTop);
 
-      const tBot = floorY - 2.0;
+      const tBot = floorY - 2.5;
       const tTop = tBot - tH;
       const tLeft = tCx - tW / 2.0;
       const tRight = tCx + tW / 2.0;
       const yCp = tTop - tH / 3.0;
 
       const tg = this.tongueGraphics;
-      // Muted warm rose pink (#C26470) with subtle darker rim (#7E2C37)
       tg.beginFill(0xC26470, 1.0);
       tg.lineStyle(2.0, 0x7E2C37, 1.0);
       tg.moveTo(tLeft, tBot);
@@ -521,17 +550,29 @@ export class PuppyPuppet extends PIXI.Container {
       tg.endFill();
     }
 
-    // 3. Redraw crisp upper lip contour on top (preserves upper muzzle ink boundary)
-    g.lineStyle(3.5, 0x0F0502, 1.0);
-    g.moveTo(topPts[0].x, topPts[0].y);
+    // 3. Crisp outer contours
+    const mb = this.mouthBorder || g;
+    // Lower lip contour
+    mb.lineStyle(3.0, 0x0F0502, 1.0);
+    mb.moveTo(botPts[0].x, botPts[0].y);
+    for (let i = 1; i < botPts.length; i++) {
+      mb.lineTo(botPts[i].x, botPts[i].y);
+    }
+    // Upper lip contour
+    mb.lineStyle(3.5, 0x0F0502, 1.0);
+    mb.moveTo(topPts[0].x, topPts[0].y);
     for (let i = 1; i < topPts.length; i++) {
-      g.lineTo(topPts[i].x, topPts[i].y);
+      mb.lineTo(topPts[i].x, topPts[i].y);
     }
   }
 
   destroy(options) {
     if (typeof window !== 'undefined' && window.__scoobyPuppet === this) {
       delete window.__scoobyPuppet;
+    }
+    if (this.mouthBorder) {
+      try { this.mouthBorder.destroy({ children: true }); } catch (_) {}
+      this.mouthBorder = null;
     }
     if (this.tongueGraphics) {
       try { this.tongueGraphics.destroy({ children: true }); } catch (_) {}

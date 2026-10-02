@@ -225,24 +225,24 @@ export function getSmileY(x) {
   return 129.0;
 }
 
-// 51 Precomputed lower boundary points at maximum opening (m = 1.00)
-// Right: (+136, +89) -> CP (+80, +165) -> Trough (+5, +184) [Image: (1200, 1080)]
-// Left:  (+5, +184)  -> CP (-65, +175) -> Left Anchor (-115, +118)
+// 51 Precomputed lower boundary points at maximum opening (m = 1.00, Trough Y = 198.0)
+// Right: (+136, +89) -> CP (+80, +176) -> Trough (+5, +198) [Image: (1200, 1094)]
+// Left:  (+5, +198)  -> CP (-65, +187) -> Left Anchor (-115, +118)
 export const B2_LOWER_MAX_SAMPLES = (() => {
   const pts = [];
   const steps = 25;
-  // Right half: from (136, 89) to (5, 184)
+  // Right half: from (136, 89) to (5, 198)
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const x = (1 - t) * (1 - t) * 136.0 + 2 * (1 - t) * t * 80.0 + t * t * 5.0;
-    const yMax = (1 - t) * (1 - t) * 89.0 + 2 * (1 - t) * t * 165.0 + t * t * 184.0;
+    const yMax = (1 - t) * (1 - t) * 89.0 + 2 * (1 - t) * t * 176.0 + t * t * 198.0;
     pts.push({ x: Number(x.toFixed(2)), yMax: Number(yMax.toFixed(2)) });
   }
-  // Left half: from (5, 184) to (-115, 118)
+  // Left half: from (5, 198) to (-115, 118)
   for (let i = 1; i <= steps; i++) {
     const t = i / steps;
     const x = (1 - t) * (1 - t) * 5.0 + 2 * (1 - t) * t * (-65.0) + t * t * (-115.0);
-    const yMax = (1 - t) * (1 - t) * 184.0 + 2 * (1 - t) * t * 175.0 + t * t * 118.0;
+    const yMax = (1 - t) * (1 - t) * 198.0 + 2 * (1 - t) * t * 187.0 + t * t * 118.0;
     pts.push({ x: Number(x.toFixed(2)), yMax: Number(yMax.toFixed(2)) });
   }
   return pts;
@@ -261,15 +261,15 @@ export function getLowerY(x, m) {
       return (1.0 - m) * ySmile + m * yMax;
     }
   }
-  return (1.0 - m) * ySmile + m * 184.0;
+  return (1.0 - m) * ySmile + m * 198.0;
 }
 
 export const B2_STATES = {
-  0: 0.00, // REST
-  1: 0.20, // SLIGHT (~11px aperture)
-  2: 0.45, // MEDIUM (~25px aperture)
-  3: 0.72, // LARGE  (~40px aperture)
-  4: 1.00, // MAXIMUM (~54px aperture, Image Y = 1080.0)
+  0: 0.00, // REST    (0px aperture)
+  1: 0.22, // SLIGHT  (~15px aperture)
+  2: 0.50, // MEDIUM  (~34px aperture)
+  3: 0.78, // LARGE   (~53px aperture)
+  4: 1.00, // MAXIMUM (~68.5px aperture, Image Y = 1094.0)
 };
 
 /**
@@ -278,28 +278,21 @@ export const B2_STATES = {
  */
 export function mapMouthYToLandmarks(y) {
   const clampedY = Math.max(0.0, Math.min(1.0, Number(y) || 0.0));
-  // Below rest threshold (0.05): REST
-  if (clampedY <= 0.05) {
-    return 0.0;
-  }
-  // 0.05 -> 0.25 maps smoothly to 0.00 -> 0.20 (SLIGHT)
+  if (clampedY <= 0.03) return 0.0;
   if (clampedY <= 0.25) {
-    const t = (clampedY - 0.05) / 0.20;
-    return t * 0.20;
+    const t = (clampedY - 0.03) / 0.22;
+    return t * 0.22;
   }
-  // 0.25 -> 0.50 maps smoothly to 0.20 -> 0.45 (MEDIUM)
   if (clampedY <= 0.50) {
     const t = (clampedY - 0.25) / 0.25;
-    return 0.20 + t * (0.45 - 0.20);
+    return 0.22 + t * (0.50 - 0.22);
   }
-  // 0.50 -> 0.75 maps smoothly to 0.45 -> 0.72 (LARGE)
   if (clampedY <= 0.75) {
     const t = (clampedY - 0.50) / 0.25;
-    return 0.45 + t * (0.72 - 0.45);
+    return 0.50 + t * (0.78 - 0.50);
   }
-  // 0.75 -> 1.00 maps smoothly to 0.72 -> 1.00 (MAXIMUM)
   const t = (clampedY - 0.75) / 0.25;
-  return 0.72 + t * (1.00 - 0.72);
+  return 0.78 + t * (1.00 - 0.78);
 }
 
 /**
