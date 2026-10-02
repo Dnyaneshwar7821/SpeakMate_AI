@@ -2,7 +2,6 @@ package com.rslsolution.speakmateai.service;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,7 +92,6 @@ class SchoolAdminChatbotSchoolIsolationTest {
 
     private School pcmcSchool;
     private School dyPatilSchool;
-    private User pcmcStudentUser;
     private Student pcmcStudent;
 
     @BeforeEach

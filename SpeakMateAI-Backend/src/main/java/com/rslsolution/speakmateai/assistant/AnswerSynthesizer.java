@@ -1405,10 +1405,6 @@ public class AnswerSynthesizer {
 		return trimOrNull(sb);
 	}
 
-	private String renderRoster(Map<String, Object> d) {
-		return renderRoster(d, null);
-	}
-
 	private String renderRoster(Map<String, Object> d, String userMessage) {
 		String field = str(d, "field");
 		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT).trim();

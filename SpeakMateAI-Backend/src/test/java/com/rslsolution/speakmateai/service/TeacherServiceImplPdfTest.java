@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
-import com.rslsolution.speakmateai.dto.response.TeacherStudentDetailResponse;
 
 public class TeacherServiceImplPdfTest {
 

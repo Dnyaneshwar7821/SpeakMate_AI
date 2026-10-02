@@ -1111,58 +1111,6 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 				.orElse(null);
 	}
 
-	private School resolveSchool(ActorContext actor, Map<String, Object> params) {
-		Long adminSchoolId = actor.getSchoolId();
-		if ((actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER) && adminSchoolId != null) {
-			return schoolRepository.findById(adminSchoolId).orElse(null);
-		}
-		Object name = params.get("schoolName");
-		if (name == null || name.toString().isBlank()) {
-			return null;
-		}
-		String raw = name.toString().trim();
-		String exactKey = schoolKey(raw);
-		if (exactKey.isEmpty()) {
-			return null;
-		}
-		// "standard of Vijay Patil" captures the PERSON name after "of". A Super
-		// Admin question that names a person (and no school) must still resolve -
-		// locate the school that actually holds that person instead of returning
-		// null, which would collapse to a generic NO DATA reply.
-		if (actor.getRole() == Role.SUPER_ADMIN && !looksLikeSchoolName(raw)) {
-			School personSchool = findPersonAcrossSchools(raw);
-			if (personSchool != null) {
-				return personSchool;
-			}
-		}
-		// 1) Exact match.
-		Optional<School> exact = schoolRepository.findByName(raw);
-		if (exact.isPresent()) {
-			return exact.get();
-		}
-		// 2) Case-insensitive exact match - PostgreSQL '=' is case-sensitive.
-		List<School> all = schoolRepository.findAll();
-		Optional<School> byExactIgnoreCase = all.stream()
-				.filter(s -> schoolKey(displayName(s)).equals(exactKey))
-				.findFirst();
-		if (byExactIgnoreCase.isPresent()) {
-			return byExactIgnoreCase.get();
-		}
-		// 3) Normalized contains match for partial or alternate names. The key
-		//    strips spaces and punctuation, so "Ekvira High School" resolves to the
-		//    stored "Ekvira Highschool" and "St. Vincent High School" to
-		//    "St.Vincent High School".
-		return all.stream()
-				.filter(s -> {
-					String full = schoolKey(displayName(s));
-					String shortName = schoolKey(s.getName());
-					return full.contains(exactKey) || exactKey.contains(full)
-							|| (!shortName.isEmpty()
-									&& (shortName.contains(exactKey) || exactKey.contains(shortName)));
-				})
-				.findFirst()
-				.orElse(null);
-	}
 
 	/**
 		* Normalizes a school name for matching: lower-cased with all whitespace and

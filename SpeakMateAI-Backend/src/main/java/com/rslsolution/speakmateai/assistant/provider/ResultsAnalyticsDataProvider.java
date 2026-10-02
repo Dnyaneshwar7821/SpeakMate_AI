@@ -12,10 +12,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
-import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.entity.Result;
 import com.rslsolution.speakmateai.entity.School;
-import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.repository.ResultRepository;
 import com.rslsolution.speakmateai.repository.SchoolRepository;
 
