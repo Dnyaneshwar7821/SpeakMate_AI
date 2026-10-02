@@ -99,4 +99,36 @@ public class TeacherController {
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(data);
 	}
+
+	@GetMapping("/reports/student/{studentId}/download")
+	public ResponseEntity<byte[]> downloadStudentReport(
+			@PathVariable Long studentId,
+			@RequestParam(value = "format", defaultValue = "pdf") String format) {
+		byte[] data = teacherService.downloadStudentReport(studentId, format);
+		String ext = "json".equalsIgnoreCase(format) ? "json" : ("csv".equalsIgnoreCase(format) ? "csv" : "pdf");
+		String contentType = "json".equalsIgnoreCase(format) ? "application/json" : ("csv".equalsIgnoreCase(format) ? "text/csv" : "application/pdf");
+		String filename = "student_report_" + studentId + "." + ext;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType(contentType));
+		headers.setContentDispositionFormData("attachment", filename);
+		headers.setContentLength(data.length);
+		return new ResponseEntity<>(data, headers, org.springframework.http.HttpStatus.OK);
+	}
+
+	@GetMapping("/reports/{reportId}/download")
+	public ResponseEntity<byte[]> downloadReportById(
+			@PathVariable String reportId,
+			@RequestParam(value = "format", defaultValue = "csv") String format) {
+		byte[] data = teacherService.downloadReportById(reportId, format);
+		String ext = "json".equalsIgnoreCase(format) ? "json" : ("csv".equalsIgnoreCase(format) ? "csv" : "pdf");
+		String contentType = "json".equalsIgnoreCase(format) ? "application/json" : ("csv".equalsIgnoreCase(format) ? "text/csv" : "application/pdf");
+		String filename = "report_" + reportId + "." + ext;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType(contentType));
+		headers.setContentDispositionFormData("attachment", filename);
+		headers.setContentLength(data.length);
+		return new ResponseEntity<>(data, headers, org.springframework.http.HttpStatus.OK);
+	}
 }

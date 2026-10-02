@@ -40,4 +40,8 @@ public interface TeacherService {
     void changePassword(ChangePasswordRequest request);
 
     byte[] downloadProfile();
+
+    byte[] downloadStudentReport(Long studentId, String format);
+
+    byte[] downloadReportById(String reportId, String format);
 }

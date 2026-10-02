@@ -1950,6 +1950,167 @@ public class TeacherServiceImpl implements TeacherService {
 		}
 	}
 
+	@Override
+	public byte[] downloadStudentReport(Long studentId, String format) {
+		TeacherStudentDetailResponse studentDetail = getStudentDetail(studentId);
+		if (studentDetail == null) {
+			throw new IllegalArgumentException("Student not found or unauthorized for student ID: " + studentId);
+		}
+
+		String reqFormat = format != null ? format.toLowerCase(java.util.Locale.ROOT) : "pdf";
+		if ("json".equals(reqFormat)) {
+			try {
+				com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+				mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+				return mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(studentDetail);
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to generate report JSON", e);
+			}
+		}
+
+		if ("csv".equals(reqFormat)) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Student ID,Name,Standard,Division,Roll Number,School,Attendance Rate,Lessons Completed,Grammar Score,Vocabulary Score,Speaking Score,Listening Score,Practice Sessions,Total Practice Minutes\n");
+			String name = studentDetail.getProfile() != null
+					? (studentDetail.getProfile().getFirstName() + " " + (studentDetail.getProfile().getLastName() != null ? studentDetail.getProfile().getLastName() : "")).trim()
+					: "Student #" + studentId;
+			sb.append(studentId).append(",")
+					.append("\"").append(name).append("\",")
+					.append("\"").append(studentDetail.getStandard() != null ? studentDetail.getStandard() : "").append("\",")
+					.append("\"").append(studentDetail.getDivision() != null ? studentDetail.getDivision() : "").append("\",")
+					.append("\"").append(studentDetail.getRollNumber() != null ? studentDetail.getRollNumber() : "").append("\",")
+					.append("\"").append(studentDetail.getSchoolName() != null ? studentDetail.getSchoolName() : "").append("\",")
+					.append(studentDetail.getAttendanceRate() != null ? studentDetail.getAttendanceRate() : 0).append(",")
+					.append(studentDetail.getPerformance() != null && studentDetail.getPerformance().getLessonsCompleted() != null ? studentDetail.getPerformance().getLessonsCompleted() : 0).append(",")
+					.append(studentDetail.getPerformance() != null && studentDetail.getPerformance().getGrammarScore() != null ? Math.round(studentDetail.getPerformance().getGrammarScore()) : 0).append(",")
+					.append(studentDetail.getPerformance() != null && studentDetail.getPerformance().getVocabularyScore() != null ? Math.round(studentDetail.getPerformance().getVocabularyScore()) : 0).append(",")
+					.append(studentDetail.getPerformance() != null && studentDetail.getPerformance().getSpeakingScore() != null ? Math.round(studentDetail.getPerformance().getSpeakingScore()) : 0).append(",")
+					.append(studentDetail.getPerformance() != null && studentDetail.getPerformance().getListeningScore() != null ? Math.round(studentDetail.getPerformance().getListeningScore()) : 0).append(",")
+					.append(studentDetail.getPracticeStatistics() != null && studentDetail.getPracticeStatistics().getCompletedSpeakingSessions() != null ? studentDetail.getPracticeStatistics().getCompletedSpeakingSessions() : 0).append(",")
+					.append(studentDetail.getPracticeStatistics() != null && studentDetail.getPracticeStatistics().getTotalPracticeMinutes() != null ? studentDetail.getPracticeStatistics().getTotalPracticeMinutes() : 0).append("\n");
+			return sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		}
+
+		return generatePdfStudentReport(studentDetail, studentId);
+	}
+
+	private byte[] generatePdfStudentReport(TeacherStudentDetailResponse studentDetail, Long studentId) {
+		try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream()) {
+			com.itextpdf.text.Document document = new com.itextpdf.text.Document(com.itextpdf.text.PageSize.A4, 36, 36, 36, 36);
+			com.itextpdf.text.pdf.PdfWriter.getInstance(document, out);
+			document.open();
+
+			com.itextpdf.text.Font headerFont = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA_BOLD, 18, new com.itextpdf.text.BaseColor(49, 46, 129));
+			com.itextpdf.text.Font subFont = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 10, com.itextpdf.text.BaseColor.GRAY);
+			com.itextpdf.text.Font sectionFont = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA_BOLD, 12, new com.itextpdf.text.BaseColor(15, 23, 42));
+			com.itextpdf.text.Font bodyFont = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 10, com.itextpdf.text.BaseColor.DARK_GRAY);
+			com.itextpdf.text.Font boldBodyFont = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA_BOLD, 10, com.itextpdf.text.BaseColor.BLACK);
+
+			document.add(new com.itextpdf.text.Paragraph("SPEAKMATE AI - STUDENT EVALUATION REPORT", headerFont));
+			document.add(new com.itextpdf.text.Paragraph("Generated on: " + LocalDateTime.now().toString(), subFont));
+			document.add(new com.itextpdf.text.Paragraph(" "));
+
+			// Student Info Section
+			document.add(new com.itextpdf.text.Paragraph("STUDENT INFORMATION", sectionFont));
+			document.add(new com.itextpdf.text.Paragraph(" "));
+
+			com.itextpdf.text.pdf.PdfPTable infoTable = new com.itextpdf.text.pdf.PdfPTable(2);
+			infoTable.setWidthPercentage(100);
+
+			String name = studentDetail.getProfile() != null
+					? (studentDetail.getProfile().getFirstName() + " " + (studentDetail.getProfile().getLastName() != null ? studentDetail.getProfile().getLastName() : "")).trim()
+					: "Student #" + studentId;
+
+			addCellToTable(infoTable, "Student Name:", name, boldBodyFont, bodyFont);
+			addCellToTable(infoTable, "Student ID:", String.valueOf(studentId), boldBodyFont, bodyFont);
+			addCellToTable(infoTable, "Standard:", studentDetail.getStandard() != null ? studentDetail.getStandard() : "-", boldBodyFont, bodyFont);
+			addCellToTable(infoTable, "Division:", studentDetail.getDivision() != null ? studentDetail.getDivision() : "-", boldBodyFont, bodyFont);
+			addCellToTable(infoTable, "Roll Number:", studentDetail.getRollNumber() != null ? studentDetail.getRollNumber() : "-", boldBodyFont, bodyFont);
+			addCellToTable(infoTable, "School Name:", studentDetail.getSchoolName() != null ? studentDetail.getSchoolName() : "SpeakMate Partner School", boldBodyFont, bodyFont);
+
+			document.add(infoTable);
+			document.add(new com.itextpdf.text.Paragraph(" "));
+
+			// Performance Section
+			document.add(new com.itextpdf.text.Paragraph("PERFORMANCE EVALUATION", sectionFont));
+			document.add(new com.itextpdf.text.Paragraph(" "));
+
+			com.itextpdf.text.pdf.PdfPTable perfTable = new com.itextpdf.text.pdf.PdfPTable(2);
+			perfTable.setWidthPercentage(100);
+
+			addCellToTable(perfTable, "Attendance Rate:", studentDetail.getAttendanceRate() != null ? studentDetail.getAttendanceRate() + "%" : "N/A", boldBodyFont, bodyFont);
+			if (studentDetail.getPerformance() != null) {
+				addCellToTable(perfTable, "Lessons Completed:", String.valueOf(studentDetail.getPerformance().getLessonsCompleted() != null ? studentDetail.getPerformance().getLessonsCompleted() : 0), boldBodyFont, bodyFont);
+				addCellToTable(perfTable, "Grammar Score:", (studentDetail.getPerformance().getGrammarScore() != null ? Math.round(studentDetail.getPerformance().getGrammarScore()) : 0) + "%", boldBodyFont, bodyFont);
+				addCellToTable(perfTable, "Vocabulary Score:", (studentDetail.getPerformance().getVocabularyScore() != null ? Math.round(studentDetail.getPerformance().getVocabularyScore()) : 0) + "%", boldBodyFont, bodyFont);
+				addCellToTable(perfTable, "Speaking Score:", (studentDetail.getPerformance().getSpeakingScore() != null ? Math.round(studentDetail.getPerformance().getSpeakingScore()) : 0) + "%", boldBodyFont, bodyFont);
+				addCellToTable(perfTable, "Listening Score:", (studentDetail.getPerformance().getListeningScore() != null ? Math.round(studentDetail.getPerformance().getListeningScore()) : 0) + "%", boldBodyFont, bodyFont);
+			}
+
+			document.add(perfTable);
+
+			if (studentDetail.getPracticeStatistics() != null) {
+				document.add(new com.itextpdf.text.Paragraph(" "));
+				document.add(new com.itextpdf.text.Paragraph("PRACTICE STATISTICS", sectionFont));
+				document.add(new com.itextpdf.text.Paragraph(" "));
+
+				com.itextpdf.text.pdf.PdfPTable statsTable = new com.itextpdf.text.pdf.PdfPTable(2);
+				statsTable.setWidthPercentage(100);
+
+				addCellToTable(statsTable, "Speaking Sessions:", String.valueOf(studentDetail.getPracticeStatistics().getCompletedSpeakingSessions() != null ? studentDetail.getPracticeStatistics().getCompletedSpeakingSessions() : 0), boldBodyFont, bodyFont);
+				addCellToTable(statsTable, "Practice Minutes:", (studentDetail.getPracticeStatistics().getTotalPracticeMinutes() != null ? studentDetail.getPracticeStatistics().getTotalPracticeMinutes() : 0) + " mins", boldBodyFont, bodyFont);
+
+				document.add(statsTable);
+			}
+
+			document.close();
+			return out.toByteArray();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to generate PDF student report", e);
+		}
+	}
+
+	private void addCellToTable(com.itextpdf.text.pdf.PdfPTable table, String label, String value, com.itextpdf.text.Font boldFont, com.itextpdf.text.Font regularFont) {
+		com.itextpdf.text.Phrase p = new com.itextpdf.text.Phrase();
+		p.add(new com.itextpdf.text.Chunk(label + " ", boldFont));
+		p.add(new com.itextpdf.text.Chunk(value, regularFont));
+		com.itextpdf.text.pdf.PdfPCell cell = new com.itextpdf.text.pdf.PdfPCell(p);
+		cell.setPadding(6);
+		cell.setBorderColor(new com.itextpdf.text.BaseColor(226, 232, 240));
+		table.addCell(cell);
+	}
+
+	@Override
+	public byte[] downloadReportById(String reportId, String format) {
+		User teacher = getCurrentTeacher();
+		String reqFormat = format != null ? format.toLowerCase(java.util.Locale.ROOT) : "pdf";
+		if ("csv".equals(reqFormat)) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Report ID,Teacher ID,Title,Status,Generated At\n");
+			sb.append(reportId).append(",").append(teacher.getId()).append(",Summary Report,Completed,").append(LocalDateTime.now()).append("\n");
+			return sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		}
+
+		try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream()) {
+			com.itextpdf.text.Document document = new com.itextpdf.text.Document(com.itextpdf.text.PageSize.A4, 36, 36, 36, 36);
+			com.itextpdf.text.pdf.PdfWriter.getInstance(document, out);
+			document.open();
+
+			com.itextpdf.text.Font headerFont = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA_BOLD, 18, new com.itextpdf.text.BaseColor(49, 46, 129));
+			com.itextpdf.text.Font bodyFont = com.itextpdf.text.FontFactory.getFont(com.itextpdf.text.FontFactory.HELVETICA, 10, com.itextpdf.text.BaseColor.DARK_GRAY);
+
+			document.add(new com.itextpdf.text.Paragraph("SPEAKMATE AI - SUMMARY REPORT", headerFont));
+			document.add(new com.itextpdf.text.Paragraph("Report ID   : " + reportId, bodyFont));
+			document.add(new com.itextpdf.text.Paragraph("Teacher ID  : " + teacher.getId(), bodyFont));
+			document.add(new com.itextpdf.text.Paragraph("Generated At: " + LocalDateTime.now(), bodyFont));
+
+			document.close();
+			return out.toByteArray();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to generate PDF summary report", e);
+		}
+	}
+
 	private int extractGradeNumber(String str) {
 		if (str == null) return 0;
 		java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+").matcher(str);

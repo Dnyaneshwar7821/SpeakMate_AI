@@ -79,6 +79,22 @@ export const teacherDataApi = {
   downloadProfile: async () => {
     const response = await apiClient.get("/api/v1/teacher/profile/download", { responseType: "blob" });
     return response;
+  },
+
+  downloadStudentReport: async (studentId, format = "pdf") => {
+    const response = await apiClient.get(`/api/v1/teacher/reports/student/${studentId}/download`, {
+      params: { format },
+      responseType: "blob",
+    });
+    return response;
+  },
+
+  downloadReportById: async (reportId, format = "csv") => {
+    const response = await apiClient.get(`/api/v1/teacher/reports/${reportId}/download`, {
+      params: { format },
+      responseType: "blob",
+    });
+    return response;
   }
 };
 export default teacherDataApi;

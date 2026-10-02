@@ -111,11 +111,36 @@ export function TeacherSettings() {
     const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
     const [twoFactor, setTwoFactor] = useState(false);
     const [sessionTimeout, setSessionTimeout] = useState(30);
-    const [sessions, setSessions] = useState([
-        { id: 1, device: "Chrome on Windows 11", location: "Pune, India", status: "Active Now", current: true },
-        { id: 2, device: "Safari on iPhone 15 Pro", location: "Mumbai, India", status: "2 hours ago", current: false },
-        { id: 3, device: "Firefox on macOS", location: "Noida, India", status: "3 days ago", current: false },
-    ]);
+    const getRealActiveSession = () => {
+        if (typeof window === "undefined" || !navigator?.userAgent) {
+            return [{ id: "current-session", device: "Current Web Session", location: "Active Device", status: "Active Now", current: true }];
+        }
+        const ua = navigator.userAgent;
+        let browser = "Web Browser";
+        if (ua.includes("Firefox/")) browser = "Firefox";
+        else if (ua.includes("Edg/")) browser = "Edge";
+        else if (ua.includes("Chrome/")) browser = "Chrome";
+        else if (ua.includes("Safari/")) browser = "Safari";
+
+        let os = "Desktop";
+        if (ua.includes("Windows")) os = "Windows";
+        else if (ua.includes("Mac OS X") || ua.includes("Macintosh")) os = "macOS";
+        else if (ua.includes("Android")) os = "Android";
+        else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+        else if (ua.includes("Linux")) os = "Linux";
+
+        return [
+            {
+                id: "current-session",
+                device: `${browser} on ${os}`,
+                location: "Current Device",
+                status: "Active Now",
+                current: true,
+            },
+        ];
+    };
+
+    const [sessions, setSessions] = useState(getRealActiveSession);
 
     // Fetch settings on mount
     useEffect(() => {

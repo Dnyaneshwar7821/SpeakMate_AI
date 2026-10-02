@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
-import { Search, FileText, X, AlertCircle, Printer, RefreshCw } from "lucide-react";
+import { Search, FileText, X, AlertCircle, Printer, RefreshCw, Download } from "lucide-react";
 
+import { jsPDF } from "jspdf";
 import { containerVariants, itemVariants } from "@animations/variants";
 import Button from "@components/common/Button";
 import Card from "@components/common/Card";
@@ -31,6 +32,7 @@ export function TeacherReports() {
     const [selectedStudentForReport, setSelectedStudentForReport] = useState(null);
     const [reportDetails, setReportDetails] = useState(null);
     const [loadingReport, setLoadingReport] = useState(false);
+    const [isDownloadingReport, setIsDownloadingReport] = useState(false);
     const [reportError, setReportError] = useState(null);
 
     // Fetch authorized students for this teacher
@@ -166,220 +168,159 @@ export function TeacherReports() {
         }
     };
 
-    // Handler to print/download student report
-    const handleDownloadReport = () => {
-        if (!selectedStudentForReport) return;
+    const generateClientPdfReport = (student, reportData) => {
+        const doc = new jsPDF();
+        const studentName = reportData?.profile
+            ? `${reportData.profile.firstName || ""} ${reportData.profile.lastName || ""}`.trim()
+            : student.name;
+        const studentId = reportData?.profile?.id || student.id;
+        const standard = reportData?.standard || student.standard || "5th";
+        const division = reportData?.division || student.division || "A";
+        const rollNumber = reportData?.rollNumber || student.rollNumber || "-";
+        const schoolName = reportData?.schoolName || "SpeakMate Partner School";
 
-        const studentName = reportDetails?.profile ? `${reportDetails.profile.firstName || ""} ${reportDetails.profile.lastName || ""}`.trim() : selectedStudentForReport.name;
-        const studentId = reportDetails?.profile?.id || selectedStudentForReport.id;
-        const standard = reportDetails?.standard || selectedStudentForReport.standard || (selectedStandard !== "All Standards" ? selectedStandard : "5th");
-        const division = reportDetails?.division || selectedStudentForReport.division || (selectedDivision !== "All Divisions" ? selectedDivision : "A");
-        const rollNumber = reportDetails?.rollNumber || selectedStudentForReport.rollNumber || "-";
-        const schoolName = reportDetails?.schoolName || "SpeakMate Partner School";
+        doc.setFontSize(18);
+        doc.setTextColor(30, 41, 59);
+        doc.text("SPEAKMATE AI - STUDENT EVALUATION REPORT", 14, 20);
 
-        const attendance = reportDetails?.attendanceRate != null ? `${reportDetails.attendanceRate}%` : "92%";
-        const lessonProgress = reportDetails?.performance?.lessonsCompleted != null ? `${reportDetails.performance.lessonsCompleted} Lessons Completed` : `${selectedStudentForReport.overallProgress}%`;
-        const grammar = reportDetails?.performance?.grammarScore != null ? `${Math.round(reportDetails.performance.grammarScore)}%` : `${selectedStudentForReport.grammarScore}%`;
-        const vocabulary = reportDetails?.performance?.vocabularyScore != null ? `${Math.round(reportDetails.performance.vocabularyScore)}%` : `${selectedStudentForReport.vocabularyScore}%`;
-        const speakingSessions = reportDetails?.practiceStatistics?.completedSpeakingSessions ?? reportDetails?.practiceStatistics?.totalSpeakingSessions ?? reportDetails?.performance?.completedSpeakingSessions ?? reportDetails?.performance?.totalSpeakingSessions ?? "-";
-        const practiceMinutes = reportDetails?.practiceStatistics?.totalPracticeMinutes ?? reportDetails?.profile?.totalPracticeMinutes ?? "-";
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 27);
+        doc.line(14, 30, 196, 30);
 
-        const printWindow = window.open("", "_blank");
-        if (!printWindow) {
-            window.print();
-            return;
+        doc.setFontSize(13);
+        doc.setTextColor(15, 23, 42);
+        doc.text("Student Information", 14, 40);
+
+        doc.setFontSize(10);
+        doc.setTextColor(51, 65, 85);
+        doc.text(`Student Name : ${studentName}`, 14, 48);
+        doc.text(`Student ID   : ${studentId}`, 14, 55);
+        doc.text(`Standard     : ${standard}`, 14, 62);
+        doc.text(`Division     : ${division}`, 110, 62);
+        doc.text(`Roll Number  : ${rollNumber}`, 14, 69);
+        doc.text(`School Name  : ${schoolName}`, 110, 69);
+
+        doc.line(14, 75, 196, 75);
+
+        doc.setFontSize(13);
+        doc.setTextColor(15, 23, 42);
+        doc.text("Performance Evaluation", 14, 85);
+
+        const attendance = reportData?.attendanceRate != null ? `${reportData.attendanceRate}%` : "92%";
+        const lessons = reportData?.performance?.lessonsCompleted != null ? reportData.performance.lessonsCompleted : student.overallProgress;
+        const grammar = reportData?.performance?.grammarScore != null ? Math.round(reportData.performance.grammarScore) : student.grammarScore;
+        const vocab = reportData?.performance?.vocabularyScore != null ? Math.round(reportData.performance.vocabularyScore) : student.vocabularyScore;
+        const speaking = reportData?.performance?.speakingScore != null ? Math.round(reportData.performance.speakingScore) : student.speakingScore;
+        const listening = reportData?.performance?.listeningScore != null ? Math.round(reportData.performance.listeningScore) : student.listeningScore;
+
+        doc.setFontSize(10);
+        doc.text(`Attendance Rate: ${attendance}`, 14, 93);
+        doc.text(`Lesson Progress: ${lessons}%`, 110, 93);
+        doc.text(`Grammar Score  : ${grammar}%`, 14, 100);
+        doc.text(`Vocabulary Score: ${vocab}%`, 110, 100);
+        doc.text(`Speaking Score : ${speaking}%`, 14, 107);
+        doc.text(`Listening Score : ${listening}%`, 110, 107);
+
+        if (reportData?.practiceStatistics) {
+            doc.line(14, 113, 196, 113);
+            doc.setFontSize(13);
+            doc.setTextColor(15, 23, 42);
+            doc.text("Practice Statistics", 14, 123);
+
+            doc.setFontSize(10);
+            doc.setTextColor(51, 65, 85);
+            doc.text(`Speaking Sessions: ${reportData.practiceStatistics.totalSpeakingSessions || 0}`, 14, 131);
+            doc.text(`Practice Time    : ${reportData.practiceStatistics.totalPracticeMinutes || 0} mins`, 110, 131);
+            doc.text(`Vocabulary Words : ${reportData.practiceStatistics.totalVocabularyWords || 0}`, 14, 138);
         }
 
-        const htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Student Report - ${studentName}</title>
-                <style>
-                    body {
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        color: #0f172a;
-                        margin: 40px;
-                        background: #ffffff;
-                    }
-                    .report-card {
-                        max-width: 720px;
-                        margin: 0 auto;
-                        border: 2px solid #e2e8f0;
-                        border-radius: 12px;
-                        padding: 32px;
-                    }
-                    .header {
-                        text-align: center;
-                        border-bottom: 2px solid #4f46e5;
-                        padding-bottom: 20px;
-                        margin-bottom: 24px;
-                    }
-                    .header h1 {
-                        margin: 0;
-                        font-size: 24px;
-                        color: #1e1b4b;
-                        letter-spacing: 1px;
-                    }
-                    .header p {
-                        margin: 6px 0 0;
-                        color: #64748b;
-                        font-size: 13px;
-                    }
-                    .section-title {
-                        font-size: 14px;
-                        font-weight: bold;
-                        text-transform: uppercase;
-                        color: #4f46e5;
-                        margin-bottom: 12px;
-                        border-bottom: 1px solid #f1f5f9;
-                        padding-bottom: 6px;
-                    }
-                    .info-grid {
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 12px 24px;
-                        margin-bottom: 28px;
-                    }
-                    .info-row {
-                        display: flex;
-                        justify-content: space-between;
-                        font-size: 14px;
-                        padding: 6px 0;
-                        border-bottom: 1px dashed #e2e8f0;
-                    }
-                    .info-label {
-                        color: #64748b;
-                        font-weight: 500;
-                    }
-                    .info-value {
-                        color: #0f172a;
-                        font-weight: 700;
-                    }
-                    .metrics-grid {
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 16px;
-                        margin-bottom: 28px;
-                    }
-                    .metric-box {
-                        background: #f8fafc;
-                        border: 1px solid #e2e8f0;
-                        border-radius: 8px;
-                        padding: 14px;
-                    }
-                    .metric-box .label {
-                        font-size: 12px;
-                        color: #64748b;
-                        font-weight: 600;
-                    }
-                    .metric-box .val {
-                        font-size: 20px;
-                        font-weight: 800;
-                        color: #4f46e5;
-                        margin-top: 4px;
-                    }
-                    .footer {
-                        margin-top: 36px;
-                        padding-top: 16px;
-                        border-top: 1px solid #e2e8f0;
-                        text-align: center;
-                        font-size: 12px;
-                        color: #94a3b8;
-                    }
-                    @media print {
-                        body { margin: 0; }
-                        .report-card { border: none; padding: 20px; }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="report-card">
-                    <div class="header">
-                        <h1>STUDENT REPORT</h1>
-                        <p>SpeakMate AI Learning & Performance Evaluation</p>
-                    </div>
+        doc.save(`student_report_${studentId}.pdf`);
+    };
 
-                    <div class="section-title">Student Information</div>
-                    <div class="info-grid">
-                        <div class="info-row">
-                            <span class="info-label">Student Name:</span>
-                            <span class="info-value">${studentName}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Student ID:</span>
-                            <span class="info-value">${studentId}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Standard:</span>
-                            <span class="info-value">${standard}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Division:</span>
-                            <span class="info-value">${division}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Roll Number:</span>
-                            <span class="info-value">${rollNumber}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">School:</span>
-                            <span class="info-value">${schoolName}</span>
-                        </div>
-                    </div>
+    // Handler to download student report file
+    const handleDownloadReport = async () => {
+        if (!selectedStudentForReport) return;
 
-                    <div class="section-title">Performance Overview</div>
-                    <div class="metrics-grid">
-                        <div class="metric-box">
-                            <div class="label">Attendance / Participation</div>
-                            <div class="val">${attendance}</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="label">Lesson Progress</div>
-                            <div class="val">${lessonProgress}</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="label">Grammar Performance</div>
-                            <div class="val">${grammar}</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="label">Vocabulary Progress</div>
-                            <div class="val">${vocabulary}</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="label">Speaking Performance</div>
-                            <div class="val">${speaking}</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="label">Listening Performance</div>
-                            <div class="val">${listening}</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="label">Speaking Sessions</div>
-                            <div class="val">${speakingSessions}</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="label">Total Practice Time</div>
-                            <div class="val">${practiceMinutes} mins</div>
-                        </div>
-                    </div>
+        const studentId = reportDetails?.profile?.id || selectedStudentForReport.id;
+        setIsDownloadingReport(true);
+        setReportError(null);
 
-                    <div class="footer">
-                        Generated on ${new Date().toLocaleDateString()} via SpeakMate Teacher Portal
-                    </div>
-                </div>
-                <script>
-                    window.onload = function() {
-                        window.print();
-                    };
-                </script>
-            </body>
-            </html>
-        `;
+        try {
+            const response = await teacherDataApi.downloadStudentReport(studentId, "pdf");
 
-        printWindow.document.open();
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
+            if (response?.data && response.data instanceof Blob) {
+                const arrayBuffer = await response.data.arrayBuffer();
+                const headerBytes = new Uint8Array(arrayBuffer, 0, 5);
+                const headerSignature = Array.from(headerBytes).map(b => String.fromCharCode(b)).join("");
+
+                console.log("[PDF DIAGNOSTIC LOG]", {
+                    httpStatus: response.status,
+                    contentType: response.headers?.["content-type"] || response.headers?.["Content-Type"],
+                    byteArrayLength: arrayBuffer.byteLength,
+                    firstBytesHex: Array.from(headerBytes).map(b => "0x" + b.toString(16).padStart(2, "0")).join(" "),
+                    headerSignature: headerSignature,
+                    isValidPdfHeader: headerSignature.startsWith("%PDF-")
+                });
+
+                if (headerSignature.startsWith("%PDF-") && arrayBuffer.byteLength > 0) {
+                    const blob = new Blob([arrayBuffer], { type: "application/pdf" });
+
+                    let filename = `student_report_${studentId}.pdf`;
+                    const disposition = response.headers?.["content-disposition"] || response.headers?.["Content-Disposition"];
+                    if (disposition) {
+                        const match = disposition.match(/filename=["']?([^"';]+)["']?/);
+                        if (match && match[1]) {
+                            filename = match[1];
+                        }
+                    }
+
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.setAttribute("download", filename);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    console.warn("[PDF SIGNATURE INVALID] Backend response did not start with %PDF-:", headerSignature);
+                    // Check if response contains JSON error
+                    try {
+                        const textContent = new TextDecoder().decode(arrayBuffer);
+                        if (textContent.startsWith("{") && textContent.includes("error")) {
+                            const errJson = JSON.parse(textContent);
+                            setReportError(errJson.message || "Failed to generate report from server.");
+                            return;
+                        }
+                    } catch (e) {}
+
+                    // Fallback to client-side jsPDF generator which outputs valid %PDF- bytes
+                    generateClientPdfReport(selectedStudentForReport, reportDetails);
+                }
+            } else {
+                generateClientPdfReport(selectedStudentForReport, reportDetails);
+            }
+        } catch (err) {
+            console.warn("[REPORT DOWNLOAD ERROR] Request failed:", {
+                status: err?.response?.status,
+                message: err?.message,
+            });
+            if (err?.response?.status === 401) {
+                setReportError("Session expired. Please log in again.");
+            } else if (err?.response?.status === 403) {
+                setReportError("Access Denied: You are not authorized to download reports for this student.");
+            } else {
+                try {
+                    generateClientPdfReport(selectedStudentForReport, reportDetails);
+                } catch (pdfErr) {
+                    console.error("Client PDF generation error:", pdfErr);
+                    setReportError("Unable to download report. Please try again.");
+                }
+            }
+        } finally {
+            setIsDownloadingReport(false);
+        }
     };
 
     return (
@@ -694,10 +635,20 @@ export function TeacherReports() {
                             <Button
                                 variant="primary"
                                 onClick={handleDownloadReport}
-                                className="h-9 px-4 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5"
+                                disabled={isDownloadingReport}
+                                className="h-9 px-4 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5 disabled:opacity-60"
                             >
-                                <Printer className="h-3.5 w-3.5" />
-                                Download Report
+                                {isDownloadingReport ? (
+                                    <>
+                                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                        Downloading...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="h-3.5 w-3.5" />
+                                        Download Report
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>
