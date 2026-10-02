@@ -51,7 +51,7 @@ public class BrevoEmailProvider implements EmailProvider {
             @Value("${brevo.sender.name:SpeakMateAI}") String defaultSenderName) {
         this.restTemplate = restTemplate != null ? restTemplate : createDefaultRestTemplate();
         this.apiUrl = (apiUrl != null && !apiUrl.isBlank()) ? apiUrl.trim() : "https://api.brevo.com/v3";
-        if (apiKey != null && !apiKey.isBlank() && !apiKey.contains("Pd0dPf5snHomn9rP")) {
+        if (apiKey != null && !apiKey.isBlank()) {
             this.apiKey = apiKey.trim();
         } else {
             this.apiKey = "";

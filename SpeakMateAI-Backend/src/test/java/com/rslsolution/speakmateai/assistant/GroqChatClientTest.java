@@ -10,15 +10,15 @@ class GroqChatClientTest {
 	@Test
 	void testGetCleanApiKey_DirectValidKey() {
 		GroqChatClient client = new GroqChatClient();
-		ReflectionTestUtils.setField(client, "apiKey", "gsk_test123456789");
-		assertEquals("gsk_test123456789", client.getCleanApiKey());
+		ReflectionTestUtils.setField(client, "apiKey", "mock_valid_test_api_key_123");
+		assertEquals("mock_valid_test_api_key_123", client.getCleanApiKey());
 	}
 
 	@Test
 	void testGetCleanApiKey_WithSurroundingQuotesAndWhitespace() {
 		GroqChatClient client = new GroqChatClient();
-		ReflectionTestUtils.setField(client, "apiKey", "  \"gsk_quoted_key\"  ");
-		assertEquals("gsk_quoted_key", client.getCleanApiKey());
+		ReflectionTestUtils.setField(client, "apiKey", "  \"mock_quoted_key\"  ");
+		assertEquals("mock_quoted_key", client.getCleanApiKey());
 	}
 
 	@Test
@@ -42,7 +42,7 @@ class GroqChatClientTest {
 	@Test
 	void testInit_WithMaskedKey_DoesNotThrow() {
 		GroqChatClient client = new GroqChatClient();
-		ReflectionTestUtils.setField(client, "apiKey", "gsk_abcdef123456");
+		ReflectionTestUtils.setField(client, "apiKey", "mock_masked_test_key_123");
 		ReflectionTestUtils.setField(client, "model", "openai/gpt-oss-120b");
 		assertDoesNotThrow(client::init);
 	}

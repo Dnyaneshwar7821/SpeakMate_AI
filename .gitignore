@@ -78,7 +78,8 @@ scratch/
 *.txt
 *.docx
 *.sql
-!clean_full_backup.sql
+clean_full_backup.sql
+speakmate_db_backup.json
 *.zip
 SpeakMate_AI_SRS_v2.docx
 SpeakMate AI/backup_db.js

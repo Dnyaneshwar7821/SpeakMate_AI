@@ -75,12 +75,12 @@ export const INITIAL_INTEGRATIONS = [
     mode: "live",
     lastSync: "Active & Verified",
     config: {
-      keyId: "rzp_live_SpeakMate91Edu",
-      keySecret: "••••••••••••••••••••",
-      mode: "live",
+      keyId: "",
+      keySecret: "",
+      mode: "test",
       currency: "INR",
       autoGstInvoice: true,
-      webhookSecret: "whsec_live_9a8b7c6d5e"
+      webhookSecret: ""
     }
   },
   {
