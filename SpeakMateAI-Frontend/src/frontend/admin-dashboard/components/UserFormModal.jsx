@@ -301,8 +301,8 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = EM
             schoolId: schoolObj?.id,
             phone: normalizeIndianMobile(form.phone),
             parentPhone: isStudentForm ? normalizeIndianMobile(form.parentPhone) : undefined,
-            active: form.status === "active",
-            status: form.status === "active" ? "ACTIVE" : "INACTIVE",
+            active: form.status ? form.status.toLowerCase() === "active" : true,
+            status: form.status ? form.status.toUpperCase() : "ACTIVE",
         };
         setLocalSubmitting(true);
         try {

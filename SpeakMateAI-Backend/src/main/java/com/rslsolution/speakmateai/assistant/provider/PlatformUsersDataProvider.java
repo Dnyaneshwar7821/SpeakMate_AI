@@ -79,13 +79,22 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 			}
 		}
 
-		List<User> all = userRepository.findAll();
+		List<User> all;
+		if (actor != null && (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER)) {
+			Long schoolId = actor.getSchoolId();
+			all = (schoolId != null) ? userRepository.findBySchoolId(schoolId) : List.of();
+		} else {
+			all = userRepository.findAll();
+		}
+
 		List<User> selected = filter == null
 				? all
 				: all.stream().filter(u -> matchesRole(u.getRole(), filter)).collect(Collectors.toList());
 
-		// Optional school filter (e.g., "who is school admin of DY Patil University")
-		String requestedSchool = strParam(params, "schoolName").trim();
+		// Optional school filter for Super Admin (e.g., "who is school admin of DY Patil University")
+		String requestedSchool = (actor != null && (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER))
+				? ""
+				: strParam(params, "schoolName").trim();
 		if (!requestedSchool.isEmpty()) {
 			selected = selected.stream().filter(u -> {
 				String sName = resolveSchoolName(u, schoolNameById);

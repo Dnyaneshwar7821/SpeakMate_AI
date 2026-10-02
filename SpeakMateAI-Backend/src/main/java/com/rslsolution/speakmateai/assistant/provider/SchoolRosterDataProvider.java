@@ -49,6 +49,9 @@ import com.rslsolution.speakmateai.repository.UserRepository;
  *   <li>Teacher - only their own assigned students (no other school data).</li>
  * </ul>
  */
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class SchoolRosterDataProvider implements AssistantDataProvider {
 
@@ -86,7 +89,64 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 
 	@Override
 	public String provide(ActorContext actor, Map<String, Object> params) {
-		// Teachers see ONLY their own assigned students for their assigned school.
+		// ─────────────────────────────────────────────────────────────────────
+		// CROSS-SCHOOL ACCESS GUARD — runs first, before ANY data retrieval.
+		//
+		// For TEACHER and SCHOOL_ADMIN: if the request names a school that is
+		// different from the authenticated user's authorized school, stop here
+		// and return ACCESS DENIED.  The school name from user input is used
+		// ONLY to detect a cross-school violation; it never expands scope.
+		//
+		// This guard intentionally precedes the TEACHER early-return block so
+		// that a teacher asking "students of PCMC" cannot receive their own
+		// school's students mislabelled as PCMC students.
+		// ─────────────────────────────────────────────────────────────────────
+		if (actor.getRole() == Role.TEACHER || actor.getRole() == Role.SCHOOL_ADMIN) {
+			String requestedName = strParam(params, "schoolName").trim();
+			if (requestedName.isEmpty()) {
+				requestedName = strParam(params, "school").trim();
+			}
+			if (!requestedName.isEmpty()) {
+				Long authorizedSchoolId = actor.getSchoolId();
+				if (authorizedSchoolId == null) {
+					// Actor has no authorized school — deny unconditionally.
+					log.warn("[ACCESS_GUARD] role={} has no authorizedSchoolId; denying request for school='{}'",
+							actor.getRole(), requestedName);
+					Map<String, Object> denied = new LinkedHashMap<>();
+					denied.put("message", "ACCESS DENIED");
+					denied.put("reason", "Access denied. You can only access student information for your own school.");
+					return toJson(denied);
+				}
+				School requestedSchool = resolveSchoolByName(requestedName);
+				if (requestedSchool == null) {
+					// The school name was provided but no matching school was found.
+					// For restricted roles, do NOT fall through to the teacher's own students.
+					// Return a safe NO DATA response so the teacher's roster is never
+					// mislabelled as belonging to a school that doesn't exist.
+					log.warn("[ACCESS_GUARD] role={}, authorizedSchoolId={}, requestedName='{}' — school not found; returning NO DATA",
+							actor.getRole(), authorizedSchoolId, requestedName);
+					Map<String, Object> notFound = new LinkedHashMap<>();
+					notFound.put("message", "NO DATA");
+					notFound.put("reason", "The requested school was not found. You can only view data for your own school.");
+					return toJson(notFound);
+				}
+				if (!requestedSchool.getId().equals(authorizedSchoolId)) {
+					// Requested school resolves to a DIFFERENT school — deny.
+					log.warn("[ACCESS_GUARD] role={}, authorizedSchoolId={}, requestedSchool='{}' (id={}) — ACCESS DENIED",
+							actor.getRole(), authorizedSchoolId, requestedSchool.getName(), requestedSchool.getId());
+					Map<String, Object> denied = new LinkedHashMap<>();
+					denied.put("status", "FOREIGN_SCHOOL_ACCESS_DENIED");
+					denied.put("message", "ACCESS DENIED. I do not have access to information for other schools.");
+					denied.put("reason", "Access denied. You can only access student information for your own school.");
+					return toJson(denied);
+				}
+				// requestedSchool.id == authorizedSchoolId — same school, allow.
+				log.info("[ACCESS_GUARD] role={}, authorizedSchoolId={}, requestedName='{}' — access allowed",
+						actor.getRole(), authorizedSchoolId, requestedName);
+			}
+		}
+
+		// Teachers see ONLY their own assigned students.
 		if (actor.getRole() == Role.TEACHER && actor.getTeacherId() != null) {
 			School teacherSchool = null;
 			if (actor.getSchoolId() != null) {
@@ -199,36 +259,77 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		}
 
 		String focusName = strParam(params, "focusName").trim();
-		School school = resolveSchool(actor, params);
+		String reqSchoolName = strParam(params, "schoolName").trim();
+		if (reqSchoolName.isEmpty()) {
+			reqSchoolName = strParam(params, "school").trim();
+		}
+
+		// CHECK 1 — Requested school resolution if explicitly specified in query params
+		log.warn("[SCHOOL_ISOLATION_TRACE] actor.role={}, actor.schoolId={}, reqSchoolName='{}', focusName='{}'",
+				actor.getRole(), actor.getSchoolId(), reqSchoolName, focusName);
+		School requestedSchool = null;
+		Long requestedSchoolId = null;
+		if (!reqSchoolName.isEmpty()) {
+			requestedSchool = resolveSchoolByName(reqSchoolName);
+			if (requestedSchool == null) {
+				Map<String, Object> empty = new LinkedHashMap<>();
+				empty.put("message", "NO DATA");
+				empty.put("reason", "School not found");
+				empty.put("requestedSchool", reqSchoolName);
+				empty.put("availableSchools", availableSchoolNames());
+				return toJson(empty);
+			}
+			requestedSchoolId = requestedSchool.getId();
+			log.warn("[SCHOOL_ISOLATION_TRACE] resolvedSchool='{}'(id={})", requestedSchool.getName(), requestedSchoolId);
+		}
+
+		// CHECK 2 — Authenticated user's authorized school
+		Long authorizedSchoolId = (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER)
+				? actor.getSchoolId()
+				: null;
+
+		// ACCESS CONTROL COMPARISON (BEFORE QUERYING STUDENT/TEACHER DATABASE)
+		if (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER) {
+			if (authorizedSchoolId == null) {
+				Map<String, Object> denied = new LinkedHashMap<>();
+				denied.put("message", "ACCESS DENIED");
+				denied.put("reason", "Access denied. You can only access student information for your own school.");
+				return toJson(denied);
+			}
+
+			if (requestedSchoolId != null && !requestedSchoolId.equals(authorizedSchoolId)) {
+				// REQUESTED SCHOOL DOES NOT MATCH AUTHORIZED SCHOOL -> ACCESS DENIED!
+				// STOP execution immediately BEFORE querying student database!
+				log.warn("[SCHOOL_ISOLATION_TRACE] ACCESS DENIED: requestedSchoolId={} != authorizedSchoolId={}", requestedSchoolId, authorizedSchoolId);
+				Map<String, Object> denied = new LinkedHashMap<>();
+				denied.put("message", "ACCESS DENIED");
+				denied.put("reason", "Access denied. You can only access student information for your own school.");
+				return toJson(denied);
+			}
+		}
+		log.warn("[SCHOOL_ISOLATION_TRACE] Access ALLOWED: proceeding with authorizedSchoolId={}, requestedSchoolId={}", authorizedSchoolId, requestedSchoolId);
 
 		Long schoolId;
 		List<User> teachers;
 		List<Student> students;
-		// Users whose role is neither STUDENT nor TEACHER (platform USERs, School
-		// Admins, Admins). They have no roster/learning record but a real profile, so
-		// a Super Admin asking about one by name must still get a data-backed answer.
 		List<User> others;
 		String schoolLabel;
-		String reqSchoolName = strParam(params, "schoolName").trim();
-		if (school == null && !reqSchoolName.isEmpty()) {
-			Map<String, Object> empty = new LinkedHashMap<>();
-			empty.put("message", "NO DATA");
-			if (actor.getRole() == Role.SCHOOL_ADMIN) {
-				empty.put("reason", "Access denied: You are only authorized to view roster data for your own school.");
-				if (actor.getSchoolId() != null) {
-					schoolRepository.findById(actor.getSchoolId()).ifPresent(s -> empty.put("availableSchools", List.of(displayName(s))));
-				}
-			} else {
-				empty.put("reason", "School not found");
-				empty.put("requestedSchool", reqSchoolName);
-				empty.put("availableSchools", availableSchoolNames());
-			}
-			return toJson(empty);
-		} else if (school != null) {
+
+		School school = (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER)
+				? schoolRepository.findById(authorizedSchoolId).orElse(null)
+				: (requestedSchool != null ? requestedSchool : null);
+
+		if (school != null) {
 			schoolId = school.getId();
 			schoolLabel = displayName(school);
 			teachers = userRepository.findBySchoolIdAndRole(schoolId, Role.TEACHER);
 			students = studentRepository.findBySchoolId(schoolId);
+			log.info("[ROSTER TRACE] School ID: {}, Name: {}, Teachers Count: {}, Students Count from DB: {}",
+					schoolId, schoolLabel, teachers.size(), students.size());
+			for (Student st : students) {
+				log.info("[ROSTER TRACE STUDENT] Student ID: {}, Name: {} {}, schoolId: {}, schoolName: {}",
+						st.getId(), st.getFirstName(), st.getLastName(), st.getSchoolId(), st.getSchoolName());
+			}
 			if (students.isEmpty()) {
 				List<User> studentUsers = userRepository.findBySchoolIdAndRole(schoolId, Role.STUDENT);
 				if (!studentUsers.isEmpty()) {
@@ -861,9 +962,9 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 	 * user on the platform is returned.
 	 */
 	private List<User> nonStudentNonTeacherUsers(Long schoolId) {
-		return userRepository.findAll().stream()
+		List<User> candidates = (schoolId != null) ? userRepository.findBySchoolId(schoolId) : userRepository.findAll();
+		return candidates.stream()
 				.filter(u -> u.getRole() != Role.STUDENT && u.getRole() != Role.TEACHER)
-				.filter(u -> schoolId == null || schoolId.equals(u.getSchoolId()))
 				.collect(Collectors.toList());
 	}
 
@@ -962,22 +1063,58 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		});
 	}
 
+	/**
+	 * Resolves a {@link School} by its display name (or short name). Tries exact
+	 * match first, then case-insensitive exact, then a fuzzy key match that strips
+	 * spaces and punctuation. Returns {@code null} when no school is found.
+	 */
+	private School resolveSchoolByName(String name) {
+		if (name == null || name.isBlank()) {
+			return null;
+		}
+		// 1) Exact match via repository
+		Optional<School> exact = schoolRepository.findByName(name);
+		if (exact.isPresent()) {
+			return exact.get();
+		}
+		// 2) Case-insensitive exact via repository
+		Optional<School> exactIgnoreCase = schoolRepository.findByNameIgnoreCase(name);
+		if (exactIgnoreCase.isPresent()) {
+			return exactIgnoreCase.get();
+		}
+		// 3) Fuzzy key match (strips spaces/punctuation)
+		String needle = schoolKey(name);
+		String needleCore = coreSchoolKey(name);
+		if (needle.isEmpty()) {
+			return null;
+		}
+		List<School> all = schoolRepository.findAll();
+		return all.stream()
+				.filter(s -> {
+					String full = schoolKey(displayName(s));
+					String shortName = schoolKey(s.getName());
+					if (full.contains(needle) || needle.contains(full)
+							|| (!shortName.isEmpty()
+									&& (shortName.contains(needle) || needle.contains(shortName)))) {
+						return true;
+					}
+					if (!needleCore.isEmpty()) {
+						String fullCore = coreSchoolKey(displayName(s));
+						String shortCore = coreSchoolKey(s.getName());
+						return fullCore.contains(needleCore) || needleCore.contains(fullCore)
+								|| (!shortCore.isEmpty()
+										&& (shortCore.contains(needleCore) || needleCore.contains(shortCore)));
+					}
+					return false;
+				})
+				.findFirst()
+				.orElse(null);
+	}
+
 	private School resolveSchool(ActorContext actor, Map<String, Object> params) {
 		Long adminSchoolId = actor.getSchoolId();
-		if (actor.getRole() == Role.SCHOOL_ADMIN && adminSchoolId != null) {
-			School ownSchool = schoolRepository.findById(adminSchoolId).orElse(null);
-			Object requested = params != null ? params.get("schoolName") : null;
-			if (requested != null && !requested.toString().isBlank() && ownSchool != null) {
-				String reqKey = schoolKey(requested.toString().trim());
-				String ownKey = schoolKey(displayName(ownSchool));
-				String ownShort = schoolKey(ownSchool.getName());
-				boolean matchesOwn = ownKey.contains(reqKey) || reqKey.contains(ownKey)
-						|| (!ownShort.isEmpty() && (ownShort.contains(reqKey) || reqKey.contains(ownShort)));
-				if (!matchesOwn) {
-					return null; // Deny access to foreign school
-				}
-			}
-			return ownSchool;
+		if ((actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER) && adminSchoolId != null) {
+			return schoolRepository.findById(adminSchoolId).orElse(null);
 		}
 		Object name = params.get("schoolName");
 		if (name == null || name.toString().isBlank()) {
@@ -1047,6 +1184,10 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 				.replaceAll("\\b(school|schools|highschool|high school|academy|college|institute|university|vidyalaya|public|international|campus|vidyamandir|gurukul|high)\\b", "")
 				.replaceAll("[^a-z0-9]", "")
 				.trim();
+	}
+
+	private String coreSchoolKey(String value) {
+		return schoolRootKey(value);
 	}
 
 	private boolean isSameSchool(String candidate, School school) {

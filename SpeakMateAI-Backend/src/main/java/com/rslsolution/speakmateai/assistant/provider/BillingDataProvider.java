@@ -84,7 +84,7 @@ public class BillingDataProvider implements AssistantDataProvider {
 				platformWide ? userSubscriptionRepository.countBySubscriptionStatus(SubscriptionStatus.CANCELLED)
 						: userSubscriptionRepository.countBySubscriptionStatusAndUserSchoolId(SubscriptionStatus.CANCELLED, schoolId));
 
-		List<UserSubscription> allSubs = userSubscriptionRepository.findAll();
+		List<UserSubscription> allSubs = platformWide ? userSubscriptionRepository.findAll() : (schoolId != null ? userSubscriptionRepository.findByUserSchoolId(schoolId) : List.of());
 		List<Map<String, Object>> subscriberViews = allSubs.stream()
 				.filter(s -> {
 					if (platformWide) return true;
