@@ -75,6 +75,16 @@ export const schoolApi = {
   createSchoolPaymentOrder: async (data) => {
     const response = await apiClient.post("/api/admin/schools/create-payment-order", data);
     return response.data; // CreateOrderResponse
+  },
+
+  getSchoolAdminHistory: async (schoolId) => {
+    const response = await apiClient.get(`/api/admin/schools/${schoolId}/admin-history`);
+    return response.data; // List<SchoolAdminHistoryResponse>
+  },
+
+  replaceSchoolAdmin: async (schoolId, payload) => {
+    const response = await apiClient.post(`/api/admin/schools/${schoolId}/replace-admin`, payload);
+    return response.data; // SchoolResponse
   }
 };
 

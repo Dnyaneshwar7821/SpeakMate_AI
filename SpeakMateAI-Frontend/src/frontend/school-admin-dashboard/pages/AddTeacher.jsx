@@ -4,6 +4,7 @@ import { UserPlus, CheckCircle2, AlertCircle, X } from "lucide-react";
 
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
+import PhoneInput from "@components/common/PhoneInput";
 import SectionCard from "@school-admin/components/SectionCard";
 import { schoolAdminDataApi } from "@services/admin/schoolAdminDataApi";
 import { useTeachers } from "@school-admin/hooks/useSchoolData";
@@ -214,7 +215,7 @@ export function AddTeacher() {
                         </div>
                         <Input label="Password" type="password" placeholder="Enter password" value={form.password} onChange={update("password")} error={errors.password} autoComplete="new-password" disabled={isSubmitting} />
                         <Input label="Confirm Password" type="password" placeholder="Confirm password" value={form.confirmPassword} onChange={update("confirmPassword")} error={errors.confirmPassword} autoComplete="new-password" disabled={isSubmitting} />
-                        <Input label="Phone" placeholder="e.g. 9876543210" value={form.phone} onChange={update("phone")} error={errors.phone} autoComplete="tel" disabled={isSubmitting} />
+                        <PhoneInput label="Phone" placeholder="e.g. 9876543210" value={form.phone} onChange={update("phone")} error={errors.phone} autoComplete="tel" disabled={isSubmitting} required />
                         <Input label="Department" placeholder="English" value={form.department} onChange={update("department")} autoComplete="organization-title" disabled={isSubmitting} />
                         <Input label="Experience" placeholder="5 years" value={form.experience} onChange={update("experience")} disabled={isSubmitting} />
                         <Input label="Qualification" placeholder="M.A., B.Ed." value={form.qualification} onChange={update("qualification")} disabled={isSubmitting} />

@@ -1,9 +1,11 @@
 package com.rslsolution.speakmateai.controller;
 
+import com.rslsolution.speakmateai.dto.request.ReplaceSchoolAdminRequest;
 import com.rslsolution.speakmateai.dto.request.SchoolAdminSendInvitationRequest;
 import com.rslsolution.speakmateai.dto.request.SchoolPaymentOrderRequest;
 import com.rslsolution.speakmateai.dto.request.SchoolRequest;
 import com.rslsolution.speakmateai.dto.response.CreateOrderResponse;
+import com.rslsolution.speakmateai.dto.response.SchoolAdminHistoryResponse;
 import com.rslsolution.speakmateai.dto.response.SchoolAdminSendInvitationResponse;
 import com.rslsolution.speakmateai.dto.response.SchoolResponse;
 import com.rslsolution.speakmateai.service.SchoolService;
@@ -76,5 +78,19 @@ public class SchoolController {
     public ResponseEntity<Void> deleteSchool(@PathVariable Long id) {
         schoolService.deleteSchool(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/admin-history")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<List<SchoolAdminHistoryResponse>> getSchoolAdminHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(schoolService.getSchoolAdminHistory(id));
+    }
+
+    @PostMapping("/{id}/replace-admin")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<SchoolResponse> replaceSchoolAdmin(
+            @PathVariable Long id,
+            @Valid @RequestBody ReplaceSchoolAdminRequest request) {
+        return ResponseEntity.ok(schoolService.replaceSchoolAdmin(id, request));
     }
 }

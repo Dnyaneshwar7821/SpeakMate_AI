@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Building2, Plus, Search, Edit, Trash2, AlertTriangle, X, CheckCircle2, Mail, ShieldCheck, UserX, UserCheck, User, CreditCard, Check, Sparkles, Zap, Users, Clock, Shield } from "lucide-react";
+import { ArrowLeft, Building2, Plus, Search, Edit, Trash2, AlertTriangle, X, CheckCircle2, Mail, ShieldCheck, UserX, UserCheck, User, CreditCard, Check, Sparkles, Zap, Users, Clock, Shield, Eye, History, UserPlus, RefreshCw, Phone, Calendar, ArrowRight, ArrowLeftRight, Power } from "lucide-react";
 
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
+import PhoneInput from "@components/common/PhoneInput";
 import Modal from "@components/common/Modal";
 import SectionCard from "@admin/components/SectionCard";
 import AcademicStructureBuilder from "@admin/components/AcademicStructureBuilder";
@@ -74,6 +75,32 @@ export function AddSchool() {
         adminEmail: "" 
     });
     const [isEditing, setIsEditing] = useState(false);
+
+    // School Details & Administrator Management State
+    const [openedSchool, setOpenedSchool] = useState(null);
+    const [adminHistory, setAdminHistory] = useState([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [historyError, setHistoryError] = useState("");
+
+    // Replace / Add Admin Modal State
+    const [replaceModalOpen, setReplaceModalOpen] = useState(false);
+    const [replaceForm, setReplaceForm] = useState({
+        adminFirstName: "",
+        adminLastName: "",
+        adminEmail: "",
+        adminPhone: ""
+    });
+    const [replaceErrors, setReplaceErrors] = useState({});
+    const [replaceVerificationToken, setReplaceVerificationToken] = useState(null);
+    const [replaceEmailVerified, setReplaceEmailVerified] = useState(false);
+    const [isSendingReplaceOtp, setIsSendingReplaceOtp] = useState(false);
+    const [replaceOtpModalOpen, setReplaceOtpModalOpen] = useState(false);
+    const [replaceOtp, setReplaceOtp] = useState("");
+    const [replaceOtpError, setReplaceOtpError] = useState("");
+    const [isVerifyingReplaceOtp, setIsVerifyingReplaceOtp] = useState(false);
+    const [replaceVerificationError, setReplaceVerificationError] = useState("");
+    const [replaceStep, setReplaceStep] = useState(1); // 1 = Details & Verification, 2 = Confirmation
+    const [isSubmittingReplacement, setIsSubmittingReplacement] = useState(false);
     
     // Search, Status & Sort state
     const [searchQuery, setSearchQuery] = useState("");
@@ -294,6 +321,214 @@ export function AddSchool() {
         setTimeout(() => {
             setToasts((prev) => prev.filter((t) => t.id !== id));
         }, 3000);
+    };
+
+    const currentAdmin = useMemo(() => {
+        if (!openedSchool) return null;
+        const fromHistory = adminHistory.find((a) => a.currentAdmin || (a.active && a.status === "ACTIVE"));
+        if (fromHistory) return fromHistory;
+        if (openedSchool.adminEmail && (openedSchool.adminId || openedSchool.adminName)) {
+            return {
+                id: openedSchool.adminId,
+                fullName: openedSchool.adminName || "School Administrator",
+                email: openedSchool.adminEmail,
+                phone: openedSchool.adminPhone,
+                active: true,
+                status: "ACTIVE",
+                welcomeCompleted: false
+            };
+        }
+        return null;
+    }, [openedSchool, adminHistory]);
+
+    const handleOpenSchool = async (school) => {
+        setOpenedSchool(school);
+        setPageMode("details");
+        setIsLoadingHistory(true);
+        setHistoryError("");
+        try {
+            const [freshSchool, history] = await Promise.all([
+                schoolApi.getSchoolById(school.id).catch(() => school),
+                schoolApi.getSchoolAdminHistory(school.id).catch(() => [])
+            ]);
+            setOpenedSchool(freshSchool);
+            setAdminHistory(Array.isArray(history) ? history : []);
+        } catch (err) {
+            console.error("Failed to load school details or history:", err);
+            setHistoryError("Failed to load administrator history.");
+        } finally {
+            setIsLoadingHistory(false);
+        }
+    };
+
+    const openAddOrReplaceModal = () => {
+        setReplaceForm({
+            adminFirstName: "",
+            adminLastName: "",
+            adminEmail: "",
+            adminPhone: ""
+        });
+        setReplaceErrors({});
+        setReplaceVerificationToken(null);
+        setReplaceEmailVerified(false);
+        setReplaceOtp("");
+        setReplaceOtpError("");
+        setReplaceVerificationError("");
+        setReplaceStep(1);
+        setReplaceModalOpen(true);
+    };
+
+    const handleQuickReplaceAdmin = async (school) => {
+        setOpenedSchool(school);
+        openAddOrReplaceModal();
+        try {
+            const [freshSchool, history] = await Promise.all([
+                schoolApi.getSchoolById(school.id).catch(() => school),
+                schoolApi.getSchoolAdminHistory(school.id).catch(() => [])
+            ]);
+            setOpenedSchool(freshSchool);
+            setAdminHistory(Array.isArray(history) ? history : []);
+        } catch (err) {
+            console.warn("Could not load history for quick replace:", err);
+        }
+    };
+
+    const updateReplaceField = (field) => (event) => {
+        let val = event.target.value;
+        if (field === "adminPhone") {
+            val = sanitizeMobileInput(val);
+        }
+        setReplaceForm((prev) => ({ ...prev, [field]: val }));
+        if (replaceErrors[field]) {
+            setReplaceErrors((prev) => {
+                const next = { ...prev };
+                delete next[field];
+                return next;
+            });
+        }
+        if (field === "adminEmail") {
+            setReplaceVerificationError("");
+            if (replaceEmailVerified || replaceVerificationToken) {
+                setReplaceEmailVerified(false);
+                setReplaceVerificationToken(null);
+                setReplaceOtp("");
+                setReplaceOtpError("");
+            }
+        }
+    };
+
+    const handleSendReplaceOtp = async () => {
+        const email = replaceForm.adminEmail.trim().toLowerCase();
+        if (!email || !/\S+@\S+\.\S+/.test(email)) {
+            setReplaceErrors((prev) => ({ ...prev, adminEmail: "Enter a valid email" }));
+            return;
+        }
+
+        const activeAdmin = adminHistory.find((a) => a.currentAdmin || (a.active && a.status === "ACTIVE"));
+        if (activeAdmin && activeAdmin.email && activeAdmin.email.toLowerCase() === email) {
+            setReplaceVerificationError("This email is already the active administrator for this school.");
+            return;
+        }
+
+        setIsSendingReplaceOtp(true);
+        setReplaceVerificationError("");
+        setReplaceOtpError("");
+        try {
+            await schoolApi.sendAdminVerificationOtp(email);
+            setReplaceOtp("");
+            setReplaceOtpModalOpen(true);
+        } catch (err) {
+            const msg = err.response?.data?.message || err.message || "Failed to send verification OTP";
+            setReplaceVerificationError(msg);
+        } finally {
+            setIsSendingReplaceOtp(false);
+        }
+    };
+
+    const handleVerifyReplaceOtp = async (e) => {
+        if (e) e.preventDefault();
+        if (replaceOtp.length !== 6) {
+            setReplaceOtpError("Please enter the complete 6-digit OTP");
+            return;
+        }
+
+        setIsVerifyingReplaceOtp(true);
+        setReplaceOtpError("");
+        try {
+            const email = replaceForm.adminEmail.trim().toLowerCase();
+            const res = await schoolApi.verifyAdminVerificationOtp(email, replaceOtp);
+            if (res && (res.verificationToken || res.success)) {
+                setReplaceVerificationToken(res.verificationToken);
+                setReplaceEmailVerified(true);
+                setReplaceOtpModalOpen(false);
+                setReplaceOtp("");
+                setReplaceOtpError("");
+                setReplaceVerificationError("");
+                triggerToast("Email verified successfully.");
+            } else {
+                setReplaceOtpError(res?.message || "Verification failed. Invalid OTP.");
+            }
+        } catch (err) {
+            const msg = err.response?.data?.message || err.message || "Invalid OTP. Please check and try again.";
+            setReplaceOtpError(msg);
+        } finally {
+            setIsVerifyingReplaceOtp(false);
+        }
+    };
+
+    const handleProceedToReplaceConfirmation = (e) => {
+        if (e) e.preventDefault();
+        const nextErrors = {};
+        if (!replaceForm.adminFirstName.trim()) nextErrors.adminFirstName = "First name is required";
+        if (!replaceForm.adminEmail.trim()) nextErrors.adminEmail = "Email is required";
+        else if (!/\S+@\S+\.\S+/.test(replaceForm.adminEmail)) nextErrors.adminEmail = "Enter a valid email";
+
+        const phoneErr = getIndianMobileError(replaceForm.adminPhone, "Phone number", true);
+        if (phoneErr) nextErrors.adminPhone = phoneErr;
+
+        if (!replaceEmailVerified || !replaceVerificationToken) {
+            setReplaceVerificationError("Please verify the administrator's email first.");
+            return;
+        }
+
+        if (Object.keys(nextErrors).length > 0) {
+            setReplaceErrors(nextErrors);
+            return;
+        }
+
+        setReplaceStep(2);
+    };
+
+    const handleConfirmReplacement = async () => {
+        if (!openedSchool || !replaceVerificationToken) return;
+
+        setIsSubmittingReplacement(true);
+        try {
+            const payload = {
+                adminFirstName: replaceForm.adminFirstName.trim(),
+                adminLastName: replaceForm.adminLastName.trim(),
+                adminEmail: replaceForm.adminEmail.trim().toLowerCase(),
+                adminPhone: normalizeIndianMobile(replaceForm.adminPhone),
+                verificationToken: replaceVerificationToken
+            };
+
+            const updatedSchool = await schoolApi.replaceSchoolAdmin(openedSchool.id, payload);
+            setOpenedSchool(updatedSchool);
+
+            const history = await schoolApi.getSchoolAdminHistory(openedSchool.id);
+            setAdminHistory(Array.isArray(history) ? history : []);
+
+            loadSchools(true);
+
+            setReplaceModalOpen(false);
+            triggerToast("School administrator updated successfully! Temporary credentials dispatched via email.");
+        } catch (err) {
+            console.error("Replacement error:", err);
+            const msg = err.response?.data?.message || err.message || "Failed to update school administrator.";
+            triggerToast(msg);
+        } finally {
+            setIsSubmittingReplacement(false);
+        }
     };
 
     const update = (field) => (event) => {
@@ -909,7 +1144,16 @@ export function AddSchool() {
                                         {filteredSchools.map((school) => (
                                             <tr key={school.id} className="text-sm transition-colors hover:bg-[var(--bg-hover)]">
                                                 <td className="px-4 py-3 text-[var(--text-secondary)]">{school.id ?? "—"}</td>
-                                                <td className="px-4 py-3 font-semibold sm:px-5">{school.name || "—"}</td>
+                                                <td className="px-4 py-3 font-semibold sm:px-5">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleOpenSchool(school)}
+                                                        className="text-left font-semibold text-[var(--text-primary)] hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline transition-colors cursor-pointer"
+                                                        title="Open School Details"
+                                                    >
+                                                        {school.name || "—"}
+                                                    </button>
+                                                </td>
                                                 <td className="px-4 py-3">
                                                     <span className="inline-block font-mono text-xs font-semibold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
                                                         {school.schoolCode || "—"}
@@ -917,29 +1161,51 @@ export function AddSchool() {
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     {school.adminName || school.adminEmail ? (
-                                                        <div className="flex items-center gap-2.5 min-w-[170px]">
-                                                            <InsigniaBadge
-                                                                name={school.adminName || "School Admin"}
-                                                                email={school.adminEmail}
-                                                                role="SCHOOL_ADMIN"
-                                                                size="sm"
-                                                                className="!h-8 !w-8 shrink-0 text-xs rounded-full shadow-xs"
-                                                            />
-                                                            <div className="min-w-0">
-                                                                <p className="truncate text-xs font-semibold text-[var(--text-primary)]">
-                                                                    {school.adminName || "School Admin"}
-                                                                </p>
-                                                                {school.adminEmail && (
-                                                                    <p className="truncate text-[11px] text-[var(--text-muted)]" title={school.adminEmail}>
-                                                                        {school.adminEmail}
+                                                        <div className="flex flex-col gap-1.5 min-w-[170px]">
+                                                            <div className="flex items-center gap-2.5">
+                                                                <InsigniaBadge
+                                                                    name={school.adminName || "School Admin"}
+                                                                    email={school.adminEmail}
+                                                                    role="SCHOOL_ADMIN"
+                                                                    size="sm"
+                                                                    className="!h-8 !w-8 shrink-0 text-xs rounded-full shadow-xs"
+                                                                />
+                                                                <div className="min-w-0">
+                                                                    <p className="truncate text-xs font-semibold text-[var(--text-primary)]">
+                                                                        {school.adminName || "School Admin"}
                                                                     </p>
-                                                                )}
+                                                                    {school.adminEmail && (
+                                                                        <p className="truncate text-[11px] text-[var(--text-muted)]" title={school.adminEmail}>
+                                                                            {school.adminEmail}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
                                                             </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleQuickReplaceAdmin(school)}
+                                                                className="inline-flex items-center gap-1 self-start rounded-md px-2 py-0.5 text-[11px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200/60 dark:border-indigo-800/60 transition-colors cursor-pointer"
+                                                                title="Replace School Administrator"
+                                                            >
+                                                                <ArrowLeftRight className="h-2.5 w-2.5" />
+                                                                <span>Replace Admin</span>
+                                                            </button>
                                                         </div>
                                                     ) : (
-                                                        <span className="inline-flex items-center text-xs text-[var(--text-muted)] italic">
-                                                            Not Assigned
-                                                        </span>
+                                                        <div className="flex flex-col gap-1.5 items-start min-w-[140px]">
+                                                            <span className="inline-flex items-center text-xs text-[var(--text-muted)] italic">
+                                                                Not Assigned
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleQuickReplaceAdmin(school)}
+                                                                className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200/60 dark:border-emerald-800/60 transition-colors cursor-pointer"
+                                                                title="Assign School Administrator"
+                                                            >
+                                                                <UserPlus className="h-2.5 w-2.5" />
+                                                                <span>+ Assign Admin</span>
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-3 text-[var(--text-secondary)]">{school.address || "—"}</td>
@@ -995,13 +1261,22 @@ export function AddSchool() {
                                                 <td className="px-4 py-3 text-[var(--text-secondary)] sm:px-5">{formatCreatedDate(school.createdAt)}</td>
                                                 <td className="px-4 py-3 text-right sm:pr-5">
                                                     <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleOpenSchool(school)}
+                                                            className="rounded p-1.5 text-indigo-600 dark:text-indigo-400 transition-colors hover:bg-indigo-500/10 cursor-pointer"
+                                                            title="View School Details"
+                                                            aria-label={`View ${school.name || school.schoolName} Details`}
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </button>
                                                         {school.active ? (
                                                             <button
                                                                 type="button"
                                                                 title="Deactivate School"
                                                                 aria-label={`Deactivate ${school.name || school.schoolName}`}
                                                                 onClick={() => handleToggleSchoolStatus(school)}
-                                                                className="rounded p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-amber-500/10 hover:text-amber-500"
+                                                                className="rounded p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-amber-500/10 hover:text-amber-500 cursor-pointer"
                                                             >
                                                                 <UserX className="h-4 w-4" />
                                                             </button>
@@ -1011,7 +1286,7 @@ export function AddSchool() {
                                                                 title="Activate School"
                                                                 aria-label={`Activate ${school.name || school.schoolName}`}
                                                                 onClick={() => handleToggleSchoolStatus(school)}
-                                                                className="rounded p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-emerald-500/10 hover:text-emerald-500"
+                                                                className="rounded p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-emerald-500/10 hover:text-emerald-500 cursor-pointer"
                                                             >
                                                                 <UserCheck className="h-4 w-4" />
                                                             </button>
@@ -1019,7 +1294,7 @@ export function AddSchool() {
                                                         <button
                                                             type="button"
                                                             onClick={() => openEditModal(school)}
-                                                            className="rounded p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
+                                                            className="rounded p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] cursor-pointer"
                                                             title="Edit School"
                                                         >
                                                             <Edit className="h-4 w-4" />
@@ -1027,7 +1302,7 @@ export function AddSchool() {
                                                         <button
                                                             type="button"
                                                             onClick={() => confirmDeleteSchool(school)}
-                                                            className="rounded p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-rose-500/10 hover:text-rose-500"
+                                                            className="rounded p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-rose-500/10 hover:text-rose-500 cursor-pointer"
                                                             title="Delete School"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
@@ -1040,6 +1315,313 @@ export function AddSchool() {
                                 </table>
                             </div>
                         )}
+                    </SectionCard>
+                </>
+            ) : pageMode === "details" && openedSchool ? (
+                <>
+                    {/* School Details Header */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="relative overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-sm)] sm:p-7"
+                    >
+                        <div
+                            className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full opacity-20 blur-3xl"
+                            style={{ background: "linear-gradient(135deg,#3b82f6,#10b981)" }}
+                        />
+                        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-default)] bg-[var(--bg-subtle)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                                        <Building2 className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+                                        School Workspace
+                                    </span>
+                                    <span className="inline-block font-mono text-xs font-semibold px-2.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                                        {openedSchool.schoolCode || `SCH-${openedSchool.id}`}
+                                    </span>
+                                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${openedSchool.active !== false ? "bg-emerald-500/10 text-emerald-600" : "bg-slate-500/10 text-slate-500"}`}>
+                                        {openedSchool.active !== false ? "Active" : "Inactive"}
+                                    </span>
+                                </div>
+                                <h1 className="mt-3 text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl truncate">
+                                    {openedSchool.name || openedSchool.schoolName || "School Details"}
+                                </h1>
+                                <p className="mt-1 text-sm text-[var(--text-secondary)] flex flex-wrap items-center gap-x-4 gap-y-1">
+                                    <span>Address: {openedSchool.address || "—"}</span>
+                                    <span>&bull;</span>
+                                    <span>Contact Phone: {openedSchool.contactPhone || "—"}</span>
+                                    <span>&bull;</span>
+                                    <span>Enrolled: {formatCreatedDate(openedSchool.createdAt)}</span>
+                                </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Button type="button" variant="secondary" onClick={() => setPageMode("list")}>
+                                    <ArrowLeft className="mr-1.5 h-4 w-4" />
+                                    Back to Schools
+                                </Button>
+                                <Button
+                                    type="button"
+                                    onClick={openAddOrReplaceModal}
+                                    className="!bg-indigo-600 hover:!bg-indigo-700 text-white font-bold"
+                                >
+                                    <ArrowLeftRight className="mr-1.5 h-4 w-4" />
+                                    {currentAdmin ? "Replace School Admin" : "Add School Admin"}
+                                </Button>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* School Administrator Section */}
+                    <SectionCard
+                        title="School Administrator"
+                        subtitle="Current administrator assigned to manage teachers, classrooms, and students"
+                        delay={0.05}
+                        action={
+                            currentAdmin ? (
+                                <Button
+                                    type="button"
+                                    onClick={openAddOrReplaceModal}
+                                    className="!h-9 text-xs !bg-indigo-600 hover:!bg-indigo-700 text-white font-semibold"
+                                >
+                                    <ArrowLeftRight className="mr-1.5 h-3.5 w-3.5" />
+                                    Replace School Admin
+                                </Button>
+                            ) : null
+                        }
+                    >
+                        {currentAdmin ? (
+                            <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-white dark:border-indigo-900/30 dark:from-indigo-950/20 dark:to-[var(--bg-surface)] p-6 shadow-xs">
+                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                                    <div className="flex items-center gap-4">
+                                        <InsigniaBadge
+                                            name={currentAdmin.fullName || currentAdmin.firstName || "School Admin"}
+                                            email={currentAdmin.email}
+                                            role="SCHOOL_ADMIN"
+                                            size="lg"
+                                            className="!h-16 !w-16 text-lg rounded-2xl shadow-sm shrink-0"
+                                        />
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-lg font-bold text-[var(--text-primary)]">
+                                                    {currentAdmin.fullName || `${currentAdmin.firstName || ""} ${currentAdmin.lastName || ""}`.trim() || "School Administrator"}
+                                                </h3>
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-200 dark:border-emerald-800">
+                                                    ACTIVE
+                                                </span>
+                                            </div>
+                                            <p className="text-sm font-medium text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5">
+                                                <Mail className="h-3.5 w-3.5" />
+                                                <span>{currentAdmin.email}</span>
+                                            </p>
+                                            <p className="text-xs text-[var(--text-secondary)] flex items-center gap-1.5 mt-1">
+                                                <Phone className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+                                                <span>{currentAdmin.phone || "—"}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white/80 dark:bg-slate-900/60 p-4 rounded-xl border border-[var(--border-subtle)]">
+                                        <div>
+                                            <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Credentials Status</p>
+                                            <div className="mt-1 flex items-center gap-2">
+                                                {currentAdmin.welcomeCompleted ? (
+                                                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                                        <ShieldCheck className="h-4 w-4" />
+                                                        Permanent Password Configured
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                                                        <Clock className="h-4 w-4" />
+                                                        Temporary Password Issued (First Login Pending)
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-[var(--border-default)] bg-[var(--bg-subtle)]/50 text-center">
+                                <div className="h-12 w-12 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mb-3">
+                                    <AlertTriangle className="h-6 w-6" />
+                                </div>
+                                <h3 className="text-base font-bold text-[var(--text-primary)]">
+                                    No active School Administrator is currently assigned.
+                                </h3>
+                                <p className="mt-1 text-xs text-[var(--text-secondary)] max-w-md">
+                                    This school currently has no active administrator. Add a School Administrator to grant access to manage teachers, classrooms, and student performance metrics.
+                                </p>
+                                <Button
+                                    type="button"
+                                    onClick={openAddOrReplaceModal}
+                                    className="mt-4 !bg-indigo-600 hover:!bg-indigo-700 text-white font-bold"
+                                >
+                                    <UserPlus className="mr-1.5 h-4 w-4" />
+                                    Add School Admin
+                                </Button>
+                            </div>
+                        )}
+                    </SectionCard>
+
+                    {/* Administrator History Section */}
+                    <SectionCard
+                        title="Administrator History"
+                        subtitle="Audit records of all current and previous administrators for this school"
+                        delay={0.1}
+                    >
+                        {isLoadingHistory ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-center">
+                                <div className="h-8 w-8 animate-spin rounded-full border-3 border-indigo-200 border-t-indigo-600 dark:border-indigo-950 dark:border-t-indigo-500" />
+                                <p className="mt-2 text-xs font-medium text-[var(--text-muted)]">Loading administrator history...</p>
+                            </div>
+                        ) : historyError ? (
+                            <div className="text-center py-8">
+                                <p className="text-xs text-rose-500">{historyError}</p>
+                            </div>
+                        ) : adminHistory.length === 0 ? (
+                            <div className="text-center py-8 text-xs text-[var(--text-muted)]">
+                                No administrator history recorded for this school.
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {adminHistory.map((adm) => {
+                                    const isActive = adm.currentAdmin || (adm.active && adm.status === "ACTIVE");
+                                    return (
+                                        <div
+                                            key={adm.id}
+                                            className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border transition-all ${
+                                                isActive
+                                                    ? "border-emerald-200 bg-emerald-50/30 dark:border-emerald-800/40 dark:bg-emerald-950/20"
+                                                    : "border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)]"
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <InsigniaBadge
+                                                    name={adm.fullName || adm.firstName || "Admin"}
+                                                    email={adm.email}
+                                                    role="SCHOOL_ADMIN"
+                                                    size="sm"
+                                                    className="!h-10 !w-10 text-xs rounded-full shrink-0 shadow-xs"
+                                                />
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="text-sm font-bold text-[var(--text-primary)]">
+                                                            {adm.fullName || `${adm.firstName || ""} ${adm.lastName || ""}`.trim() || adm.email}
+                                                        </h4>
+                                                        {isActive ? (
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                                                ACTIVE
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                                                INACTIVE
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-0.5">
+                                                        <span>{adm.email}</span>
+                                                        {adm.phone && (
+                                                            <>
+                                                                <span>&bull;</span>
+                                                                <span>{adm.phone}</span>
+                                                            </>
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-wrap items-center gap-3 text-right sm:justify-end">
+                                                <div>
+                                                    <span className={`inline-block text-xs font-semibold ${isActive ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-[var(--text-muted)]"}`}>
+                                                        {isActive ? "Current Administrator" : "Previous Administrator"}
+                                                    </span>
+                                                    <p className="text-[11px] text-[var(--text-muted)]">
+                                                        Assigned: {formatCreatedDate(adm.createdAt)}
+                                                    </p>
+                                                </div>
+                                                <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-800" />
+                                                <div>
+                                                    {adm.welcomeCompleted ? (
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                                                            <ShieldCheck className="h-3.5 w-3.5" />
+                                                            Password Configured
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                                                            <Clock className="h-3.5 w-3.5" />
+                                                            First Login Pending
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </SectionCard>
+
+                    {/* Institutional Details & Subscription Card */}
+                    <SectionCard
+                        title="Institutional Details & Subscription"
+                        subtitle="Class structure, curriculum standards, and subscription limits"
+                        delay={0.15}
+                    >
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5">
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Academic Structure</h4>
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className="inline-flex items-center rounded-md bg-[var(--color-primary)]/10 px-2.5 py-1 text-xs font-semibold text-[var(--color-primary)]">
+                                        {openedSchool.standardsCount || (openedSchool.academicStructure?.length) || 0} Standards
+                                    </span>
+                                    <span className="inline-flex items-center rounded-md bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                        {openedSchool.totalDivisions || openedSchool.divisionCount || (openedSchool.academicStructure ? openedSchool.academicStructure.reduce((acc, s) => acc + (s.divisions?.length || 0), 0) : 0)} Divisions
+                                    </span>
+                                </div>
+                                {Array.isArray(openedSchool.academicStructure) && openedSchool.academicStructure.length > 0 ? (
+                                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-2">
+                                        {openedSchool.academicStructure.map((s, idx) => (
+                                            <div key={idx} className="flex items-center justify-between text-xs py-1 px-2.5 rounded bg-[var(--bg-subtle)]">
+                                                <span className="font-semibold text-[var(--text-primary)]">Standard {s.standard}</span>
+                                                <span className="text-[var(--text-muted)]">Divisions: {s.divisions?.join(", ") || "A"}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-[var(--text-muted)]">Default standards 1 to 10 configured.</p>
+                                )}
+                            </div>
+
+                            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5">
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Subscription Plan</h4>
+                                {openedSchool.subscriptionPlanName ? (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                                <Sparkles className="h-3.5 w-3.5" />
+                                                {openedSchool.subscriptionPlanName}
+                                            </span>
+                                            <span className="text-sm font-bold text-[var(--text-primary)]">
+                                                ₹{openedSchool.subscriptionPrice != null ? Number(openedSchool.subscriptionPrice).toLocaleString("en-IN") : "0"}
+                                            </span>
+                                        </div>
+                                        <div className="text-xs text-[var(--text-secondary)] space-y-1">
+                                            <p>Billing Cycle: <strong className="text-[var(--text-primary)]">{openedSchool.subscriptionBillingCycle || "Annual"}</strong></p>
+                                            <p>Student Capacity: <strong className="text-[var(--text-primary)]">Up to {openedSchool.maxStudents || 500} Students</strong></p>
+                                            {openedSchool.subscriptionStartDate && (
+                                                <p>Active From: {formatCreatedDate(openedSchool.subscriptionStartDate)}</p>
+                                            )}
+                                            {openedSchool.subscriptionEndDate && (
+                                                <p>Renews / Expires: {formatCreatedDate(openedSchool.subscriptionEndDate)}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-[var(--text-muted)]">Standard Institutional Plan active.</p>
+                                )}
+                            </div>
+                        </div>
                     </SectionCard>
                 </>
             ) : (
@@ -1221,6 +1803,16 @@ export function AddSchool() {
                                             />
                                         </div>
                                         <div className="sm:col-span-2">
+                                            <PhoneInput
+                                                label="School Admin Phone"
+                                                placeholder="Enter School Admin Phone"
+                                                value={form.adminPhone}
+                                                onChange={update("adminPhone")}
+                                                error={errors.adminPhone}
+                                                disabled={isSubmitting}
+                                            />
+                                        </div>
+                                        <div className="sm:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                                                 School Admin Email
                                             </label>
@@ -1266,16 +1858,6 @@ export function AddSchool() {
                                                     <span>Email verified! You can now choose a dynamic subscription plan for this school.</span>
                                                 </div>
                                             )}
-                                        </div>
-                                        <div>
-                                            <Input
-                                                label="School Admin Phone"
-                                                placeholder="Enter School Admin Phone"
-                                                value={form.adminPhone}
-                                                onChange={update("adminPhone")}
-                                                error={errors.adminPhone}
-                                                disabled={isSubmitting}
-                                            />
                                         </div>
                                     </div>
 
@@ -1525,7 +2107,7 @@ export function AddSchool() {
                             disabled={isEditing}
                             required
                         />
-                        <Input
+                        <PhoneInput
                             label="Contact Phone"
                             value={editForm.contactPhone}
                             placeholder="e.g. 9876543210"
@@ -1682,6 +2264,359 @@ export function AddSchool() {
                 onClose={handleCloseSuccessModal}
                 data={paymentSuccessData}
             />
+
+            {/* Add or Replace School Administrator Modal */}
+            <Modal
+                isOpen={replaceModalOpen}
+                onClose={() => !isSubmittingReplacement && setReplaceModalOpen(false)}
+                title={
+                    replaceStep === 1
+                        ? (currentAdmin ? "Replace School Administrator" : "Assign School Administrator")
+                        : (currentAdmin ? "Confirm Administrator Replacement" : "Confirm Administrator Assignment")
+                }
+                description={
+                    replaceStep === 1
+                        ? (currentAdmin ? `Enter the new administrator's details for ${openedSchool?.name || "this school"} and verify their email.` : `Enter the administrator's details for ${openedSchool?.name || "this school"} and verify their email.`)
+                        : (currentAdmin ? `Review and confirm replacement of administrator for ${openedSchool?.name || "this school"}.` : `Review and confirm assignment of administrator for ${openedSchool?.name || "this school"}.`)
+                }
+            >
+                {replaceStep === 1 ? (
+                    <form onSubmit={handleProceedToReplaceConfirmation} className="space-y-4">
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <Input
+                                    label="First Name"
+                                    placeholder="e.g. Priya"
+                                    value={replaceForm.adminFirstName}
+                                    onChange={updateReplaceField("adminFirstName")}
+                                    error={replaceErrors.adminFirstName}
+                                    disabled={isSubmittingReplacement}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <Input
+                                    label="Last Name"
+                                    placeholder="e.g. Sharma"
+                                    value={replaceForm.adminLastName}
+                                    onChange={updateReplaceField("adminLastName")}
+                                    error={replaceErrors.adminLastName}
+                                    disabled={isSubmittingReplacement}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Phone Number BEFORE Email */}
+                        <div>
+                            <PhoneInput
+                                label="Administrator Phone *"
+                                placeholder="e.g. 9876543210"
+                                value={replaceForm.adminPhone}
+                                onChange={updateReplaceField("adminPhone")}
+                                error={replaceErrors.adminPhone}
+                                disabled={isSubmittingReplacement}
+                                required
+                            />
+                        </div>
+
+                        {/* Administrator Email with OTP Verification */}
+                        <div>
+                            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                                Administrator Email *
+                            </label>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                                <div className="flex-1">
+                                    <Input
+                                        placeholder="e.g. priya@example.com"
+                                        type="email"
+                                        value={replaceForm.adminEmail}
+                                        onChange={updateReplaceField("adminEmail")}
+                                        error={replaceErrors.adminEmail}
+                                        disabled={isSubmittingReplacement || isSendingReplaceOtp}
+                                        autoComplete="off"
+                                        required
+                                    />
+                                </div>
+                                {replaceEmailVerified ? (
+                                    <div className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-400">
+                                        <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                        <span>Email Verified</span>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={handleSendReplaceOtp}
+                                        disabled={!replaceForm.adminEmail.trim() || isSendingReplaceOtp || isSubmittingReplacement}
+                                        isLoading={isSendingReplaceOtp}
+                                        loadingText="Sending OTP..."
+                                        className="!h-11 shrink-0 px-5"
+                                    >
+                                        Verify Email
+                                    </Button>
+                                )}
+                            </div>
+                            {replaceVerificationError && (
+                                <p className="mt-1.5 text-xs font-medium text-rose-500">{replaceVerificationError}</p>
+                            )}
+                            {replaceEmailVerified && (
+                                <div className="mt-2 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-medium text-emerald-800 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-300">
+                                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                    <span>Email successfully verified! Ready to proceed.</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-6 flex justify-end gap-3 pt-2">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => setReplaceModalOpen(false)}
+                                disabled={isSubmittingReplacement}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                className="!bg-indigo-600 hover:!bg-indigo-700 text-white font-bold"
+                                disabled={!replaceEmailVerified || !replaceVerificationToken || isSubmittingReplacement}
+                            >
+                                <span>{currentAdmin ? "Proceed to Replace Admin" : "Proceed to Assign Admin"}</span>
+                                <ArrowRight className="ml-1.5 h-4 w-4" />
+                            </Button>
+                        </div>
+                    </form>
+                ) : (
+                    /* Step 2: Confirmation Prompt in Standard Format */
+                    <div className="space-y-5">
+                        {currentAdmin ? (
+                            /* Replace Confirmation */
+                            <>
+                                <div className="flex flex-col items-center text-center">
+                                    <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 ring-8 ring-amber-500/5">
+                                        <AlertTriangle className="h-7 w-7" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-[var(--text-primary)]">
+                                        Confirm Administrator Replacement?
+                                    </h3>
+                                    <p className="mt-1 text-xs text-[var(--text-secondary)] max-w-sm">
+                                        Are you sure you want to replace the administrator for{" "}
+                                        <span className="font-semibold text-[var(--text-primary)]">
+                                            {openedSchool?.name || openedSchool?.schoolName || "this school"}
+                                        </span>?
+                                    </p>
+                                </div>
+
+                                <div className="rounded-2xl border border-indigo-100 bg-slate-50 dark:border-indigo-900/40 dark:bg-slate-900/50 p-4 space-y-3">
+                                    <div className="p-3.5 rounded-xl border border-amber-200/70 bg-white dark:border-amber-900/40 dark:bg-slate-900">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                                                Current Administrator
+                                            </span>
+                                            <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold bg-amber-500/10 text-amber-600">
+                                                Will Be Deactivated
+                                            </span>
+                                        </div>
+                                        <p className="text-sm font-bold text-[var(--text-primary)]">
+                                            {currentAdmin.fullName || currentAdmin.email}
+                                        </p>
+                                        <p className="text-xs text-[var(--text-muted)]">{currentAdmin.email} {currentAdmin.phone ? `• ${currentAdmin.phone}` : ""}</p>
+                                    </div>
+
+                                    <div className="p-3.5 rounded-xl border border-indigo-200 bg-indigo-50/50 dark:border-indigo-800 dark:bg-indigo-950/30">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                                                New Administrator
+                                            </span>
+                                            <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-600">
+                                                Will Be Appointed & Activated
+                                            </span>
+                                        </div>
+                                        <p className="text-sm font-bold text-[var(--text-primary)]">
+                                            {replaceForm.adminFirstName} {replaceForm.adminLastName}
+                                        </p>
+                                        <p className="text-xs text-[var(--text-muted)]">{replaceForm.adminEmail} &bull; {replaceForm.adminPhone}</p>
+                                    </div>
+                                </div>
+
+                                <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300 leading-relaxed">
+                                    <strong>Important Security Notice:</strong>
+                                    <ul className="mt-1 list-disc pl-4 space-y-0.5 text-[11px]">
+                                        <li>The current administrator will be safely deactivated (historical audit records preserved).</li>
+                                        <li>Temporary login credentials will be emailed to <strong>{replaceForm.adminEmail}</strong>.</li>
+                                        <li>Super Admins, the School Administrator, and all Teachers of this school will be notified immediately.</li>
+                                    </ul>
+                                </div>
+
+                                <div className="mt-6 flex justify-end gap-3 pt-2">
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={() => setReplaceStep(1)}
+                                        disabled={isSubmittingReplacement}
+                                    >
+                                        &larr; Back to Edit
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={handleConfirmReplacement}
+                                        disabled={isSubmittingReplacement}
+                                        isLoading={isSubmittingReplacement}
+                                        loadingText="Replacing Administrator..."
+                                        className="!bg-indigo-600 hover:!bg-indigo-700 text-white font-bold"
+                                    >
+                                        <ArrowLeftRight className="mr-1.5 h-4 w-4" />
+                                        Yes, Replace Administrator
+                                    </Button>
+                                </div>
+                            </>
+                        ) : (
+                            /* Assign Confirmation */
+                            <>
+                                <div className="flex flex-col items-center text-center">
+                                    <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 ring-8 ring-emerald-500/5">
+                                        <UserPlus className="h-7 w-7" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-[var(--text-primary)]">
+                                        Confirm Administrator Assignment?
+                                    </h3>
+                                    <p className="mt-1 text-xs text-[var(--text-secondary)] max-w-sm">
+                                        Are you sure you want to appoint this administrator for{" "}
+                                        <span className="font-semibold text-[var(--text-primary)]">
+                                            {openedSchool?.name || openedSchool?.schoolName || "this school"}
+                                        </span>?
+                                    </p>
+                                </div>
+
+                                <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 dark:border-indigo-900/40 dark:bg-indigo-950/20 p-4">
+                                    <div className="p-3.5 rounded-xl border border-indigo-200 bg-white dark:border-indigo-800 dark:bg-slate-900">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                                                Appointed Administrator
+                                            </span>
+                                            <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-600">
+                                                Will Be Activated
+                                            </span>
+                                        </div>
+                                        <p className="text-sm font-bold text-[var(--text-primary)]">
+                                            {replaceForm.adminFirstName} {replaceForm.adminLastName}
+                                        </p>
+                                        <p className="text-xs text-[var(--text-muted)]">{replaceForm.adminEmail} &bull; {replaceForm.adminPhone}</p>
+                                    </div>
+                                </div>
+
+                                <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300 leading-relaxed">
+                                    <strong>Next Steps:</strong>
+                                    <ul className="mt-1 list-disc pl-4 space-y-0.5 text-[11px]">
+                                        <li>Temporary login credentials will be emailed to <strong>{replaceForm.adminEmail}</strong>.</li>
+                                        <li>Super Admins and all Teachers of this school will be notified immediately.</li>
+                                    </ul>
+                                </div>
+
+                                <div className="mt-6 flex justify-end gap-3 pt-2">
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={() => setReplaceStep(1)}
+                                        disabled={isSubmittingReplacement}
+                                    >
+                                        &larr; Back to Edit
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={handleConfirmReplacement}
+                                        disabled={isSubmittingReplacement}
+                                        isLoading={isSubmittingReplacement}
+                                        loadingText="Assigning Administrator..."
+                                        className="!bg-indigo-600 hover:!bg-indigo-700 text-white font-bold"
+                                    >
+                                        <UserPlus className="mr-1.5 h-4 w-4" />
+                                        Yes, Assign Administrator
+                                    </Button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                )}
+            </Modal>
+
+            {/* Replace Admin OTP Verification Modal */}
+            <Modal
+                isOpen={replaceOtpModalOpen}
+                onClose={() => !isVerifyingReplaceOtp && setReplaceOtpModalOpen(false)}
+                title="Verify New Admin Email"
+                description={`Enter the 6-digit OTP sent to ${replaceForm.adminEmail} to complete email verification.`}
+            >
+                <form onSubmit={handleVerifyReplaceOtp} className="space-y-4">
+                    <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3.5 dark:border-indigo-900/40 dark:bg-indigo-950/20">
+                        <div className="flex items-start gap-2.5">
+                            <ShieldCheck className="h-5 w-5 shrink-0 text-indigo-600 dark:text-indigo-400 mt-0.5" />
+                            <div className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                                A 6-digit OTP has been sent to <span className="font-semibold text-[var(--text-primary)]">{replaceForm.adminEmail}</span>.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                            Enter 6-Digit OTP
+                        </label>
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={6}
+                            value={replaceOtp}
+                            onChange={(e) => {
+                                const numericVal = e.target.value.replace(/\D/g, "").slice(0, 6);
+                                setReplaceOtp(numericVal);
+                                if (replaceOtpError) setReplaceOtpError("");
+                            }}
+                            placeholder="123456"
+                            autoFocus
+                            disabled={isVerifyingReplaceOtp}
+                            className="h-12 w-full text-center font-mono text-2xl tracking-[0.4em] font-bold rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                        />
+                        {replaceOtpError && (
+                            <p className="mt-2 text-xs font-medium text-rose-500 text-center">
+                                {replaceOtpError}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                        <button
+                            type="button"
+                            onClick={handleSendReplaceOtp}
+                            disabled={isSendingReplaceOtp || isVerifyingReplaceOtp}
+                            className="text-xs font-semibold text-[var(--color-primary)] hover:underline disabled:opacity-50 disabled:no-underline"
+                        >
+                            {isSendingReplaceOtp ? "Resending OTP..." : "Resend OTP"}
+                        </button>
+                        <div className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => setReplaceOtpModalOpen(false)}
+                                disabled={isVerifyingReplaceOtp}
+                                className="!h-10 text-xs px-4"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                disabled={replaceOtp.length !== 6 || isVerifyingReplaceOtp}
+                                isLoading={isVerifyingReplaceOtp}
+                                loadingText="Verifying..."
+                                className="!h-10 text-xs px-5"
+                            >
+                                Verify OTP
+                            </Button>
+                        </div>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Floating Toasts Notification Overlay */}
             <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">

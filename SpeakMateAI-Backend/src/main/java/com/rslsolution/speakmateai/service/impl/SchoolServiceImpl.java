@@ -34,8 +34,12 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.rslsolution.speakmateai.dto.request.ReplaceSchoolAdminRequest;
+import com.rslsolution.speakmateai.dto.response.SchoolAdminHistoryResponse;
 import com.rslsolution.speakmateai.dto.request.SchoolAdminSendInvitationRequest;
 import com.rslsolution.speakmateai.dto.request.SchoolPaymentOrderRequest;
 import com.rslsolution.speakmateai.dto.response.CreateOrderResponse;
@@ -802,11 +806,10 @@ public class SchoolServiceImpl implements SchoolService {
         try {
             List<User> schoolAdmins = userRepository.findByRole(com.rslsolution.speakmateai.enums.Role.SCHOOL_ADMIN);
             if (schoolAdmins != null) {
-                for (User u : schoolAdmins) {
-                    if (u.getSchoolId() != null && !adminBySchoolId.containsKey(u.getSchoolId())) {
-                        adminBySchoolId.put(u.getSchoolId(), u);
-                    }
-                }
+                schoolAdmins.stream()
+                        .filter(u -> u.getSchoolId() != null && u.isActive() && u.getStatus() == com.rslsolution.speakmateai.enums.Status.ACTIVE)
+                        .sorted(Comparator.comparing(User::getId).reversed())
+                        .forEach(u -> adminBySchoolId.putIfAbsent(u.getSchoolId(), u));
             }
         } catch (Exception ignored) {}
 
@@ -923,15 +926,22 @@ public class SchoolServiceImpl implements SchoolService {
         School updatedSchool = schoolRepository.save(school);
 
         List<User> schoolAdmins = userRepository.findBySchoolIdAndRole(school.getId(), com.rslsolution.speakmateai.enums.Role.SCHOOL_ADMIN);
-        if (schoolAdmins != null) {
-            for (User sa : schoolAdmins) {
-                sa.setActive(true);
-                sa.setStatus(com.rslsolution.speakmateai.enums.Status.ACTIVE);
-                userRepository.save(sa);
-                if (notificationService != null && sa.getEmail() != null) {
+        if (schoolAdmins != null && !schoolAdmins.isEmpty()) {
+            User targetAdmin = schoolAdmins.stream()
+                    .filter(sa -> sa.isActive() && sa.getStatus() == com.rslsolution.speakmateai.enums.Status.ACTIVE)
+                    .findFirst()
+                    .orElseGet(() -> schoolAdmins.stream()
+                            .max(Comparator.comparing(User::getId))
+                            .orElse(null));
+
+            if (targetAdmin != null) {
+                targetAdmin.setActive(true);
+                targetAdmin.setStatus(com.rslsolution.speakmateai.enums.Status.ACTIVE);
+                userRepository.save(targetAdmin);
+                if (notificationService != null && targetAdmin.getEmail() != null) {
                     try {
                         notificationService.sendNotification(
-                                sa.getEmail(),
+                                targetAdmin.getEmail(),
                                 "School Workspace Activated",
                                 "Your school workspace (" + school.getName() + ") and admin access have been activated.",
                                 com.rslsolution.speakmateai.enums.NotificationType.SCHOOL_CREATED,
@@ -1123,7 +1133,10 @@ public class SchoolServiceImpl implements SchoolService {
             try {
                 List<User> admins = userRepository.findBySchoolIdAndRole(school.getId(), com.rslsolution.speakmateai.enums.Role.SCHOOL_ADMIN);
                 if (admins != null && !admins.isEmpty()) {
-                    adminUser = admins.get(0);
+                    adminUser = admins.stream()
+                            .filter(u -> u.isActive() && u.getStatus() == com.rslsolution.speakmateai.enums.Status.ACTIVE)
+                            .max(Comparator.comparing(User::getId))
+                            .orElse(null);
                 }
             } catch (Exception ignored) {}
         }
@@ -1162,5 +1175,328 @@ public class SchoolServiceImpl implements SchoolService {
                 .subscriptionEndDate(school.getSubscriptionEndDate())
                 .maxStudents(school.getMaxStudents())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SchoolAdminHistoryResponse> getSchoolAdminHistory(Long schoolId) {
+        if (schoolId == null) {
+            throw new IllegalArgumentException("School ID cannot be null");
+        }
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new RuntimeException("School not found with id: " + schoolId));
+
+        List<User> admins = userRepository.findBySchoolIdAndRole(school.getId(), Role.SCHOOL_ADMIN);
+        if (admins == null || admins.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return admins.stream()
+                .sorted(Comparator.comparing(User::getId).reversed())
+                .map(u -> {
+                    boolean isCurrent = u.isActive() && u.getStatus() == Status.ACTIVE;
+                    String fullName = ((u.getFirstName() != null ? u.getFirstName().trim() : "") + " "
+                            + (u.getLastName() != null ? u.getLastName().trim() : "")).trim();
+                    return SchoolAdminHistoryResponse.builder()
+                            .id(u.getId())
+                            .schoolId(school.getId())
+                            .firstName(u.getFirstName())
+                            .lastName(u.getLastName())
+                            .fullName(fullName.isEmpty() ? "School Administrator" : fullName)
+                            .email(u.getEmail())
+                            .phone(u.getPhone())
+                            .status(u.getStatus())
+                            .active(u.isActive())
+                            .currentAdmin(isCurrent)
+                            .welcomeCompleted(u.isWelcomeCompleted())
+                            .createdAt(u.getCreatedAt())
+                            .updatedAt(u.getUpdatedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public SchoolResponse replaceSchoolAdmin(Long schoolId, ReplaceSchoolAdminRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Replacement request cannot be null.");
+        }
+        if (schoolId == null) {
+            throw new IllegalArgumentException("School ID is required.");
+        }
+
+        // 1. Find target School
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new RuntimeException("School not found with id: " + schoolId));
+
+        // 2. Verify School is active
+        if (!school.isActive()) {
+            throw new AccessDeniedException("Cannot add or replace administrator for an inactive school. Please activate the school first.");
+        }
+
+        // 3. Normalize administrator email
+        String normalizedEmail = request.getAdminEmail() != null ? request.getAdminEmail().trim().toLowerCase() : "";
+        if (normalizedEmail.isEmpty()) {
+            throw new IllegalArgumentException("Admin email is required.");
+        }
+
+        // 4. Validate verification token using pessimistic lock
+        String token = request.getVerificationToken() != null ? request.getVerificationToken().trim() : "";
+        if (token.isEmpty()) {
+            throw new AccessDeniedException("School admin email verification token is required.");
+        }
+
+        SchoolAdminEmailVerification verification = verificationRepository.findByVerificationTokenWithLock(token)
+                .orElseThrow(() -> new AccessDeniedException("Invalid verification token. Please verify the School Admin email first."));
+
+        // 5. Ensure verification token belongs to the intended email
+        if (!normalizedEmail.equalsIgnoreCase(verification.getEmail())) {
+            throw new AccessDeniedException("Verification token does not match the provided admin email.");
+        }
+
+        if (!verification.isVerified()) {
+            throw new AccessDeniedException("School admin email has not been verified.");
+        }
+
+        if (verification.isTokenConsumed()) {
+            throw new AccessDeniedException("Verification token has already been used. Please verify the email again.");
+        }
+
+        if (verification.getVerificationTokenExpiresAt() == null || LocalDateTime.now().isAfter(verification.getVerificationTokenExpiresAt())) {
+            throw new AccessDeniedException("Verification token has expired. Please verify the email again.");
+        }
+
+        // 6. Find all School Admin users associated with this School
+        List<User> schoolAdmins = userRepository.findBySchoolIdAndRole(school.getId(), Role.SCHOOL_ADMIN);
+
+        // 7. Identify the CURRENT ACTIVE administrator
+        User currentActiveAdmin = null;
+        if (schoolAdmins != null) {
+            for (User admin : schoolAdmins) {
+                if (admin.isActive() && admin.getStatus() == Status.ACTIVE) {
+                    currentActiveAdmin = admin;
+                    break;
+                }
+            }
+        }
+
+        // Check if replacing with the exact same active administrator email
+        if (currentActiveAdmin != null && normalizedEmail.equalsIgnoreCase(currentActiveAdmin.getEmail())) {
+            throw new IllegalArgumentException("The specified email is already the active administrator for this school.");
+        }
+
+        // 8. If current active administrator exists, deactivate them (preserve record, NEVER hard-delete)
+        if (currentActiveAdmin != null) {
+            currentActiveAdmin.setActive(false);
+            currentActiveAdmin.setStatus(Status.INACTIVE);
+            userRepository.save(currentActiveAdmin);
+        }
+
+        // 9. Check whether the new email already exists in users
+        Optional<User> existingUserOpt = userRepository.findByEmail(normalizedEmail);
+
+        String tempPassword = generateSecureTemporaryPassword();
+        String passwordHash = passwordEncoder.encode(tempPassword);
+        String normalizedPhone = com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getAdminPhone(), "Admin phone");
+
+        User targetAdminUser;
+
+        if (existingUserOpt.isPresent()) {
+            User existingUser = existingUserOpt.get();
+
+            // Case C: Email belongs to an active user
+            if (existingUser.isActive() && existingUser.getStatus() == Status.ACTIVE) {
+                throw new IllegalArgumentException("User with email '" + normalizedEmail + "' is already active on the platform. Cannot assign as school administrator.");
+            }
+
+            // Case D: Email belongs to user from another school or has non-school-admin role
+            if (existingUser.getSchoolId() != null && !school.getId().equals(existingUser.getSchoolId())) {
+                throw new AccessDeniedException("User with email '" + normalizedEmail + "' belongs to another school. Cross-school reassignment is not permitted.");
+            }
+
+            if (existingUser.getRole() != null && existingUser.getRole() != Role.SCHOOL_ADMIN) {
+                throw new AccessDeniedException("User with email '" + normalizedEmail + "' has an incompatible existing role (" + existingUser.getRole() + "). Cannot assign as school administrator.");
+            }
+
+            // Case B: Inactive School Admin of the SAME school - reactivate without creating duplicate user
+            Optional<SchoolAdmin> existingSchoolAdmin = schoolAdminRepository.findById(existingUser.getId());
+            if (existingSchoolAdmin.isPresent()) {
+                SchoolAdmin sa = existingSchoolAdmin.get();
+                sa.setFirstName(request.getAdminFirstName().trim());
+                sa.setLastName(request.getAdminLastName() != null ? request.getAdminLastName().trim() : null);
+                sa.setPhone(normalizedPhone);
+                sa.setSchoolId(school.getId());
+                sa.setRole(Role.SCHOOL_ADMIN);
+                sa.setActive(true);
+                sa.setStatus(Status.ACTIVE);
+                sa.setPassword(passwordHash);
+                sa.setWelcomeCompleted(false);
+                sa.setEmailVerified(true);
+                sa.setEmailVerificationToken(UUID.randomUUID().toString());
+                targetAdminUser = schoolAdminRepository.save(sa);
+            } else {
+                existingUser.setFirstName(request.getAdminFirstName().trim());
+                existingUser.setLastName(request.getAdminLastName() != null ? request.getAdminLastName().trim() : null);
+                existingUser.setPhone(normalizedPhone);
+                existingUser.setSchoolId(school.getId());
+                existingUser.setRole(Role.SCHOOL_ADMIN);
+                existingUser.setActive(true);
+                existingUser.setStatus(Status.ACTIVE);
+                existingUser.setPassword(passwordHash);
+                existingUser.setWelcomeCompleted(false);
+                existingUser.setEmailVerified(true);
+                existingUser.setEmailVerificationToken(UUID.randomUUID().toString());
+                targetAdminUser = userRepository.save(existingUser);
+            }
+        } else {
+            // Case A: Email does not exist - create new SchoolAdmin
+            String verificationToken = UUID.randomUUID().toString();
+            SchoolAdmin newAdmin = SchoolAdmin.builder()
+                    .firstName(request.getAdminFirstName().trim())
+                    .lastName(request.getAdminLastName() != null ? request.getAdminLastName().trim() : null)
+                    .email(normalizedEmail)
+                    .phone(normalizedPhone)
+                    .password(passwordHash)
+                    .role(Role.SCHOOL_ADMIN)
+                    .schoolId(school.getId())
+                    .status(Status.ACTIVE)
+                    .active(true)
+                    .emailVerified(true)
+                    .welcomeCompleted(false)
+                    .emailVerificationToken(verificationToken)
+                    .build();
+
+            targetAdminUser = schoolAdminRepository.save(newAdmin);
+        }
+
+        // Record UserSubscription for new admin if school has an active plan
+        if (school.getSubscriptionPlanId() != null) {
+            try {
+                SubscriptionPlan plan = subscriptionPlanRepository.findById(school.getSubscriptionPlanId()).orElse(null);
+                if (plan != null) {
+                    UserSubscription userSub = UserSubscription.builder()
+                            .user(targetAdminUser)
+                            .subscriptionPlan(plan)
+                            .planType(plan.getPlanName() != null ? plan.getPlanName() : "INSTITUTIONAL")
+                            .status("ACTIVE")
+                            .amount(plan.getPrice() != null ? BigDecimal.valueOf(plan.getPrice()) : BigDecimal.ZERO)
+                            .currency(plan.getCurrency() != null ? plan.getCurrency() : "INR")
+                            .startDate(school.getSubscriptionStartDate() != null ? school.getSubscriptionStartDate() : LocalDateTime.now())
+                            .endDate(school.getSubscriptionEndDate())
+                            .expiryDate(school.getSubscriptionEndDate())
+                            .paymentStatus(PaymentStatus.PAID)
+                            .subscriptionStatus(SubscriptionStatus.ACTIVE)
+                            .paymentMethod(PaymentMethod.UPI)
+                            .transactionId("SCH-ADMIN-REPLACE-" + System.currentTimeMillis())
+                            .amountPaid(plan.getPrice() != null ? plan.getPrice() : 0.0)
+                            .build();
+                    userSubscriptionRepository.save(userSub);
+                }
+            } catch (Exception ex) {
+                System.err.println("[UserSubscription] Could not save replacement school admin subscription record: " + ex.getMessage());
+            }
+        }
+
+        // 10. Update verification record and consume verification token atomically
+        LocalDateTime now = LocalDateTime.now();
+        verification.setTempPassword(tempPassword);
+        verification.setPendingCredentialHash(passwordHash);
+        verification.setInvitationSent(true);
+        verification.setInvitationSentAt(now);
+        verification.setTokenConsumed(true);
+        verificationRepository.save(verification);
+
+        // 11. Dispatch credentials email
+        try {
+            String adminFullName = ((targetAdminUser.getFirstName() != null ? targetAdminUser.getFirstName().trim() : "")
+                    + (targetAdminUser.getLastName() != null && !targetAdminUser.getLastName().isBlank() ? " " + targetAdminUser.getLastName().trim() : "")).trim();
+            if (adminFullName.isEmpty()) {
+                adminFullName = "School Administrator";
+            }
+
+            SubscriptionPlan plan = null;
+            if (school.getSubscriptionPlanId() != null) {
+                plan = subscriptionPlanRepository.findById(school.getSubscriptionPlanId()).orElse(null);
+            }
+
+            String htmlContent = buildSchoolAdminWelcomeEmailHtml(
+                    adminFullName,
+                    targetAdminUser.getEmail(),
+                    tempPassword,
+                    school.getName(),
+                    school.getSchoolCode(),
+                    school.getAddress() != null ? school.getAddress() : "",
+                    school.getContactPhone() != null ? school.getContactPhone() : "",
+                    plan,
+                    "REPLACEMENT-CREDENTIALS"
+            );
+            String textContent = buildSchoolAdminWelcomeEmailText(
+                    adminFullName,
+                    targetAdminUser.getEmail(),
+                    tempPassword,
+                    school.getName(),
+                    school.getSchoolCode(),
+                    school.getAddress() != null ? school.getAddress() : "",
+                    school.getContactPhone() != null ? school.getContactPhone() : "",
+                    plan,
+                    "REPLACEMENT-CREDENTIALS"
+            );
+
+            EmailMessage message = EmailMessage.builder()
+                    .to(targetAdminUser.getEmail())
+                    .subject("SpeakMate AI - School Administrator Access Credentials for " + school.getName())
+                    .htmlContent(htmlContent)
+                    .text(textContent)
+                    .html(true)
+                    .senderName("SpeakMate AI")
+                    .build();
+            emailService.sendEmail(message);
+        } catch (Exception e) {
+            System.err.println("Failed to send school admin credentials email: " + e.getMessage());
+        }
+
+        // 12. Dispatch in-app notifications
+        try {
+            if (notificationService != null) {
+                notificationService.notifyAdmins(
+                        "School Admin Replaced",
+                        "School Administrator for \"" + school.getName() + "\" has been updated to " + targetAdminUser.getFirstName() + " " + (targetAdminUser.getLastName() != null ? targetAdminUser.getLastName() : "") + " (" + targetAdminUser.getEmail() + ").",
+                        com.rslsolution.speakmateai.enums.NotificationType.USER_CREATED,
+                        targetAdminUser.getId(),
+                        "USER"
+                );
+                notificationService.sendNotification(
+                        targetAdminUser.getEmail(),
+                        "Assigned as School Administrator",
+                        "You have been assigned as the School Administrator for " + school.getName() + ". Temporary credentials have been emailed to you.",
+                        com.rslsolution.speakmateai.enums.NotificationType.USER_CREATED,
+                        targetAdminUser.getId(),
+                        "USER"
+                );
+                if (currentActiveAdmin != null && currentActiveAdmin.getEmail() != null) {
+                    notificationService.sendNotification(
+                            currentActiveAdmin.getEmail(),
+                            "Administrator Role Replaced",
+                            "Your administrator role for " + school.getName() + " has ended and your account has been deactivated.",
+                            com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
+                            currentActiveAdmin.getId(),
+                            "USER"
+                    );
+                }
+                notificationService.notifyTeachersOfSchool(
+                        school.getId(),
+                        "School Administrator Update",
+                        "A new School Administrator has been assigned for " + school.getName() + ": " + targetAdminUser.getFirstName() + " " + (targetAdminUser.getLastName() != null ? targetAdminUser.getLastName() : "") + " (" + targetAdminUser.getEmail() + ").",
+                        com.rslsolution.speakmateai.enums.NotificationType.SYSTEM_EVENT,
+                        targetAdminUser.getId(),
+                        "USER"
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to dispatch notifications: " + e.getMessage());
+        }
+
+        return mapToResponse(school, targetAdminUser);
     }
 }
