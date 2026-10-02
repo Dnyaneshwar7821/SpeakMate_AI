@@ -198,6 +198,15 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
   <div id="stage-container"></div>
 
   <script>
+    window.onerror = function(msg, url, line, col, error) {
+      if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'ERROR',
+          message: String(msg || 'WebView Error') + (line ? ' at ' + line + ':' + col : '')
+        }));
+      }
+    };
+
     window.__PUPPET_IMAGE_URI = ${JSON.stringify(finalAssetUri)};
     window.__ACTIVE_MODEL = ${JSON.stringify(canonicalId)};
 
@@ -258,6 +267,12 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
       var PuppetConstructor = window.${puppetInfo.className};
       if (!PuppetConstructor) {
         console.error('Puppet class not found: ${puppetInfo.className}');
+        if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'ERROR',
+            message: 'Puppet class not found: ${puppetInfo.className}'
+          }));
+        }
         return;
       }
 
