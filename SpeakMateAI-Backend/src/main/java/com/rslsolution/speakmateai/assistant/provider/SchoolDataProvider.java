@@ -71,14 +71,19 @@ public class SchoolDataProvider implements AssistantDataProvider {
 			Map<String, Object> empty = new LinkedHashMap<>();
 			empty.put("message", "NO DATA");
 			String reqName = params != null && params.get("schoolName") != null ? params.get("schoolName").toString().trim() : "";
-			if (actor != null && actor.getRole() == Role.SCHOOL_ADMIN) {
+			if (actor != null && (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER)) {
 				School ownSchool = actor.getSchoolId() != null ? schoolRepository.findById(actor.getSchoolId()).orElse(null) : null;
 				if (ownSchool != null && !reqName.isBlank()) {
 					String reqKey = schoolKey(reqName);
+					String reqCore = coreSchoolKey(reqName);
 					String ownKey = schoolKey(displayName(ownSchool));
+					String ownCore = coreSchoolKey(displayName(ownSchool));
 					String ownShort = schoolKey(ownSchool.getName());
+					String ownShortCore = coreSchoolKey(ownSchool.getName());
 					boolean matchesOwn = ownKey.contains(reqKey) || reqKey.contains(ownKey)
-							|| (!ownShort.isEmpty() && (ownShort.contains(reqKey) || reqKey.contains(ownShort)));
+							|| (!ownShort.isEmpty() && (ownShort.contains(reqKey) || reqKey.contains(ownShort)))
+							|| (!reqCore.isEmpty() && (ownCore.contains(reqCore) || reqCore.contains(ownCore)
+									|| (!ownShortCore.isEmpty() && (ownShortCore.contains(reqCore) || reqCore.contains(ownShortCore)))));
 					if (!matchesOwn) {
 						empty.put("reason", "Access denied: You are only authorized to view data for your own school.");
 						empty.put("availableSchools", List.of(displayName(ownSchool)));
@@ -90,7 +95,7 @@ public class SchoolDataProvider implements AssistantDataProvider {
 				empty.put("reason", "School not found");
 				empty.put("requestedSchool", reqName);
 				empty.put("availableSchools", availableSchoolNames());
-			} else if (actor != null && actor.getRole() == Role.SCHOOL_ADMIN) {
+			} else if (actor != null && (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER)) {
 				empty.put("reason", "Access denied: You are only authorized to view data for your own school.");
 				if (actor.getSchoolId() != null) {
 					schoolRepository.findById(actor.getSchoolId()).ifPresent(s -> empty.put("availableSchools", List.of(displayName(s))));
@@ -172,23 +177,33 @@ public class SchoolDataProvider implements AssistantDataProvider {
 	}
 
 	private School resolveSchool(ActorContext actor, Map<String, Object> params) {
-		if (actor.getRole() == Role.SCHOOL_ADMIN && actor.getSchoolId() != null) {
-			School ownSchool = schoolRepository.findById(actor.getSchoolId()).orElse(null);
-			Object name = params != null ? params.get("schoolName") : null;
-			if (name != null && !name.toString().isBlank() && ownSchool != null) {
-				String raw = name.toString().trim();
-				String reqKey = schoolKey(raw);
-				String ownKey = schoolKey(displayName(ownSchool));
-				String ownShort = schoolKey(ownSchool.getName());
-				boolean matchesOwn = ownKey.contains(reqKey) || reqKey.contains(ownKey)
-						|| (!ownShort.isEmpty() && (ownShort.contains(reqKey) || reqKey.contains(ownShort)));
-				if (!matchesOwn) {
-					return null; // Deny access to foreign school
-				}
-			}
-			return ownSchool;
+		String reqName = params != null && params.get("schoolName") != null ? params.get("schoolName").toString().trim() : "";
+		if (reqName.isEmpty() && params != null && params.get("school") != null) {
+			reqName = params.get("school").toString().trim();
 		}
-		Object name = params.get("schoolName");
+		if (actor != null && (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER) && actor.getSchoolId() != null) {
+			School ownSchool = schoolRepository.findById(actor.getSchoolId()).orElse(null);
+			if (reqName.isEmpty()) {
+				return ownSchool;
+			}
+			if (ownSchool != null) {
+				String reqKey = schoolKey(reqName);
+				String reqCore = coreSchoolKey(reqName);
+				String ownKey = schoolKey(displayName(ownSchool));
+				String ownCore = coreSchoolKey(displayName(ownSchool));
+				String ownShort = schoolKey(ownSchool.getName());
+				String ownShortCore = coreSchoolKey(ownSchool.getName());
+				boolean matchesOwn = ownKey.contains(reqKey) || reqKey.contains(ownKey)
+						|| (!ownShort.isEmpty() && (ownShort.contains(reqKey) || reqKey.contains(ownShort)))
+						|| (!reqCore.isEmpty() && (ownCore.contains(reqCore) || reqCore.contains(ownCore)
+								|| (!ownShortCore.isEmpty() && (ownShortCore.contains(reqCore) || reqCore.contains(ownShortCore)))));
+				if (matchesOwn) {
+					return ownSchool;
+				}
+				return null;
+			}
+		}
+		Object name = params != null ? params.get("schoolName") : null;
 		if (name == null || name.toString().isBlank()) {
 			return null;
 		}
@@ -240,6 +255,15 @@ public class SchoolDataProvider implements AssistantDataProvider {
 			return "";
 		}
 		return value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+	}
+
+	private String coreSchoolKey(String value) {
+		if (value == null) {
+			return "";
+		}
+		return value.toLowerCase(Locale.ROOT)
+				.replaceAll("\\b(?:school|schools|public|high|highschool|academy|college|institute|university|international|convent|campus|polytechnic|vidyamandir|gurukul|vidyalaya)\\b", "")
+				.replaceAll("[^a-z0-9]", "");
 	}
 
 	private String displayName(School school) {

@@ -100,7 +100,13 @@ public class PlatformDataProvider implements AssistantDataProvider {
 		data.put("totalSpeakingSessions", speakingSessionRepository != null ? speakingSessionRepository.countAllCompletedSessions() : 0);
 
 		if (studentRepository != null && progressRepository != null) {
-			List<Student> students = studentRepository.findAll();
+			List<Student> students;
+			if (actor != null && (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER)) {
+				Long schoolId = actor.getSchoolId();
+				students = (schoolId != null) ? studentRepository.findBySchoolId(schoolId) : List.of();
+			} else {
+				students = studentRepository.findAll();
+			}
 			List<Map<String, Object>> topStudents = students.stream()
 					.map(s -> {
 						Progress p = progressRepository.findByStudent(s).orElse(null);

@@ -29,6 +29,8 @@ import com.rslsolution.speakmateai.util.StandardDivisionUtil;
 @Transactional
 public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminSchoolUserServiceImpl.class);
+
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
@@ -339,7 +341,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                 emailSent = true;
                 System.out.println("Super Admin: Student credentials email sent successfully to " + savedUser.getEmail());
             } catch (Exception e) {
-                System.err.println("Failed to dispatch student credentials email to " + savedUser.getEmail() + ": " + e.getMessage());
+                log.error("Failed to dispatch student credentials email to {}: {}", savedUser.getEmail(), e.getMessage(), e);
                 emailSent = false;
             }
         }
@@ -379,7 +381,14 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                     .ifPresent(s -> user.setSchoolId(s.getId()));
         }
         
+        boolean wasActive = user.isActive();
+        boolean statusExplicitlyChanged = false;
+        boolean nowActive = wasActive;
         if (request.getActive() != null) {
+            nowActive = request.getActive();
+            if (wasActive != nowActive) {
+                statusExplicitlyChanged = true;
+            }
             user.setActive(request.getActive());
             user.setStatus(request.getActive() ? com.rslsolution.speakmateai.enums.Status.ACTIVE : com.rslsolution.speakmateai.enums.Status.INACTIVE);
         }
@@ -397,10 +406,17 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                         "STUDENT"
                 );
                 if (savedUser.getSchoolId() != null) {
+                    String schoolAdminTitle = statusExplicitlyChanged ? "Student Status Updated" : "Student Updated";
+                    String schoolAdminMsg;
+                    if (statusExplicitlyChanged) {
+                        schoolAdminMsg = "Student " + studentName + " was marked as " + (nowActive ? "active." : "inactive.");
+                    } else {
+                        schoolAdminMsg = "Student " + studentName + "'s information was updated.";
+                    }
                     notificationService.notifySchoolAdmins(
                             savedUser.getSchoolId(),
-                            "Student Updated",
-                            "Student " + studentName + " details have been updated by Super Admin.",
+                            schoolAdminTitle,
+                            schoolAdminMsg,
                             com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
                             savedUser.getId(),
                             "STUDENT"
@@ -454,7 +470,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
             try {
                 notificationService.notifyAdmins("Student Removed", "Student " + studentName + " has been removed by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
                 if (schoolId != null) {
-                    notificationService.notifySchoolAdmins(schoolId, "Student Removed", "Student " + studentName + " has been removed by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
+                    notificationService.notifySchoolAdmins(schoolId, "Student Deleted", "Student " + studentName + " was deleted.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
                 }
                 Long teacherId = user.getTeacherId();
                 if (teacherId == null && schoolTeacherService != null && schoolId != null && user.getStandard() != null && user.getDivision() != null) {
@@ -521,8 +537,8 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                 try {
                     notificationService.notifySchoolAdmins(
                             schoolId,
-                            "Student Activated",
-                            "Student " + studentName + " has been activated by Super Admin.",
+                            "Student Status Updated",
+                            "Student " + studentName + " was marked as active.",
                             com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
                             savedUser.getId(),
                             "STUDENT"
@@ -618,8 +634,8 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                 try {
                     notificationService.notifySchoolAdmins(
                             schoolId,
-                            "Student Deactivated",
-                            "Student " + studentName + " has been deactivated by Super Admin.",
+                            "Student Status Updated",
+                            "Student " + studentName + " was marked as inactive.",
                             com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
                             savedUser.getId(),
                             "STUDENT"

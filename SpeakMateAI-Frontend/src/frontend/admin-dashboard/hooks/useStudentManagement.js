@@ -248,7 +248,7 @@ export function useStudentManagement() {
       teacherId: data.teacherId ? Number(data.teacherId) : null,
       parentName: data.parentName || "Parent",
       parentPhone: normalizeIndianMobile(data.parentPhone),
-      active: data.status === "active"
+      active: data.active !== undefined ? Boolean(data.active) : (data.status ? String(data.status).toLowerCase() === "active" : true)
     };
     const res = await studentApi.createStudent(payload);
     studentManagementCache.students = null;

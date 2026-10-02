@@ -192,6 +192,12 @@ public class StudentServiceImpl implements StudentService {
             try {
                 String studentName = (savedStudent.getFirstName() + " "
                         + (savedStudent.getLastName() != null ? savedStudent.getLastName() : "")).trim();
+                if (savedStudent.getSchoolId() != null) {
+                    notificationService.notifySchoolAdmins(savedStudent.getSchoolId(), "New Student Enrolled",
+                            "Student " + studentName + " (" + savedStudent.getStudentId() + ") has been enrolled.",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_CREATED, savedStudent.getId(),
+                            "STUDENT");
+                }
                 notificationService.notifyAdmins("New Student Enrolled",
                         "Student " + studentName + " (" + savedStudent.getStudentId() + ") has been enrolled.",
                         com.rslsolution.speakmateai.enums.NotificationType.STUDENT_CREATED, savedStudent.getId(),
@@ -343,6 +349,22 @@ public class StudentServiceImpl implements StudentService {
             throw new RuntimeException("Unauthorized to update students");
         }
 
+        boolean wasActive = student.isActive();
+        boolean statusExplicitlyChanged = false;
+        boolean nowActive = wasActive;
+
+        if (request.getActive() != null) {
+            nowActive = request.getActive();
+            if (wasActive != nowActive) {
+                statusExplicitlyChanged = true;
+            }
+        } else if (request.getStatus() != null) {
+            nowActive = (request.getStatus() == Status.ACTIVE);
+            if (wasActive != nowActive) {
+                statusExplicitlyChanged = true;
+            }
+        }
+
         if (request.getEmail() != null && !request.getEmail().trim().isEmpty()
                 && !student.getEmail().equalsIgnoreCase(request.getEmail().trim())) {
             if (userRepository.existsByEmail(request.getEmail().trim())) {
@@ -400,10 +422,17 @@ public class StudentServiceImpl implements StudentService {
                         "STUDENT"
                 );
                 if (updatedStudent.getSchoolId() != null) {
+                    String schoolAdminTitle = statusExplicitlyChanged ? "Student Status Updated" : "Student Updated";
+                    String schoolAdminMsg;
+                    if (statusExplicitlyChanged) {
+                        schoolAdminMsg = "Student " + studentName + " was marked as " + (nowActive ? "active." : "inactive.");
+                    } else {
+                        schoolAdminMsg = "Student " + studentName + "'s information was updated.";
+                    }
                     notificationService.notifySchoolAdmins(
                             updatedStudent.getSchoolId(),
-                            "Student Updated",
-                            "Student " + studentName + " details have been updated.",
+                            schoolAdminTitle,
+                            schoolAdminMsg,
                             com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
                             updatedStudent.getId(),
                             "STUDENT"
@@ -479,8 +508,8 @@ public class StudentServiceImpl implements StudentService {
                 if (schoolId != null) {
                     notificationService.notifySchoolAdmins(
                             schoolId,
-                            "Student Removed",
-                            "Student " + studentName + " has been removed from the school roster.",
+                            "Student Deleted",
+                            "Student " + studentName + " was deleted.",
                             com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED,
                             id,
                             "STUDENT"
@@ -616,7 +645,25 @@ public class StudentServiceImpl implements StudentService {
         }
 
         student.setPassword(passwordEncoder.encode(newPassword));
-        studentRepository.save(student);
+        Student savedStudent = studentRepository.save(student);
+
+        Long schoolId = savedStudent.getSchoolId();
+        String studentName = (savedStudent.getFirstName() + " "
+                + (savedStudent.getLastName() != null ? savedStudent.getLastName() : "")).trim();
+
+        if (notificationService != null && schoolId != null) {
+            try {
+                notificationService.notifySchoolAdmins(
+                        schoolId,
+                        "Student Account Reset",
+                        "Student " + studentName + "'s account was reset/retried.",
+                        com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                        id,
+                        "STUDENT"
+                );
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     @Override

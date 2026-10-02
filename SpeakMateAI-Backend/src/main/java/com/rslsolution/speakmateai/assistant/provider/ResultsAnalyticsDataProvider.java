@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
+import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.entity.Result;
 import com.rslsolution.speakmateai.entity.School;
 import com.rslsolution.speakmateai.enums.Role;
@@ -166,10 +167,10 @@ public class ResultsAnalyticsDataProvider implements AssistantDataProvider {
 		// Cross-school isolation: School Admins and Teachers must ALWAYS use
 		// their own schoolId. They must never fall through to the name-based
 		// lookup that could resolve to a foreign school's data.
-		if (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER) {
+		if (actor != null && (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER)) {
 			return actor.getSchoolId(); // may be null → handled as "no scope" by caller
 		}
-		if (actor.getSchoolId() != null) {
+		if (actor != null && actor.getSchoolId() != null) {
 			return actor.getSchoolId();
 		}
 		// Only Super Admin reaches here for cross-school lookup by name

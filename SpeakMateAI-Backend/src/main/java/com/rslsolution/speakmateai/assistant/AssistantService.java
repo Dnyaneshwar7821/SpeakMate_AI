@@ -121,7 +121,10 @@ public class AssistantService {
 
 			String dataJson;
 			try {
+				log.info("[CHATBOT TRACE] User Message: '{}', Classified Intent: {}, Actor Email: '{}', Actor Role: {}, Actor SchoolId: {}, Params: {}",
+						request.getMessage(), intent, actor.getEmail(), actor.getRole(), actor.getSchoolId(), params);
 				dataJson = provider.get().provide(actor, params);
+				log.info("[CHATBOT TRACE] Data Provider Output JSON: {}", dataJson);
 			} catch (Exception e) {
 				log.error("Data provider for intent {} threw an exception: {}", intent, e.getMessage(), e);
 				dataJson = "{}";

@@ -19,6 +19,8 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
 
 	List<UserSubscription> findByUserOrderByCreatedAtDesc(User user);
 
+	List<UserSubscription> findByUserSchoolId(Long schoolId);
+
 	Optional<UserSubscription> findFirstByUserAndStatusOrderByCreatedAtDesc(User user, String status);
 
 	Optional<UserSubscription> findByRazorpayOrderId(String razorpayOrderId);

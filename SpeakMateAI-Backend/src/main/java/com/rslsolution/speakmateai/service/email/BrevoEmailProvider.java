@@ -40,6 +40,8 @@ public class BrevoEmailProvider implements EmailProvider {
     private final String apiKey;
     private final String defaultSenderEmail;
     private final String defaultSenderName;
+    @Autowired(required = false)
+    private org.springframework.mail.javamail.JavaMailSender mailSender;
 
     @Autowired
     public BrevoEmailProvider(
@@ -72,10 +74,6 @@ public class BrevoEmailProvider implements EmailProvider {
             throw new IllegalArgumentException("EmailMessage cannot be null");
         }
 
-        if (apiKey == null || apiKey.trim().isEmpty()) {
-            throw new IllegalStateException("Brevo API key is not configured. Please set the BREVO_API_KEY environment variable.");
-        }
-
         if (message.getTo() == null || message.getTo().isBlank()) {
             throw new IllegalArgumentException("Recipient email ('to') cannot be empty");
         }
@@ -87,6 +85,15 @@ public class BrevoEmailProvider implements EmailProvider {
         String senderName = (message.getSenderName() != null && !message.getSenderName().isBlank())
                 ? message.getSenderName().trim()
                 : defaultSenderName;
+
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            if (mailSender != null) {
+                log.warn("Brevo API key is not configured. Falling back to SMTP JavaMailSender for recipient: {}", recipient);
+                sendViaSmtpFallback(message, senderEmail, senderName);
+                return;
+            }
+            throw new IllegalStateException("Brevo API key is not configured and SMTP fallback is unavailable. Please set BREVO_API_KEY or SPRING_MAIL_USERNAME/SPRING_MAIL_PASSWORD.");
+        }
 
         if (senderEmail == null || senderEmail.isBlank()) {
             throw modernSenderException();
@@ -137,16 +144,43 @@ public class BrevoEmailProvider implements EmailProvider {
                 }
             } catch (Exception ignored) {}
             throw new RuntimeException("Brevo error: " + detail, e);
-        } catch (ResourceAccessException e) {
-            log.error("Brevo API connection or timeout failure for recipient: {}: {}",
-                    recipient, e.getMessage());
-            throw new RuntimeException("Connection/timeout error while contacting Brevo API: " + e.getMessage(), e);
         } catch (Exception e) {
-            if (e instanceof RuntimeException && !(e instanceof IllegalArgumentException || e instanceof IllegalStateException)) {
+            log.error("Brevo API delivery failed for recipient {}: {}", recipient, e.getMessage());
+            if (mailSender != null) {
+                try {
+                    log.info("Attempting SMTP fallback delivery for recipient: {}", recipient);
+                    sendViaSmtpFallback(message, senderEmail, senderName);
+                    log.info("SMTP fallback email dispatched successfully to: {}", recipient);
+                    return;
+                } catch (Exception smtpEx) {
+                    log.error("SMTP fallback also failed for recipient {}: {}", recipient, smtpEx.getMessage(), smtpEx);
+                }
+            }
+            if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;
             }
-            log.error("Unexpected error during Brevo email delivery to {}: {}", recipient, e.getMessage());
             throw new RuntimeException("Brevo email delivery failed: " + e.getMessage(), e);
+        }
+    }
+
+    private void sendViaSmtpFallback(EmailMessage message, String senderEmail, String senderName) {
+        if (mailSender == null) {
+            throw new IllegalStateException("SMTP JavaMailSender is unavailable for fallback.");
+        }
+        try {
+            jakarta.mail.internet.MimeMessage mimeMessage = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(mimeMessage, true, "UTF-8");
+            if (senderEmail != null && !senderEmail.isBlank()) {
+                helper.setFrom(senderEmail, senderName != null ? senderName : "SpeakMateAI");
+            }
+            helper.setTo(message.getTo());
+            helper.setSubject(message.getSubject());
+            String content = message.getHtmlContent() != null ? message.getHtmlContent() : message.getText();
+            helper.setText(content, message.isHtml());
+            mailSender.send(mimeMessage);
+        } catch (Exception e) {
+            log.error("Failed to send fallback email via SMTP to {}: {}", message.getTo(), e.getMessage(), e);
+            throw new RuntimeException("SMTP fallback email failed: " + e.getMessage(), e);
         }
     }
 

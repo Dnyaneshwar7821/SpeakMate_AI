@@ -46,7 +46,11 @@ public class AdminSchoolUserController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<AdminSchoolUserResponse>> createSchoolUser(@Valid @RequestBody AdminSchoolUserCreateRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("School User created successfully", adminSchoolUserService.createSchoolUser(request)));
+        AdminSchoolUserResponse response = adminSchoolUserService.createSchoolUser(request);
+        String message = Boolean.TRUE.equals(response.getEmailSent())
+                ? "School User created successfully and credentials email sent."
+                : "School User created successfully, but credentials email could not be sent.";
+        return ResponseEntity.ok(ApiResponse.success(message, response));
     }
 
     @PutMapping("/{id}")

@@ -73,6 +73,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	@Query("SELECT u FROM User u WHERE u.schoolId = :schoolId AND u.role = :role")
 	List<User> findBySchoolIdAndRole(@Param("schoolId") Long schoolId, @Param("role") Role role);
 
+	List<User> findBySchoolId(Long schoolId);
+
 	List<User> findByRole(Role role);
 
 	long countByRole(Role role);

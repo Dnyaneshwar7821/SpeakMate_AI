@@ -17,6 +17,7 @@ import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
 import com.rslsolution.speakmateai.entity.GrammarHistory;
 import com.rslsolution.speakmateai.entity.LessonProgress;
 import com.rslsolution.speakmateai.entity.Progress;
+import com.rslsolution.speakmateai.entity.School;
 import com.rslsolution.speakmateai.entity.SpeakingSession;
 import com.rslsolution.speakmateai.entity.Student;
 import com.rslsolution.speakmateai.entity.User;
@@ -25,6 +26,7 @@ import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.repository.GrammarHistoryRepository;
 import com.rslsolution.speakmateai.repository.LessonProgressRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
+import com.rslsolution.speakmateai.repository.SchoolRepository;
 import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
 import com.rslsolution.speakmateai.repository.StudentRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
@@ -41,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class StudentLookupDataProvider implements AssistantDataProvider {
 
+	private final SchoolRepository schoolRepository;
 	private final StudentRepository studentRepository;
 	private final UserRepository userRepository;
 	private final ProgressRepository progressRepository;
@@ -51,7 +54,8 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 	private final TeacherAssignmentResolver teacherAssignmentResolver;
 	private final ObjectMapper objectMapper;
 
-	public StudentLookupDataProvider(StudentRepository studentRepository, UserRepository userRepository,
+	public StudentLookupDataProvider(SchoolRepository schoolRepository,
+			StudentRepository studentRepository, UserRepository userRepository,
 			ProgressRepository progressRepository,
 			LessonProgressRepository lessonProgressRepository,
 			SpeakingSessionRepository speakingSessionRepository,
@@ -59,6 +63,7 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 			GrammarHistoryRepository grammarHistoryRepository,
 			TeacherAssignmentResolver teacherAssignmentResolver,
 			ObjectMapper objectMapper) {
+		this.schoolRepository = schoolRepository;
 		this.studentRepository = studentRepository;
 		this.userRepository = userRepository;
 		this.progressRepository = progressRepository;
@@ -77,6 +82,29 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 
 	@Override
 	public String provide(ActorContext actor, Map<String, Object> params) {
+		String reqSchoolName = strParam(params, "schoolName");
+		if (reqSchoolName.isEmpty()) {
+			reqSchoolName = strParam(params, "school");
+		}
+		// ACCESS CONTROL: For SCHOOL_ADMIN and TEACHER, deny access if the requested school
+		// does not match the authenticated user's own school. Stop BEFORE any DB query.
+		if (!reqSchoolName.isEmpty() && actor != null
+				&& (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER)) {
+			if (actor.getSchoolId() == null) {
+				Map<String, Object> denied = new LinkedHashMap<>();
+				denied.put("message", "ACCESS DENIED");
+				denied.put("reason", "Access denied. You can only access student information for your own school.");
+				return toJson(denied);
+			}
+			Optional<School> requestedSchool = schoolRepository.findByNameIgnoreCase(reqSchoolName);
+			if (requestedSchool.isPresent() && !requestedSchool.get().getId().equals(actor.getSchoolId())) {
+				Map<String, Object> denied = new LinkedHashMap<>();
+				denied.put("message", "ACCESS DENIED");
+				denied.put("reason", "Access denied. You can only access student information for your own school.");
+				return toJson(denied);
+			}
+		}
+
 		StudentResolution target = resolveStudent(actor, params);
 		if (target == null || target.student() == null) {
 			// The named person may exist in the users table but not in the students
@@ -350,7 +378,11 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 			return assigned.map(s -> new StudentResolution(s, List.of(s))).orElse(null);
 		}
 
-		List<Student> byNameMatches = findAllByName(studentRepository.findAll(), params, schoolId);
+		List<Student> candidates = (schoolId != null)
+				? studentRepository.findBySchoolId(schoolId)
+				: studentRepository.findAll();
+
+		List<Student> byNameMatches = findAllByName(candidates, params, schoolId);
 		if (!byNameMatches.isEmpty()) {
 			if (byNameMatches.size() == 1) {
 				return new StudentResolution(byNameMatches.get(0), byNameMatches);
@@ -374,8 +406,7 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		String rollNumber = strParam(params, "rollNumber");
 		String idValue = !studentIdParam.isEmpty() ? studentIdParam : rollNumber;
 		if (!idValue.isEmpty()) {
-			List<Student> byIdMatches = studentRepository.findAll().stream()
-					.filter(s -> schoolId == null || schoolId.equals(s.getSchoolId()))
+			List<Student> byIdMatches = candidates.stream()
 					.filter(s -> idValue.equalsIgnoreCase(s.getStudentId()) || idValue.equalsIgnoreCase(String.valueOf(s.getId())))
 					.collect(Collectors.toList());
 			if (!byIdMatches.isEmpty()) {
@@ -426,9 +457,9 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 
 		final String needleName = name;
 		final String needleEmail = email;
-		return userRepository.findAll().stream()
+		List<User> userCandidates = (scope != null) ? userRepository.findBySchoolId(scope) : userRepository.findAll();
+		return userCandidates.stream()
 				.filter(u -> !isStudent(u))
-				.filter(u -> scope == null || scope.equals(u.getSchoolId()))
 				.filter(u -> matchesUserIdentifier(u, needleName, needleEmail))
 				.findFirst();
 	}

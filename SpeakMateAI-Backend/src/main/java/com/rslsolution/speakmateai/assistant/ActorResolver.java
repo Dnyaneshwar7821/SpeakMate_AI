@@ -23,6 +23,9 @@ import com.rslsolution.speakmateai.repository.UserRepository;
  * school admins / teachers / students) is checked first, then the admins table
  * (Super Admin). Resolution is strictly read-only.
  */
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class ActorResolver {
 
@@ -63,6 +66,7 @@ public class ActorResolver {
 			// though the Profile page displays it.
 			Admin fallback = (role == Role.ADMIN || role == Role.SUPER_ADMIN) ? admin.orElse(null) : null;
 			Optional<Progress> progress = progressRepository.findByUser(u);
+			log.info("[ACTOR TRACE] Resolved User: email={}, role={}, userId={}, schoolId={}", email, role, u.getId(), u.getSchoolId());
 			int userXp = (progress.isPresent() && progress.get().getXp() != null) ? progress.get().getXp() : 0;
 			int currentStreak = (progress.isPresent() && progress.get().getCurrentStreak() != null) ? progress.get().getCurrentStreak() : 0;
 			int longestStreak = (progress.isPresent() && progress.get().getLongestStreak() != null) ? progress.get().getLongestStreak() : 0;
