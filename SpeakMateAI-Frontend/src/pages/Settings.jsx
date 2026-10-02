@@ -627,9 +627,7 @@ export function Settings() {
                 </div>
 
                 {VOICE_PROFILES.filter((vp) => {
-                  const HUMAN_VOICES = [
-                    "Teacher",
-                    "MaleTeacher",
+                  const REGIONAL_VOICES_ONLY = [
                     "US Female",
                     "US Male",
                     "UK Female",
@@ -639,7 +637,7 @@ export function Settings() {
                     "IN Female",
                     "IN Male"
                   ];
-                  return HUMAN_VOICES.includes(vp.code);
+                  return REGIONAL_VOICES_ONLY.includes(vp.code);
                 }).map((profile, idx) => {
                   const isSelected = selectedVoice === profile.code;
                   const flagMap = {
@@ -691,6 +689,21 @@ export function Settings() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Modal Footer Confirmation */}
+            <div className="px-6 py-4 border-t border-[var(--border-default)] dark:border-white/10 bg-[var(--bg-surface)] flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-500">
+                <span>✓</span>
+                <span>Active Voice: {activeVoiceLabel} (Auto-saved across web app)</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowVoiceModal(false)}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs font-black hover:opacity-95 transition-all shadow-md active:scale-95 cursor-pointer shrink-0"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>,

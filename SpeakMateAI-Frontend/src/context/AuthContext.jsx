@@ -58,8 +58,15 @@ export function AuthProvider({ children }) {
         localStorage.setItem("speakmate_account_type", userData.accountType);
       }
 
-      if (userData.preferredAccent || userData.aiVoice) {
-        localStorage.setItem("speakmate_ai_voice", userData.preferredAccent || userData.aiVoice);
+      if (userData.preferredAccent) {
+        localStorage.setItem("speakmate_voice_accent", userData.preferredAccent);
+      }
+
+      const voicePref = userData.aiVoice || userData.preferredVoice;
+      if (voicePref) {
+        localStorage.setItem("speakmate_ai_voice", voicePref);
+        localStorage.setItem("speakmate_selected_voice", voicePref);
+        localStorage.setItem("speakmate_voice_code", voicePref);
       }
 
       const goalMins = parseInt(userData.dailyGoalMinutes || userData.dailyGoal || userData.commitment, 10);

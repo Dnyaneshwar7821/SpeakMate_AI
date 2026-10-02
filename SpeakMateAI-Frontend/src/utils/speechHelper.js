@@ -1569,7 +1569,22 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null, overrideModel = 
     "IN Male", "IN Female"
   ];
 
-  let rawStoredVoice = localStorage.getItem("speakmate_ai_voice") || localStorage.getItem("speakmate_selected_voice") || "Default";
+  const candidateVoices = [
+    localStorage.getItem("speakmate_selected_voice"),
+    localStorage.getItem("speakmate_voice_code"),
+    localStorage.getItem("speakmate_ai_voice"),
+  ].filter(Boolean);
+
+  const matchedRegional = candidateVoices.find((c) =>
+    REGIONAL_VOICES.some((rv) => rv.toLowerCase() === (c || "").trim().toLowerCase())
+  );
+
+  let rawStoredVoice = (matchedRegional ? matchedRegional.trim() : "") ||
+    localStorage.getItem("speakmate_selected_voice") ||
+    localStorage.getItem("speakmate_voice_code") ||
+    localStorage.getItem("speakmate_ai_voice") ||
+    "Default";
+
   let aiVoice = overrideVoiceCode || (hasOverride ? mapModelToVoiceCode(currentAvatarModel) : rawStoredVoice) || "Default";
   const onboardingVoice = localStorage.getItem("speakmate_onboarding_voice") || localStorage.getItem("speakmate_voice_persona") || "Friendly";
   const accent = localStorage.getItem("speakmate_voice_accent") || "US";
@@ -1612,11 +1627,11 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null, overrideModel = 
     } else if (isTeacherAvatar) {
       // Check if user specifically selected a regional voice for Teacher
       const isRegional = REGIONAL_VOICES.some(rv => rv.toLowerCase() === rawStoredVoice.trim().toLowerCase());
-      aiVoice = isRegional ? rawStoredVoice.trim() : "Teacher";
+      aiVoice = matchedRegional ? matchedRegional.trim() : (isRegional ? rawStoredVoice.trim() : "Teacher");
     } else if (isMaleTeacherAvatar) {
       // Check if user specifically selected a regional voice for Male Teacher
       const isRegional = REGIONAL_VOICES.some(rv => rv.toLowerCase() === rawStoredVoice.trim().toLowerCase());
-      aiVoice = isRegional ? rawStoredVoice.trim() : "MaleTeacher";
+      aiVoice = matchedRegional ? matchedRegional.trim() : (isRegional ? rawStoredVoice.trim() : "MaleTeacher");
     }
   }
 
@@ -2007,7 +2022,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
       const FEMALE_NAMES = ["jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia", "hazel", "fiona", "kate", "serena", "natasha", "catherine", "libby", "mia", "annette", "neerja", "veena", "heera", "female"];
 
       // Profile-driven targeted voice matching for AU Female (Explicitly excludes Indian & US female voices)
-      if (settings.effectiveVoiceCode === "AU Female") {
+      if (settings.effectiveVoiceCode === "AU Female" || effCode === "au female") {
         const EXCLUDE_IN_FEMALES = ["neerja", "veena", "heera", "kalpana", "ananya", "indian", "in-in", "zira", "jenny", "david", "guy"];
         targetVoice = voices.find((v) =>
           (v.lang.toLowerCase().includes("au") || v.name.toLowerCase().includes("australia") || AU_FEMALE.some((k) => v.name.toLowerCase().includes(k))) &&
@@ -2033,7 +2048,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
             !EXCLUDE_IN_FEMALES.some((k) => v.name.toLowerCase().includes(k))
           );
         }
-      } else if (settings.effectiveVoiceCode === "IN Female") {
+      } else if (settings.effectiveVoiceCode === "IN Female" || effCode === "in female") {
         targetVoice = voices.find((v) =>
           (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("indian") || v.name.toLowerCase().includes("veena") || v.name.toLowerCase().includes("neerja") || v.name.toLowerCase().includes("heera")) &&
           !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
@@ -2042,21 +2057,21 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
           targetVoice = voices.find((v) => v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("jenny")) ||
                         voices.find((v) => FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
         }
-      } else if (settings.effectiveVoiceCode === "UK Female") {
+      } else if (settings.effectiveVoiceCode === "UK Female" || effCode === "uk female") {
         targetVoice = voices.find((v) =>
           (v.lang.toLowerCase().includes("gb") || v.name.toLowerCase().includes("uk") || v.name.toLowerCase().includes("british")) &&
           (FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) || UK_FEMALE.some((k) => v.name.toLowerCase().includes(k))) &&
           !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
         ) || voices.find((v) => UK_FEMALE.some((k) => v.name.toLowerCase().includes(k)))
           || voices.find((v) => v.lang.toLowerCase().includes("gb") && !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
-      } else if (settings.effectiveVoiceCode === "UK Male") {
+      } else if (settings.effectiveVoiceCode === "UK Male" || effCode === "uk male") {
         targetVoice = voices.find((v) =>
           (v.lang.toLowerCase().includes("gb") || v.name.toLowerCase().includes("uk") || v.name.toLowerCase().includes("british")) &&
           (MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) || UK_MALE.some((k) => v.name.toLowerCase().includes(k))) &&
           !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
         ) || voices.find((v) => UK_MALE.some((k) => v.name.toLowerCase().includes(k)))
           || voices.find((v) => v.lang.toLowerCase().includes("gb") && !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
-      } else if (settings.effectiveVoiceCode === "AU Male") {
+      } else if (settings.effectiveVoiceCode === "AU Male" || effCode === "au male") {
         targetVoice = voices.find((v) =>
           (v.lang.toLowerCase().includes("au") || AU_MALE.some((k) => v.name.toLowerCase().includes(k))) &&
           !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
@@ -2065,16 +2080,16 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
           targetVoice = voices.find((v) => v.name.toLowerCase().includes("mark") || v.name.toLowerCase().includes("george") || v.name.toLowerCase().includes("chris") || v.name.toLowerCase().includes("alex")) ||
                         voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
         }
-      } else if (settings.effectiveVoiceCode === "US Female") {
+      } else if (settings.effectiveVoiceCode === "US Female" || effCode === "us female") {
         targetVoice = voices.find((v) =>
           v.lang.toLowerCase().includes("us") && (v.name.toLowerCase().includes("jenny") || v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("female"))
         ) || voices.find((v) => US_FEMALE.some((k) => v.name.toLowerCase().includes(k)))
           || voices.find((v) => v.lang.toLowerCase().includes("us") && !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
-      } else if (settings.effectiveVoiceCode === "US Male") {
+      } else if (settings.effectiveVoiceCode === "US Male" || effCode === "us male") {
         targetVoice = voices.find((v) =>
           v.lang.toLowerCase().includes("us") && (v.name.toLowerCase().includes("guy") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("male"))
         ) || voices.find((v) => US_MALE.some((k) => v.name.toLowerCase().includes(k)));
-      } else if (settings.effectiveVoiceCode === "IN Male") {
+      } else if (settings.effectiveVoiceCode === "IN Male" || effCode === "in male") {
         targetVoice = voices.find((v) =>
           (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("indian") || v.name.toLowerCase().includes("rishi") || v.name.toLowerCase().includes("prabhat")) &&
           !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
@@ -2152,6 +2167,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
 
   if (targetVoice) {
     utterance.voice = targetVoice;
+    utterance.lang = targetVoice.lang || settings.lang;
 
       if (!isShizukuActive && !isDoraemonActive && !isSpongeBobActive && !isChhotaBheemActive && !isBenTenActive && !isNinjaHattoriActive && !isScoobyActive && !isTomActive && !isTeacherNativeActive && !isMaleTeacherNativeActive) {
         // Fine-tune pitch for smooth natural clarity if fallback voice doesn't match gender
