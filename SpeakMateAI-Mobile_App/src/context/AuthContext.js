@@ -76,7 +76,28 @@ export const AuthProvider = ({ children }) => {
       if (storedToken && storedToken !== "null" && storedToken !== "undefined" && storedUser) {
         setAuthToken(storedToken);
         const parsedUser = JSON.parse(storedUser);
-        const me = await authService.me().catch(() => null);
+        let me = null;
+        try {
+          me = await authService.me();
+        } catch (authErr) {
+          if (authErr?.response?.status === 401) {
+            await SecureStore.deleteItemAsync(STORAGE_KEYS.token).catch(() => {});
+            await AsyncStorage.removeItem(STORAGE_KEYS.user).catch(() => {});
+            await AsyncStorage.removeItem(STORAGE_KEYS.onboardingCompleted).catch(() => {});
+            clearAuthToken();
+            setToken(null);
+            setUser(null);
+            setOnboardingCompletedState(false);
+            setIsAuthenticated(false);
+            setWelcomeCompletedState(storedWelcome === "true");
+            return {
+              isAuthenticated: false,
+              welcomeCompleted: storedWelcome === "true",
+              onboardingCompleted: false,
+            };
+          }
+          me = null;
+        }
         const activeUser = me || parsedUser;
         const userEmail = (activeUser?.email || "").toLowerCase();
         

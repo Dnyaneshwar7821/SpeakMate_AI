@@ -18,6 +18,8 @@ export const clearAuthToken = () => {
   cachedAuthToken = null;
 };
 
+export const getAuthToken = () => cachedAuthToken;
+
 const api = axios.create({
   baseURL: BASE_URL || 'https://speakmate-ai-28z5.onrender.com',
   timeout: 120000, // 120s to allow Render free-tier cold starts

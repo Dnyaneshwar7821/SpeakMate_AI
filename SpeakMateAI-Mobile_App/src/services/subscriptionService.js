@@ -1,12 +1,28 @@
-import api from "../api/api";
+import api, { getAuthToken } from "../api/api";
+import * as SecureStore from "expo-secure-store";
+import { STORAGE_KEYS } from "../utils/storageKeys";
 
 export const subscriptionService = {
   getMySubscription: async () => {
     try {
+      let token = getAuthToken();
+      if (!token) {
+        token = await SecureStore.getItemAsync(STORAGE_KEYS.token).catch(() => null);
+      }
+      if (!token || token === "null" || token === "undefined") {
+        return {
+          isPro: false,
+          planType: "FREE",
+          status: "INACTIVE",
+        };
+      }
+
       const response = await api.get("/api/subscription/my-subscription");
       return response.data;
     } catch (err) {
-      console.warn("[SubscriptionService] getMySubscription:", err.message);
+      if (err.response?.status !== 401) {
+        console.warn("[SubscriptionService] getMySubscription:", err.message);
+      }
       return {
         isPro: false,
         planType: "FREE",
