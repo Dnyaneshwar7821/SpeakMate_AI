@@ -30,7 +30,7 @@ export const AVATAR_VOICE_PROFILES = {
     targetLocale: 'en-IN',
     basePitch: 1.12,
     baseRate: 0.98,
-    preferredVoices: ['inf', 'ing', 'cbf', 'ena', 'sfg', 'samantha', 'victoria', 'karen', 'female'],
+    preferredVoices: ['inf', 'ing', 'inm', 'cbf', 'ena', 'enc', 'lekha', 'veena', 'samantha', 'victoria', 'karen', 'female'],
   },
   chitose: {
     avatarId: 'chitose',
@@ -41,7 +41,7 @@ export const AVATAR_VOICE_PROFILES = {
     targetLocale: 'en-IN',
     basePitch: 1.00,
     baseRate: 0.96,
-    preferredVoices: ['ind', 'inc', 'inb', 'end', 'rishi', 'ravi', 'prabhat', 'tpf', 'tpc', 'male'],
+    preferredVoices: ['ind', 'inc', 'inb', 'end', 'ene', 'rishi', 'ravi', 'prabhat', 'daniel', 'male'],
   },
   shizuku: {
     avatarId: 'shizuku',
@@ -52,7 +52,7 @@ export const AVATAR_VOICE_PROFILES = {
     targetLocale: 'en-US',
     basePitch: 1.22,
     baseRate: 1.04,
-    preferredVoices: ['sfg', 'iol', 'rgf', 'samantha', 'victoria', 'karen', 'female'],
+    preferredVoices: ['sfg', 'iol', 'iom', 'rgf', 'samantha', 'victoria', 'karen', 'allison', 'female'],
   },
   robopaws: {
     avatarId: 'robopaws',
@@ -60,10 +60,10 @@ export const AVATAR_VOICE_PROFILES = {
     category: 'cartoon',
     intendedGender: 'male',
     voiceCode: 'Doraemon',
-    targetLocale: 'en-IN',
+    targetLocale: 'en-US',
     basePitch: 1.06,
     baseRate: 1.03,
-    preferredVoices: ['ind', 'inc', 'inb', 'cbf', 'ena', 'sfg', 'tpf', 'male'],
+    preferredVoices: ['zarvox', 'fred', 'alex', 'daniel', 'tpc', 'tpf', 'iog', 'ind', 'male'],
   },
   spongebob: {
     avatarId: 'spongebob',
@@ -74,7 +74,7 @@ export const AVATAR_VOICE_PROFILES = {
     targetLocale: 'en-US',
     basePitch: 1.18,
     baseRate: 1.02,
-    preferredVoices: ['tpc', 'iog', 'daniel', 'alex', 'tpf', 'male'],
+    preferredVoices: ['iog', 'fred', 'tpf', 'alex', 'daniel', 'tpc', 'male'],
   },
   sparky: {
     avatarId: 'sparky',
@@ -85,7 +85,7 @@ export const AVATAR_VOICE_PROFILES = {
     targetLocale: 'en-IN',
     basePitch: 1.22,
     baseRate: 1.03,
-    preferredVoices: ['ind', 'inc', 'inb', 'end', 'rishi', 'ravi', 'prabhat', 'male'],
+    preferredVoices: ['ind', 'inc', 'inb', 'end', 'ene', 'rishi', 'ravi', 'prabhat', 'alex', 'male'],
   },
   koharu: {
     avatarId: 'koharu',
@@ -96,7 +96,7 @@ export const AVATAR_VOICE_PROFILES = {
     targetLocale: 'en-US',
     basePitch: 1.20,
     baseRate: 1.04,
-    preferredVoices: ['tpc', 'iog', 'tpf', 'alex', 'daniel', 'male'],
+    preferredVoices: ['tpf', 'iog', 'fred', 'alex', 'daniel', 'tpc', 'male'],
   },
   haruto: {
     avatarId: 'haruto',
@@ -107,7 +107,7 @@ export const AVATAR_VOICE_PROFILES = {
     targetLocale: 'en-US',
     basePitch: 1.20,
     baseRate: 1.04,
-    preferredVoices: ['tpc', 'iog', 'daniel', 'alex', 'oliver', 'fred', 'tpf', 'male'],
+    preferredVoices: ['tpc', 'fred', 'iog', 'tpf', 'alex', 'oliver', 'daniel', 'male'],
   },
   mao: {
     avatarId: 'mao',
@@ -118,7 +118,7 @@ export const AVATAR_VOICE_PROFILES = {
     targetLocale: 'en-US',
     basePitch: 1.18,
     baseRate: 1.03,
-    preferredVoices: ['tpc', 'iog', 'tpf', 'alex', 'david', 'daniel', 'male'],
+    preferredVoices: ['tpf', 'iog', 'alex', 'daniel', 'david', 'tpc', 'male'],
   },
   puppy: {
     avatarId: 'puppy',
@@ -129,7 +129,7 @@ export const AVATAR_VOICE_PROFILES = {
     targetLocale: 'en-US',
     basePitch: 0.92,
     baseRate: 0.94,
-    preferredVoices: ['tpf', 'tpc', 'iog', 'david', 'alex', 'daniel', 'male'],
+    preferredVoices: ['tpc', 'daniel', 'oliver', 'david', 'alex', 'tpf', 'male'],
   },
 };
 
@@ -350,7 +350,6 @@ export const VoiceService = {
     const isCartoon = avatarProfile.category === 'cartoon';
 
     // If user explicitly configured an accent in Settings, only override if it's a human coach
-    // (cartoon avatars preserve their cute cartoon voice unless explicitly forced)
     if (!isCartoon && userSelectedAccent && userSelectedAccent !== 'Default' && !userSelectedAccent.toLowerCase().includes('friendly')) {
       const accentVoice = VoiceService.selectSystemVoice(availableVoices, userSelectedAccent);
       if (accentVoice) return accentVoice;
@@ -359,87 +358,136 @@ export const VoiceService = {
     const targetLoc = (avatarProfile.targetLocale || 'en-US').toLowerCase();
     const wantsMale = avatarProfile.intendedGender === 'male';
     const wantsFemale = avatarProfile.intendedGender === 'female';
+    const charId = (avatarProfile.avatarId || '').toLowerCase();
 
-    // 1. Try matching preferred voice substrings for this specific avatar within the target locale
-    if (avatarProfile.preferredVoices && avatarProfile.preferredVoices.length > 0) {
-      for (const pref of avatarProfile.preferredVoices) {
-        const found = availableVoices.find(v => {
-          const id = (v.identifier || '').toLowerCase();
-          const name = (v.name || '').toLowerCase();
-          const lang = (v.language || '').toLowerCase().replace('_', '-');
-          const matchesPref = id.includes(pref) || name.includes(pref);
-          if (!matchesPref) return false;
+    // Deterministic voice candidate scoring for this specific character
+    const scoredVoices = availableVoices.map((v) => {
+      const id = (v.identifier || '').toLowerCase();
+      const name = (v.name || '').toLowerCase();
+      const lang = (v.language || '').toLowerCase().replace('_', '-');
+      const isFemale = isFemalePattern(id, name, v.gender);
 
-          // Never pick deep mature woman voice (iol) for Haruto little boy voice
-          if (avatarProfile.avatarId === 'haruto' && (id.includes('iol') || name.includes('iol'))) {
-            return false;
-          }
+      let score = 0;
 
-          const isFemale = isFemalePattern(id, name, v.gender);
-          if (wantsMale && isFemale) return false;
-          if (wantsFemale && !isFemale) return false;
+      // ── Mandatory Gender Guardrail ──
+      // Strictly penalize gender mismatches
+      if (wantsMale && isFemale) return { voice: v, score: -5000 };
+      if (wantsFemale && !isFemale) return { voice: v, score: -5000 };
 
-          return lang.startsWith(targetLoc) || lang.startsWith('en');
-        });
-        if (found) return found.identifier;
+      // Base English candidate score
+      if (lang.startsWith('en')) {
+        score += 100;
+      } else {
+        score -= 1000;
       }
-    }
 
-    // 2. Target locale voices matching requested gender
-    const locVoices = availableVoices.filter(v => (v.language || '').toLowerCase().replace('_', '-').startsWith(targetLoc));
-    if (locVoices.length > 0) {
-      if (wantsMale) {
-        const maleVoice = locVoices.find(v => {
-          const id = (v.identifier || '').toLowerCase();
-          const name = (v.name || '').toLowerCase();
-          return !isFemalePattern(id, name, v.gender);
-        });
-        if (maleVoice) return maleVoice.identifier;
-      } else if (wantsFemale) {
-        const femaleVoice = locVoices.find(v => {
-          const id = (v.identifier || '').toLowerCase();
-          const name = (v.name || '').toLowerCase();
-          return isFemalePattern(id, name, v.gender);
-        });
-        if (femaleVoice) return femaleVoice.identifier;
+      // Locale alignment
+      if (lang.startsWith(targetLoc)) {
+        score += 180;
+      } else if (lang.startsWith('en-us')) {
+        score += 90;
       }
-    }
 
-    // 3. Fallback across all English voices respecting requested gender
-    if (wantsMale) {
-      const anyMale = availableVoices.find(v => {
-        const id = (v.identifier || '').toLowerCase();
-        const name = (v.name || '').toLowerCase();
-        const lang = (v.language || '').toLowerCase();
-        return lang.startsWith('en') && !isFemalePattern(id, name, v.gender);
-      });
-      if (anyMale) return anyMale.identifier;
-    } else if (wantsFemale || isCartoon) {
-      const anyFemale = availableVoices.find(v => {
-        const id = (v.identifier || '').toLowerCase();
-        const name = (v.name || '').toLowerCase();
-        const lang = (v.language || '').toLowerCase();
-        return lang.startsWith('en') && isFemalePattern(id, name, v.gender);
-      });
-      if (anyFemale) return anyFemale.identifier;
-    }
-
-    // 4. Best voice general fallback
-    const targetGender = wantsMale ? 'male' : 'female';
-    const best = VoiceService.findBestVoice(availableVoices, targetLoc, targetGender);
-    if (best && best.voice) {
-      const bestId = (best.voice.identifier || '').toLowerCase();
-      if (avatarProfile.avatarId === 'haruto' && bestId.includes('iol')) {
-        const nonIol = availableVoices.find(v => {
-          const vid = (v.identifier || '').toLowerCase();
-          return !vid.includes('iol') && (v.language || '').toLowerCase().startsWith('en');
-        });
-        if (nonIol) return nonIol.identifier;
+      // ── Character-Specific Acoustic Timbre Matches ──
+      if (charId === 'robopaws' || charId.includes('doraemon')) {
+        // Robotic / Mischievous / Kind Futuristic Male
+        if (id.includes('zarvox') || name.includes('zarvox') || id.includes('robot')) score += 500;
+        else if (id.includes('fred') || name.includes('fred')) score += 350;
+        else if (id.includes('tpc') || id.includes('tpf')) score += 250;
+        else if (id.includes('alex') || name.includes('alex')) score += 200;
+        else if (id.includes('daniel') || name.includes('daniel')) score += 180;
+      } else if (charId === 'spongebob' || charId.includes('sponge')) {
+        // High-register, energetic, youthful cartoon boy
+        if (id.includes('iog') || name.includes('iog')) score += 450;
+        else if (id.includes('fred') || name.includes('fred')) score += 400;
+        else if (id.includes('tpf') || name.includes('tpf')) score += 350;
+        else if (id.includes('alex') || name.includes('alex')) score += 220;
+        else if (id.includes('tpc')) score += 180;
+      } else if (charId === 'sparky' || charId.includes('bheem')) {
+        // Courteous, bold young Indian hero
+        if (lang.startsWith('en-in') || id.includes('en-in') || name.includes('india')) score += 300;
+        if (id.includes('ind') || name.includes('rishi') || name.includes('prabhat')) score += 400;
+        else if (id.includes('inc') || id.includes('inb') || name.includes('ravi')) score += 300;
+        else if (id.includes('alex') || id.includes('tpf')) score += 120;
+      } else if (charId === 'koharu' || charId.includes('hattori') || charId.includes('ninja')) {
+        // Agile, disciplined youthful ninja hero
+        if (id.includes('tpf') || id.includes('iog')) score += 400;
+        else if (id.includes('fred') || name.includes('fred')) score += 300;
+        else if (id.includes('alex') || name.includes('alex')) score += 250;
+        else if (id.includes('daniel') || name.includes('daniel')) score += 200;
+      } else if (charId === 'haruto' || charId.includes('tom')) {
+        // Playful, clever classic cartoon cat
+        if (id.includes('tpc') || id.includes('fred') || name.includes('fred')) score += 450;
+        else if (id.includes('iog') || id.includes('tpf')) score += 320;
+        else if (id.includes('oliver') || id.includes('alex')) score += 200;
+      } else if (charId === 'mao' || charId.includes('ben')) {
+        // Confident, adventurous American teen hero
+        if (id.includes('tpf') || name.includes('tpf')) score += 400;
+        else if (id.includes('alex') || name.includes('alex')) score += 320;
+        else if (id.includes('iog') || id.includes('daniel')) score += 250;
+        else if (id.includes('david') || name.includes('david')) score += 200;
+      } else if (charId === 'puppy' || charId.includes('scooby')) {
+        // Warm, goofy, relaxed Great Dane (loves deep male voices)
+        if (id.includes('tpc') || id.includes('daniel') || name.includes('daniel')) score += 450;
+        else if (id.includes('oliver') || name.includes('oliver')) score += 400;
+        else if (id.includes('david') || name.includes('david') || id.includes('george')) score += 350;
+        else if (id.includes('alex') || id.includes('tpf')) score += 200;
+      } else if (charId === 'shizuku' || charId.includes('shizuka')) {
+        // Sweet, cheerful academic mentor
+        if (id.includes('sfg') || name.includes('sfg')) score += 450;
+        else if (id.includes('samantha') || name.includes('samantha')) score += 400;
+        else if (id.includes('victoria') || name.includes('victoria')) score += 350;
+        else if (id.includes('iol') || id.includes('iom') || id.includes('karen')) score += 250;
+      } else if (charId === 'haru' || charId.includes('teacher')) {
+        // Kind, warm, articulate Indian female teacher
+        if (lang.startsWith('en-in') || id.includes('en-in') || name.includes('india')) score += 300;
+        if (id.includes('inf') || name.includes('lekha') || name.includes('veena')) score += 450;
+        else if (id.includes('ing') || id.includes('inm') || id.includes('cbf') || id.includes('ena')) score += 350;
+        else if (id.includes('samantha') || id.includes('sfg')) score += 180;
+      } else if (charId === 'chitose' || charId.includes('maleteacher')) {
+        // Calm, patient, articulate Indian male teacher
+        if (lang.startsWith('en-in') || id.includes('en-in') || name.includes('india')) score += 300;
+        if (id.includes('ind') || name.includes('rishi') || name.includes('prabhat')) score += 450;
+        else if (id.includes('inc') || id.includes('inb') || id.includes('end') || id.includes('ene')) score += 350;
+        else if (id.includes('daniel') || id.includes('alex') || id.includes('tpf')) score += 180;
       }
-      return best.voice.identifier;
+
+      // Quality bonus
+      const q = (v.quality || '').toLowerCase();
+      if (q.includes('enhanced')) score += 40;
+      if (q.includes('default')) score += 20;
+
+      return { voice: v, score };
+    });
+
+    scoredVoices.sort((a, b) => b.score - a.score);
+    const bestCandidate = scoredVoices.find((s) => s.score > 0);
+    if (bestCandidate && bestCandidate.voice) {
+      return bestCandidate.voice.identifier;
     }
 
-    return VoiceService.selectSystemVoice(availableVoices, targetGender === 'male' ? 'US Male' : 'Default');
+    // ── Safe Fallback adhering strictly to requested gender ──
+    const genderMatches = availableVoices.filter(v => {
+      const id = (v.identifier || '').toLowerCase();
+      const name = (v.name || '').toLowerCase();
+      const isFemale = isFemalePattern(id, name, v.gender);
+      return wantsMale ? !isFemale : isFemale;
+    });
+
+    if (genderMatches.length > 0) {
+      // First try target locale
+      const locMatch = genderMatches.find(v => (v.language || '').toLowerCase().replace('_', '-').startsWith(targetLoc));
+      if (locMatch) return locMatch.identifier;
+
+      // Then any English
+      const enMatch = genderMatches.find(v => (v.language || '').toLowerCase().startsWith('en'));
+      if (enMatch) return enMatch.identifier;
+
+      return genderMatches[0].identifier;
+    }
+
+    // Absolute fallback
+    return availableVoices[0].identifier;
   },
 
   getVoiceProfile: (voiceCode) => {
@@ -748,7 +796,115 @@ export const VoiceService = {
     // 7. Clean up quotes, slashes, whitespace
     t = t.replace(/\\"/g, '"').replace(/\s+/g, ' ').trim();
 
+    // 8. Phonetic TTS pronunciation normalizations for cartoon characters
+    t = t
+      .replace(/\bDoraemon\b/g, "Dohraymon")
+      .replace(/\bdoraemon\b/g, "dohraymon")
+      .replace(/\bDoremon\b/g, "Dohraymon")
+      .replace(/\bdoremon\b/g, "dohraymon")
+      .replace(/\bg['’]day\b/gi, "Hello")
+      .replace(/\bgood\s+day\b/gi, "Hello");
+
     return t;
+  },
+
+  getCharacterIntonation: (avatarId, text = '') => {
+    if (!avatarId || !text) return { pitchOffset: 0.0, rateOffset: 0.0 };
+    const key = String(avatarId).toLowerCase();
+    const lower = String(text).toLowerCase().trim();
+
+    // 1. Doraemon (Robotic, warm, helpful, gadget excitement)
+    if (key.includes('robo') || key.includes('doraemon')) {
+      if (lower.includes('!') || lower.includes('gadget') || lower.includes('pocket') || lower.includes('hurray') || lower.includes('wow') || lower.includes('awesome')) {
+        return { pitchOffset: +0.03, rateOffset: +0.02 };
+      }
+      if (lower.includes('?') || lower.includes('what') || lower.includes('how') || lower.includes('problem')) {
+        return { pitchOffset: +0.02, rateOffset: 0.0 };
+      }
+      if (lower.includes("don't worry") || lower.includes('here to help') || lower.includes('take it easy')) {
+        return { pitchOffset: -0.02, rateOffset: -0.02 };
+      }
+      return { pitchOffset: 0.0, rateOffset: 0.0 };
+    }
+
+    // 2. SpongeBob (Playful, energetic, friendly cartoon boy)
+    if (key.includes('sponge') || key.includes('bob')) {
+      if (lower.includes('!') || lower.includes('ready') || lower.includes('yay') || lower.includes('fun') || lower.includes('jellyfish') || lower.includes('burger')) {
+        return { pitchOffset: +0.04, rateOffset: +0.03 };
+      }
+      if (lower.includes('haha') || lower.includes('hehe') || lower.includes('friend') || lower.includes('best day')) {
+        return { pitchOffset: +0.03, rateOffset: +0.02 };
+      }
+      return { pitchOffset: 0.0, rateOffset: 0.0 };
+    }
+
+    // 3. Chhota Bheem (Courageous, mighty Indian hero)
+    if (key.includes('sparky') || key.includes('bheem')) {
+      if (lower.includes('!') || lower.includes('ladoo') || lower.includes('dholakpur') || lower.includes('strong') || lower.includes('brave') || lower.includes('power')) {
+        return { pitchOffset: +0.03, rateOffset: +0.02 };
+      }
+      if (lower.includes('well done') || lower.includes('great job') || lower.includes('keep going')) {
+        return { pitchOffset: +0.02, rateOffset: +0.01 };
+      }
+      return { pitchOffset: 0.0, rateOffset: 0.0 };
+    }
+
+    // 4. Ninja Hattori (Swift, disciplined ninja hero)
+    if (key.includes('koharu') || key.includes('hattori') || key.includes('ninja')) {
+      if (lower.includes('!') || lower.includes('ninja') || lower.includes('ding ding') || lower.includes('speed') || lower.includes('iga')) {
+        return { pitchOffset: +0.03, rateOffset: +0.03 };
+      }
+      if (lower.includes('focus') || lower.includes('practice') || lower.includes('skill')) {
+        return { pitchOffset: +0.01, rateOffset: +0.01 };
+      }
+      return { pitchOffset: 0.0, rateOffset: 0.0 };
+    }
+
+    // 5. Tom (Playful, witty, classic cartoon cat)
+    if (key.includes('haruto') || key.includes('tom')) {
+      if (lower.includes('!') || lower.includes('haha') || lower.includes('mouse') || lower.includes('cheese') || lower.includes('catch')) {
+        return { pitchOffset: +0.04, rateOffset: +0.03 };
+      }
+      if (lower.includes('clever') || lower.includes('trick') || lower.includes('smart')) {
+        return { pitchOffset: +0.02, rateOffset: +0.01 };
+      }
+      return { pitchOffset: 0.0, rateOffset: 0.0 };
+    }
+
+    // 6. Ben 10 (Heroic, adventurous American teen hero)
+    if (key.includes('mao') || key.includes('ben')) {
+      if (lower.includes('hero time') || lower.includes('alien') || lower.includes('omnitrix') || lower.includes('transform') || lower.includes('awesome') || lower.includes('!')) {
+        return { pitchOffset: +0.03, rateOffset: +0.02 };
+      }
+      if (lower.includes("we've got this") || lower.includes('no sweat') || lower.includes('piece of cake')) {
+        return { pitchOffset: +0.01, rateOffset: +0.01 };
+      }
+      return { pitchOffset: 0.0, rateOffset: 0.0 };
+    }
+
+    // 7. Scooby-Doo (Goofy, warm cartoon Great Dane)
+    if (key.includes('puppy') || key.includes('scooby') || key.includes('wanko')) {
+      if (lower.includes('ruh-roh') || lower.includes('scooby snack') || lower.includes('mystery') || lower.includes('ghost') || lower.includes('monster')) {
+        return { pitchOffset: +0.04, rateOffset: +0.02 };
+      }
+      if (lower.includes('yum') || lower.includes('snack') || lower.includes('hungry') || lower.includes('hehe')) {
+        return { pitchOffset: +0.02, rateOffset: +0.01 };
+      }
+      return { pitchOffset: 0.0, rateOffset: 0.0 };
+    }
+
+    // 8. Shizuka (Sweet, academic mentor)
+    if (key.includes('shizuku') || key.includes('shizuka')) {
+      if (lower.includes('!') || lower.includes('wonderful') || lower.includes('excellent') || lower.includes('beautiful')) {
+        return { pitchOffset: +0.02, rateOffset: +0.01 };
+      }
+      if (lower.includes("let's see") || lower.includes('grammar') || lower.includes('rule')) {
+        return { pitchOffset: 0.0, rateOffset: -0.02 };
+      }
+      return { pitchOffset: 0.0, rateOffset: 0.0 };
+    }
+
+    return { pitchOffset: 0.0, rateOffset: 0.0 };
   },
 
   speak: async (text, {
@@ -819,10 +975,15 @@ export const VoiceService = {
       }
     }
 
-    // ── 5. Pitch & rate based on centralized avatar profile ───────────────────
+    // ── 5. Pitch & rate based on centralized avatar profile + character intonation ─
     const speedMultiplier = Number(effectiveSpeed) || 1.0;
-    let effectivePitch = pitch !== null && pitch !== undefined ? Number(pitch) : avatarProfile.basePitch;
-    let effectiveRate  = rate !== null && rate !== undefined ? Number(rate) : (avatarProfile.baseRate * speedMultiplier);
+    const intonation = VoiceService.getCharacterIntonation(avatarProfile.avatarId, cleanedText);
+
+    let effectivePitch = pitch !== null && pitch !== undefined ? Number(pitch) : (avatarProfile.basePitch + intonation.pitchOffset);
+    let effectiveRate  = rate !== null && rate !== undefined ? Number(rate) : ((avatarProfile.baseRate * speedMultiplier) + intonation.rateOffset);
+
+    effectivePitch = Math.max(0.82, Math.min(1.35, effectivePitch));
+    effectiveRate  = Math.max(0.80, Math.min(1.25, effectiveRate));
 
     // ── 6. Select system voice for avatar ─────────────────────────────────────
     let systemVoiceId = VoiceService.selectSystemVoiceForAvatar(voices, avatarProfile, isSysDefault ? null : resolvedVoice);
@@ -833,21 +994,31 @@ export const VoiceService = {
       systemVoiceId = VoiceService.selectSystemVoice(voices, resolvedVoice);
     }
 
-    // ── 7. Male / Female fallback pitch safety (Human coaches only) ─────────
-    if (avatarProfile.category !== 'cartoon') {
-      const targetGender = avatarProfile.intendedGender === 'male' ? 'male' : 'female';
-      if (systemVoiceId && voices && voices.length > 0) {
-        const voiceObj = voices.find(v => v.identifier === systemVoiceId);
-        if (voiceObj) {
-          const vid = (voiceObj.identifier || '').toLowerCase();
-          const vname = (voiceObj.name || '').toLowerCase();
-          const isActuallyFemale = isFemalePattern(vid, vname, voiceObj.gender);
+    // ── 7. Adaptive pitch calibration for character authenticity ─────────────
+    if (systemVoiceId && voices && voices.length > 0) {
+      const voiceObj = voices.find(v => v.identifier === systemVoiceId);
+      if (voiceObj) {
+        const vid = (voiceObj.identifier || '').toLowerCase();
+        const vname = (voiceObj.name || '').toLowerCase();
+        const isActuallyFemale = isFemalePattern(vid, vname, voiceObj.gender);
 
-          if (targetGender === 'male' && isActuallyFemale) {
-            effectivePitch = Math.min(effectivePitch, 0.88); // Shift pitch down for male coach on female voice
-          } else if (targetGender === 'female' && !isActuallyFemale) {
-            effectivePitch = Math.max(effectivePitch, 1.15); // Shift pitch up for female coach on male voice
-          }
+        // Strict Gender Safety Shift
+        if (avatarProfile.intendedGender === 'male' && isActuallyFemale) {
+          effectivePitch = Math.min(effectivePitch, 0.86); // Shift down if forced on female hardware voice
+        } else if (avatarProfile.intendedGender === 'female' && !isActuallyFemale) {
+          effectivePitch = Math.max(effectivePitch, 1.16); // Shift up if forced on male hardware voice
+        }
+
+        // Deep voice lift for youthful male cartoon characters
+        const isDeepMaleVoice = vid.includes('david') || vname.includes('david') || vid.includes('george') || vname.includes('george') || vid.includes('mark');
+        const isYouthfulBoyAvatar = ['spongebob', 'mao', 'koharu', 'haruto'].includes(avatarProfile.avatarId);
+        if (isYouthfulBoyAvatar && isDeepMaleVoice) {
+          effectivePitch = Math.max(effectivePitch, 1.22);
+        }
+
+        // Scoop pitch down for Scooby-Doo Great Dane warmth
+        if (avatarProfile.avatarId === 'puppy') {
+          effectivePitch = Math.min(effectivePitch, 0.92);
         }
       }
     }
