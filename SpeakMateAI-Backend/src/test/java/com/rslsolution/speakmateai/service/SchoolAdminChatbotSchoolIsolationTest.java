@@ -24,7 +24,6 @@ import com.rslsolution.speakmateai.assistant.provider.SchoolRosterDataProvider;
 import com.rslsolution.speakmateai.assistant.provider.StudentLookupDataProvider;
 import com.rslsolution.speakmateai.entity.School;
 import com.rslsolution.speakmateai.entity.Student;
-import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.repository.GrammarHistoryRepository;
 import com.rslsolution.speakmateai.repository.LessonProgressRepository;

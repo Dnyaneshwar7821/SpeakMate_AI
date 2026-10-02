@@ -998,70 +998,7 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		};
 	}
 
-	/**
-	 * Finds the one school that holds the named teacher/student. Used for a
-	 * Super-Admin per-person detail question ("standard of Vijay Patil") that does
-	 * not name a school: the person is located across every school so the answer
-	 * comes from real data instead of degrading to a generic NO DATA reply.
-	 * Teacher matches win over student matches; returns {@code null} when the
-	 * person exists in no school.
-	 */
-	private School findPersonAcrossSchools(String focusName) {
-		if (focusName == null || focusName.isBlank()) {
-			return null;
-		}
-		String needle = focusName.toLowerCase(Locale.ROOT);
-		for (School school : schoolRepository.findAll()) {
-			List<User> teachers = userRepository.findBySchoolIdAndRole(school.getId(), Role.TEACHER);
-			if (containsName(teachers.stream().map(this::personName).collect(Collectors.toList()), needle)) {
-				return school;
-			}
-		}
-		for (School school : schoolRepository.findAll()) {
-			List<Student> students = studentRepository.findBySchoolId(school.getId());
-			if (containsName(students.stream().map(this::personName).collect(Collectors.toList()), needle)) {
-				return school;
-			}
-		}
-		// Also locate named platform users / School Admins so a non-teaching person
-		// is resolved to their school rather than reported as "not found".
-		for (School school : schoolRepository.findAll()) {
-			List<User> others = nonStudentNonTeacherUsers(school.getId());
-			if (containsName(others.stream().map(this::personName).collect(Collectors.toList()), needle)) {
-				return school;
-			}
-		}
-		return null;
-	}
 
-	private String personName(User user) {
-		return fullName(user.getFirstName(), user.getLastName());
-	}
-
-	private boolean containsName(List<String> names, String needleLower) {
-		return names.stream().anyMatch(name -> name.toLowerCase(Locale.ROOT).contains(needleLower));
-	}
-
-	/**
-	 * True when a name extracted from the question looks like a SCHOOL rather than
-	 * a person (it shares a word with a school's name/short name). Prevents
-	 * "students of Podar" from being treated as a named person.
-	 */
-	private boolean looksLikeSchoolName(String value) {
-		if (value == null || value.isBlank()) {
-			return false;
-		}
-		String needle = schoolKey(value);
-		if (needle.isEmpty()) {
-			return false;
-		}
-		return schoolRepository.findAll().stream().anyMatch(s -> {
-			String full = schoolKey(displayName(s));
-			String shortName = schoolKey(s.getName());
-			return full.contains(needle) || needle.contains(full)
-					|| (!shortName.isEmpty() && (shortName.contains(needle) || needle.contains(shortName)));
-		});
-	}
 
 	/**
 	 * Resolves a {@link School} by its display name (or short name). Tries exact
