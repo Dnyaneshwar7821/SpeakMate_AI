@@ -16,12 +16,14 @@
   3. Merge team changes with current changes so `main` has everything.
   4. Push to `main` on `origin` (`git push origin main`).
   5. Merge and push `main` back into `develop` on `origin` (`git checkout develop && git merge main && git push origin develop`).
-  6. Push both `main` and `develop` to `backup` repo (`git push backup main develop`).
+  6. Push `main` to `backup` repo (`git push backup main`).
 - **Backup Repository Policy:**
   - `backup` repository strictly maintains **only 2 branches**: `main` and `develop`. Never push or add any feature/individual branches to `backup`.
+  - **Daily Pushes (Daytime):** Push **ONLY to `main`** on the `backup` repo (`git push backup main`). Throughout the day, do NOT push to the `develop` branch on `backup`.
+  - **Nightly Sync (Every 24 Hours):** The `develop` branch on `backup` is updated and synced with `main` only once per day at night (`git push backup develop`).
 - **Teammate / Feature Branches (`ayush`, `kaushtubh`, `nandini`, etc.):**
   - Do NOT push to these branches during regular work. They will receive consolidated updates only at the end of the project.
 - **Preserve Team Changes:**
   - Never `--force` push or `git reset --hard` to overwrite `develop` or `main`.
   - Keep all team commits intact alongside incoming changes.
-  - Both branches (`main` and `develop`) must end up 100% in sync on both `origin` and `backup` every time.
+  - Both branches (`main` and `develop`) must end up 100% in sync on `origin` every time, while `backup` receives `main` continuously and `develop` once every 24 hours at night.
