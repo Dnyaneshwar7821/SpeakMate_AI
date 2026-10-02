@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useState } from 'react';
 import {
   Alert,
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -22,7 +23,7 @@ import { VoiceService, VOICE_PROFILES } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { COLORS } from '../../constants/colors';
 import { DashboardCache } from '../../utils/dashboardCache';
-import { setCachedAvatarModel } from '../../config/AvatarCatalog';
+import { getAvatarById, getCachedAvatarModel, setCachedAvatarModel } from '../../config/AvatarCatalog';
 
 const AGE_OPTIONS = [
   { code: 'Kids', label: 'Kids (6-12) 🎈', desc: 'Simple words, fun stories & high encouragement' },
@@ -92,17 +93,24 @@ export default function SettingsScreen({ navigation }) {
     user?.schoolCode
   );
 
+  const [currentAvatarModel, setCurrentAvatarModel] = useState(() => getCachedAvatarModel() || 'haru');
+
   const load = async () => {
     try {
-      const [settings, voices, onboardingVoice, onboardingData, savedType, savedVoice] = await Promise.all([
+      const [settings, voices, onboardingVoice, onboardingData, savedType, savedVoice, savedAvatarModel] = await Promise.all([
         settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_onboarding_voice'),
         onboardingService.get().catch(() => null),
         AsyncStorage.getItem('speakmate_account_type'),
         AsyncStorage.getItem('speakmate_selected_voice'),
+        AsyncStorage.getItem('speakmate_avatar_model'),
       ]);
       if (savedType) setAccountType(savedType);
+      if (savedAvatarModel) {
+        setCurrentAvatarModel(savedAvatarModel);
+        setCachedAvatarModel(savedAvatarModel);
+      }
       const effectiveVoice = savedVoice || settings?.aiVoice || defaults.aiVoice;
       setForm({
         ...defaults,
@@ -140,19 +148,18 @@ export default function SettingsScreen({ navigation }) {
         await setDarkMode(savedSettings.darkMode);
       }
 
-      // 2. Sync Voice and Haru/Chitose Avatar to AsyncStorage
+      // 2. Sync Voice and Avatar to AsyncStorage
       if (form.aiVoice) {
         const profile = VOICE_PROFILES.find((p) => p.code === form.aiVoice);
         await AsyncStorage.setItem('speakmate_selected_voice', form.aiVoice);
         await AsyncStorage.setItem('speakmate_ai_voice', form.aiVoice);
         if (profile?.gender) {
           await AsyncStorage.setItem('speakmate_voice_gender', profile.gender);
-          if (profile.gender === 'male') {
-            await AsyncStorage.setItem('speakmate_avatar_model', 'chitose');
-            setCachedAvatarModel('chitose');
-          } else if (profile.gender === 'female') {
-            await AsyncStorage.setItem('speakmate_avatar_model', 'haru');
-            setCachedAvatarModel('haru');
+          if (!currentAvatarModel || currentAvatarModel === 'haru' || currentAvatarModel === 'chitose') {
+            const coachModel = profile.gender === 'male' ? 'chitose' : 'haru';
+            await AsyncStorage.setItem('speakmate_avatar_model', coachModel);
+            setCachedAvatarModel(coachModel);
+            setCurrentAvatarModel(coachModel);
           }
         }
       }
@@ -190,6 +197,7 @@ export default function SettingsScreen({ navigation }) {
   const optionActiveBg = isDark ? '#334155' : '#EEF2FF';
 
   const isMaleTutor = VoiceService.getAvatarGender(form.aiVoice, onboardingVoiceStyle) === 'male';
+  const activeAvatar = getAvatarById(currentAvatarModel || (isMaleTutor ? 'chitose' : 'haru'));
 
   // Filtered languages based on search query
   const filteredLanguages = LANGUAGE_OPTIONS.filter((lang) => 
@@ -204,27 +212,37 @@ export default function SettingsScreen({ navigation }) {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           
           {/* ACTIVE SPEAKING TUTOR STATUS CARD */}
-          <Card style={[styles.statusCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0' }]}>
-            <View style={styles.statusContainer}>
-              <View style={[styles.avatarBg, { backgroundColor: isDark ? '#2E224F' : '#F3E8FF' }]}>
-                <Ionicons name="mic-sharp" size={24} color="#7C3AED" />
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => navigation.navigate('Profile')}
+          >
+            <Card style={[styles.statusCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0' }]}>
+              <View style={styles.statusContainer}>
+                <View style={[styles.avatarBg, { backgroundColor: isDark ? '#2E224F' : '#F3E8FF' }]}>
+                  {activeAvatar?.image ? (
+                    <Image source={activeAvatar.image} style={styles.tutorThumbImage} resizeMode="cover" />
+                  ) : (
+                    <Ionicons name="mic-sharp" size={24} color="#7C3AED" />
+                  )}
+                </View>
+                <View style={styles.statusInfo}>
+                  <Text style={styles.statusLabel}>ACTIVE SPEAKING TUTOR</Text>
+                  <Text style={[styles.statusVoiceName, { color: labelColor }]} numberOfLines={1}>
+                    {activeAvatar.emoji} {activeAvatar.name} ({activeAvatar.gender === 'female' ? 'Female' : 'Male'}) •{' '}
+                    {OnboardingVoiceService.isSystemDefault(form.aiVoice)
+                      ? `Default (${onboardingVoiceStyle})`
+                      : (VOICE_PROFILES.find((o) => o.code === form.aiVoice)?.label || form.aiVoice)}
+                  </Text>
+                </View>
+                <View style={styles.waveContainer}>
+                  <View style={[styles.waveBar, { height: 10, backgroundColor: '#7C3AED' }]} />
+                  <View style={[styles.waveBar, { height: 22, backgroundColor: '#7C3AED', marginHorizontal: 3 }]} />
+                  <View style={[styles.waveBar, { height: 14, backgroundColor: '#7C3AED' }]} />
+                  <Ionicons name="chevron-forward" size={16} color={sublabelColor} style={{ marginLeft: 6 }} />
+                </View>
               </View>
-              <View style={styles.statusInfo}>
-                <Text style={styles.statusLabel}>ACTIVE SPEAKING TUTOR</Text>
-                <Text style={[styles.statusVoiceName, { color: labelColor }]}>
-                  {isMaleTutor ? '👨 Chitose (Male)' : '👩 Haru (Female)'} •{' '}
-                  {OnboardingVoiceService.isSystemDefault(form.aiVoice)
-                    ? `Default (${onboardingVoiceStyle})`
-                    : (VOICE_PROFILES.find((o) => o.code === form.aiVoice)?.label || form.aiVoice)}
-                </Text>
-              </View>
-              <View style={styles.waveContainer}>
-                <View style={[styles.waveBar, { height: 10, backgroundColor: '#7C3AED' }]} />
-                <View style={[styles.waveBar, { height: 22, backgroundColor: '#7C3AED', marginHorizontal: 3 }]} />
-                <View style={[styles.waveBar, { height: 14, backgroundColor: '#7C3AED' }]} />
-              </View>
-            </View>
-          </Card>
+            </Card>
+          </TouchableOpacity>
 
           {/* CATEGORY 0: SUBSCRIPTION & MEMBERSHIP (FOR INDIVIDUAL USERS ONLY) */}
           {!isStudent && (
@@ -402,7 +420,10 @@ export default function SettingsScreen({ navigation }) {
               </View>
               <Switch 
                 value={Boolean(form.autoPlayAudio)} 
-                onValueChange={(value) => update('autoPlayAudio', value)} 
+                onValueChange={(value) => {
+                  update('autoPlayAudio', value);
+                  settingsService.update({ ...form, autoPlayAudio: value, darkMode: globalIsDark }).catch(() => {});
+                }} 
                 trackColor={{ true: COLORS.primary }}
               />
             </View>
@@ -422,7 +443,10 @@ export default function SettingsScreen({ navigation }) {
               </View>
               <Switch 
                 value={Boolean(form.soundEffects)} 
-                onValueChange={(value) => update('soundEffects', value)} 
+                onValueChange={(value) => {
+                  update('soundEffects', value);
+                  settingsService.update({ ...form, soundEffects: value, darkMode: globalIsDark }).catch(() => {});
+                }} 
                 trackColor={{ true: COLORS.primary }}
               />
             </View>
@@ -471,7 +495,10 @@ export default function SettingsScreen({ navigation }) {
               </View>
               <Switch 
                 value={Boolean(form.notificationsEnabled)} 
-                onValueChange={(value) => update('notificationsEnabled', value)} 
+                onValueChange={(value) => {
+                  update('notificationsEnabled', value);
+                  settingsService.update({ ...form, notificationsEnabled: value, darkMode: globalIsDark }).catch(() => {});
+                }} 
                 trackColor={{ true: COLORS.primary }}
               />
             </View>
@@ -491,7 +518,10 @@ export default function SettingsScreen({ navigation }) {
               </View>
               <Switch 
                 value={Boolean(form.dailyReminder)} 
-                onValueChange={(value) => update('dailyReminder', value)} 
+                onValueChange={(value) => {
+                  update('dailyReminder', value);
+                  settingsService.update({ ...form, dailyReminder: value, darkMode: globalIsDark }).catch(() => {});
+                }} 
                 trackColor={{ true: COLORS.primary }}
               />
             </View>
@@ -557,6 +587,7 @@ export default function SettingsScreen({ navigation }) {
                         ]}
                         onPress={() => {
                           update('language', item.code);
+                          settingsService.update({ ...form, language: item.code, darkMode: globalIsDark }).catch(() => {});
                           setShowLanguageModal(false);
                         }}
                         activeOpacity={0.7}
@@ -618,15 +649,18 @@ export default function SettingsScreen({ navigation }) {
                         update('aiVoice', profile.code);
                         await AsyncStorage.setItem('speakmate_selected_voice', profile.code);
                         await AsyncStorage.setItem('speakmate_ai_voice', profile.code);
-                        if (profile.gender === 'male') {
-                          await AsyncStorage.setItem('speakmate_avatar_model', 'chitose');
-                          await AsyncStorage.setItem('speakmate_voice_gender', 'male');
-                          setCachedAvatarModel('chitose');
-                        } else if (profile.gender === 'female') {
-                          await AsyncStorage.setItem('speakmate_avatar_model', 'haru');
-                          await AsyncStorage.setItem('speakmate_voice_gender', 'female');
-                          setCachedAvatarModel('haru');
+                        if (profile.gender) {
+                          await AsyncStorage.setItem('speakmate_voice_gender', profile.gender);
+                          if (!currentAvatarModel || currentAvatarModel === 'haru' || currentAvatarModel === 'chitose') {
+                            const coachModel = profile.gender === 'male' ? 'chitose' : 'haru';
+                            await AsyncStorage.setItem('speakmate_avatar_model', coachModel);
+                            setCachedAvatarModel(coachModel);
+                            setCurrentAvatarModel(coachModel);
+                          }
                         }
+
+                        // Auto-save setting changes immediately in background
+                        settingsService.update({ ...form, aiVoice: profile.code, darkMode: globalIsDark }).catch(() => {});
 
                         if (profile.code === 'Default') {
                           // Load the exact saved onboarding voice config and play it
@@ -696,8 +730,18 @@ export default function SettingsScreen({ navigation }) {
                         styles.modalOptionRow,
                         isSelected && { backgroundColor: optionActiveBg }
                       ]}
-                      onPress={() => {
+                      onPress={async () => {
                         update('ageGroup', item.code);
+                        await AsyncStorage.setItem('speakmate_age_group', item.code).catch(() => {});
+                        settingsService.update({ ...form, ageGroup: item.code, darkMode: globalIsDark }).catch(() => {});
+                        profileService.update({
+                          firstName: user?.firstName,
+                          lastName: user?.lastName,
+                          email: user?.email,
+                          ageGroup: item.code,
+                        }).catch(() => {});
+                        onboardingService.update({ ageGroup: item.code }).catch(() => {});
+                        if (updateUser) updateUser({ ageGroup: item.code });
                         setShowAgeModal(false);
                       }}
                       activeOpacity={0.7}
@@ -747,6 +791,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+  },
+  tutorThumbImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
   },
   statusInfo: {
     flex: 1,
