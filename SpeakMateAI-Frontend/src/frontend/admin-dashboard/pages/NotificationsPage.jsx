@@ -27,7 +27,8 @@ import {
   Sparkles,
   Radio,
   ChevronDown,
-  Sliders
+  Sliders,
+  Settings,
 } from "lucide-react";
 import Button from "@components/common/Button";
 import SectionCard from "@admin/components/SectionCard";
@@ -414,15 +415,15 @@ export function NotificationsPage() {
             <span>{isMuted ? "Chime Muted" : "Chime Active"}</span>
           </button>
 
-          {/* Notification Preferences Button */}
+          {/* Notification Settings Button */}
           <Button
             variant="secondary"
             onClick={() => setIsSettingsOpen(true)}
             className="!h-9 text-xs font-medium"
-            title="Notification preferences, sounds & channels"
+            title="Notification Settings & Preferences"
           >
-            <Sliders className="mr-1.5 h-3.5 w-3.5" />
-            Preferences
+            <Settings className="mr-1.5 h-3.5 w-3.5" />
+            Settings
           </Button>
 
           <Button

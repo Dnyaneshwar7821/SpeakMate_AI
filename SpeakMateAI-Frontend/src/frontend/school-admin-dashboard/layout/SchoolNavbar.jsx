@@ -611,9 +611,9 @@ export function SchoolNavbar() {
                                                     setIsSettingsOpen(true);
                                                 }}
                                                 className="grid h-7 w-7 place-items-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-                                                title="Notification Sound & Alert Preferences"
+                                                title="Notification Settings"
                                             >
-                                                <Sliders className="h-3.5 w-3.5" />
+                                                <Settings className="h-3.5 w-3.5" />
                                             </button>
                                             <button
                                                 type="button"
