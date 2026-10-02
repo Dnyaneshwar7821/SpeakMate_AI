@@ -52,11 +52,10 @@ public class BrevoEmailProvider implements EmailProvider {
             @Value("${brevo.sender.name:SpeakMateAI}") String defaultSenderName) {
         this.restTemplate = restTemplate != null ? restTemplate : createDefaultRestTemplate();
         this.apiUrl = (apiUrl != null && !apiUrl.isBlank()) ? apiUrl.trim() : "https://api.brevo.com/v3";
-        if (apiKey == null || apiKey.isBlank() || apiKey.contains("Pd0dPf5snHomn9rP")) {
-            log.info("Using active Brevo API key configuration");
-            this.apiKey = "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";
-        } else {
+        if (apiKey != null && !apiKey.isBlank() && !apiKey.contains("Pd0dPf5snHomn9rP")) {
             this.apiKey = apiKey.trim();
+        } else {
+            this.apiKey = "";
         }
         this.defaultSenderEmail = (defaultSenderEmail != null && !defaultSenderEmail.isBlank())
                 ? defaultSenderEmail.trim()
