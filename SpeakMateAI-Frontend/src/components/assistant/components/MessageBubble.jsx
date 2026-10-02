@@ -7,6 +7,7 @@ import StatRow from "./StatRow";
 import MiniChart from "./MiniChart";
 import DeepLinkChip from "./DeepLinkChip";
 import { useAssistantTheme } from "../useAssistantTheme";
+import { applyGlobalVoiceSettings } from "../../../utils/speechHelper";
 
 const markdownComponents = {
     a: (props) => (
@@ -395,8 +396,6 @@ export function MessageBubble({ message, role, onClose }) {
             const chunks = parseMarkdownIntoSpeechChunks(content || "");
             if (chunks.length === 0) return;
 
-            const voice = getIndianFemaleVoice();
-
             speechQueueRef.current.isPlaying = true;
             setSpeaking(true);
 
@@ -408,16 +407,7 @@ export function MessageBubble({ message, role, onClose }) {
                 }
 
                 const utterance = new SpeechSynthesisUtterance(chunks[index]);
-                if (voice) {
-                    utterance.voice = voice;
-                    utterance.lang = voice.lang || "en-IN";
-                } else {
-                    utterance.lang = "en-IN";
-                }
-
-                // 1.40 for brisk, rapid, highly responsive speech
-                utterance.rate = 1.40;
-                utterance.pitch = 1.0;
+                applyGlobalVoiceSettings(utterance, 1.25);
 
                 utterance.onend = () => {
                     if (!speechQueueRef.current.isPlaying) return;

@@ -152,7 +152,12 @@ export function Settings() {
 
   const handleSelectVoiceCode = (voiceCode, previewText) => {
     setSelectedVoice(voiceCode);
-    const isMale = (voiceCode || "").toLowerCase().includes("male") && !(voiceCode || "").toLowerCase().includes("female");
+    let isMale;
+    if (voiceCode === "Default") {
+      isMale = currentModelKey === "chitose";
+    } else {
+      isMale = (voiceCode || "").toLowerCase().includes("male") && !(voiceCode || "").toLowerCase().includes("female");
+    }
     const gender = isMale ? "male" : "female";
     const model = isMale ? "chitose" : "haru";
 
@@ -162,6 +167,24 @@ export function Settings() {
     localStorage.setItem("speakmate_selected_voice", voiceCode);
     localStorage.setItem("speakmate_ai_voice", voiceCode);
     localStorage.setItem("speakmate_voice_code", voiceCode);
+
+    // Sync accent if selecting a regional or native profile
+    let newAccent = null;
+    const vLower = (voiceCode || "").toLowerCase();
+    if (vLower.includes("us") || vLower.includes("american")) newAccent = "US";
+    else if (vLower.includes("uk") || vLower.includes("british")) newAccent = "UK";
+    else if (vLower.includes("au") || vLower.includes("australian")) newAccent = "AU";
+    else if (vLower.includes("in") || vLower.includes("indian") || voiceCode === "Teacher" || voiceCode === "MaleTeacher") newAccent = "IN";
+
+    if (newAccent) {
+      setAccent(newAccent);
+      localStorage.setItem("speakmate_voice_accent", newAccent);
+      onboardingService.update({ preferredAccent: newAccent }).catch(() => {});
+      if (updateUser) {
+        updateUser({ preferredAccent: newAccent });
+      }
+    }
+
     EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
 
     settingsService.update({ aiVoice: voiceCode }).catch(() => {});
@@ -169,7 +192,9 @@ export function Settings() {
     if (updateUser) {
       updateUser({ preferredVoice: voiceCode });
     }
-    window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { preferredVoice: voiceCode, aiVoice: voiceCode } }));
+    window.dispatchEvent(new CustomEvent("speakmate_settings_updated", {
+      detail: { preferredVoice: voiceCode, aiVoice: voiceCode, ...(newAccent ? { preferredAccent: newAccent } : {}) }
+    }));
     toast.success("AI tutor voice applied ✓");
 
     playVoicePreview(voiceCode, previewText);
@@ -602,7 +627,18 @@ export function Settings() {
                 </div>
 
                 {VOICE_PROFILES.filter((vp) => {
-                  const HUMAN_VOICES = ["US Male", "US Female", "UK Male", "UK Female", "AU Male", "AU Female", "IN Male", "IN Female"];
+                  const HUMAN_VOICES = [
+                    "Teacher",
+                    "MaleTeacher",
+                    "US Female",
+                    "US Male",
+                    "UK Female",
+                    "UK Male",
+                    "AU Female",
+                    "AU Male",
+                    "IN Female",
+                    "IN Male"
+                  ];
                   return HUMAN_VOICES.includes(vp.code);
                 }).map((profile, idx) => {
                   const isSelected = selectedVoice === profile.code;
