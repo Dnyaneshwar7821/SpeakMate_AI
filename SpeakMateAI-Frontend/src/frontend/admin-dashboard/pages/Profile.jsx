@@ -20,6 +20,7 @@ import {
 
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
+import PhoneInput from "@components/common/PhoneInput";
 import SectionCard from "@admin/components/SectionCard";
 import InsigniaBadge from "@components/common/InsigniaBadge";
 import InsigniaStudioModal from "@components/common/InsigniaStudioModal";
@@ -402,19 +403,13 @@ export function Profile() {
                                     </div>
 
                                     <div>
-                                        <label className="mb-1.5 block text-xs font-semibold text-[var(--text-secondary)]">
-                                            Phone Number
-                                        </label>
-                                        <div className="relative">
-                                            <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
-                                            <Input
-                                                value={form.phone}
-                                                placeholder="e.g. 9876543210"
-                                                onChange={update("phone")}
-                                                error={phoneError}
-                                                className="!pl-9"
-                                            />
-                                        </div>
+                                        <PhoneInput
+                                            label="Phone Number"
+                                            value={form.phone}
+                                            placeholder="e.g. 9876543210"
+                                            onChange={update("phone")}
+                                            error={phoneError}
+                                        />
                                     </div>
 
                                     <div>

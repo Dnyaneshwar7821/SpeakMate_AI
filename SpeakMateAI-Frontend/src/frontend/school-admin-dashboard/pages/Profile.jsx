@@ -26,6 +26,7 @@ import {
 
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
+import PhoneInput from "@components/common/PhoneInput";
 import SectionCard from "@school-admin/components/SectionCard";
 import InsigniaBadge from "@components/common/InsigniaBadge";
 import InsigniaStudioModal from "@components/common/InsigniaStudioModal";
@@ -33,6 +34,7 @@ import ROUTES from "@constants/routes";
 import { useAuth } from "@/Admin_panel/context/AuthContext";
 import { schoolAdminDataApi } from "@services/admin/schoolAdminDataApi";
 import { syncInsigniaFromBackend } from "@utils/insigniaHelper";
+import { getIndianMobileError, normalizeIndianMobile } from "@utils/phoneValidator";
 
 export function Profile() {
     const navigate = useNavigate();
@@ -41,6 +43,7 @@ export function Profile() {
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [phoneError, setPhoneError] = useState("");
 
     // Insignia Studio Modal
     const [isInsigniaModalOpen, setIsInsigniaModalOpen] = useState(false);
@@ -143,15 +146,28 @@ export function Profile() {
 
     const update = (key) => (e) => {
         const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+        if (key === "phone") {
+            setPhoneError("");
+        }
         setForm((prev) => ({ ...prev, [key]: value }));
     };
 
     const handleCancel = () => {
         setForm(initialForm);
+        setPhoneError("");
         setIsEditing(false);
     };
 
     const handleSave = async () => {
+        if (form.phone && form.phone.trim()) {
+            const err = getIndianMobileError(form.phone, "Phone number", false);
+            if (err) {
+                setPhoneError(err);
+                triggerToast(err, "error");
+                return;
+            }
+        }
+
         setIsSaving(true);
         try {
             const [firstName = "", ...lastNameParts] = (form.name || "").split(" ");
@@ -160,6 +176,7 @@ export function Profile() {
                 firstName,
                 lastName,
                 email: form.email,
+                phone: form.phone ? normalizeIndianMobile(form.phone) : "",
             });
             setSaved(true);
             setInitialForm(form);
@@ -423,17 +440,13 @@ export function Profile() {
                                     </div>
 
                                     <div>
-                                        <label className="mb-1.5 block text-xs font-bold text-[var(--text-secondary)]">
-                                            Phone Number
-                                        </label>
-                                        <div className="relative">
-                                            <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
-                                            <Input
-                                                value={form.phone}
-                                                onChange={update("phone")}
-                                                className="!pl-9"
-                                            />
-                                        </div>
+                                        <PhoneInput
+                                            label="Phone Number"
+                                            value={form.phone}
+                                            placeholder="e.g. 9876543210"
+                                            onChange={update("phone")}
+                                            error={phoneError}
+                                        />
                                     </div>
 
                                     <div className="sm:col-span-2">

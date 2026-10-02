@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Modal from "@components/common/Modal";
 import Input from "@components/common/Input";
+import PhoneInput from "@components/common/PhoneInput";
 import Button from "@components/common/Button";
 import { schoolAdminDataApi } from "@services/admin/schoolAdminDataApi";
 import { STANDARD_OPTIONS } from "@constants/standardOptions";
@@ -176,7 +177,7 @@ export function TeacherFormModal({ isOpen, mode = "add", initialData, onClose, o
                     <Input label="Last name" value={form.lastName} onChange={handleChange("lastName")} error={errors.lastName} disabled={isSubmitting} />
                     <Input label="Email address" type="email" value={form.email} onChange={handleChange("email")} error={errors.email} disabled={mode === "edit" || isSubmitting} />
                     <Input label={mode === "edit" ? "New password (optional)" : "Password"} type="password" value={form.password} onChange={handleChange("password")} error={errors.password} autoComplete="new-password" disabled={isSubmitting} />
-                    <Input label="Phone" placeholder="e.g. 9876543210" value={form.phone} onChange={handleChange("phone")} error={errors.phone} disabled={isSubmitting} />
+                    <PhoneInput label="Phone" placeholder="e.g. 9876543210" value={form.phone} onChange={handleChange("phone")} error={errors.phone} disabled={isSubmitting} required />
                     <Input label="Department" placeholder="English" value={form.department} onChange={handleChange("department")} disabled={isSubmitting} />
 
                     <StandardDivisionPicker

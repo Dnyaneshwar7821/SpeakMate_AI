@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { CheckCircle2 } from "lucide-react";
 import Modal from "@components/common/Modal";
 import Input from "@components/common/Input";
+import PhoneInput from "@components/common/PhoneInput";
 import Button from "@components/common/Button";
 import SchoolSelect from "@components/common/SchoolSelect";
 import { schoolApi } from "@services/admin/schoolApi";
@@ -450,7 +451,7 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = EM
                     )}
 
                     {!isStudentForm && (
-                        <Input
+                        <PhoneInput
                             label="Mobile Number"
                             placeholder="e.g. 9876543210"
                             value={form.phone || ""}
@@ -461,12 +462,13 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = EM
 
                     {isStudentForm && (
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <Input
+                            <PhoneInput
                                 label="Student Phone"
                                 placeholder="e.g. 9876543210"
                                 value={form.phone || ""}
                                 onChange={handleChange("phone")}
                                 error={errors.phone}
+                                required
                             />
                             <Input
                                 label="Parent Name"
@@ -479,12 +481,13 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = EM
                     )}
 
                     {isStudentForm && (
-                        <Input
+                        <PhoneInput
                             label="Parent Phone"
                             placeholder="e.g. 9876543210"
                             value={form.parentPhone || ""}
                             onChange={handleChange("parentPhone")}
                             error={errors.parentPhone}
+                            required
                         />
                     )}
 

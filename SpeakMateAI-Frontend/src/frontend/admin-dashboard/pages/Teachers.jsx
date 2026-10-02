@@ -23,6 +23,7 @@ import {
 
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
+import PhoneInput from "@components/common/PhoneInput";
 import Modal from "@components/common/Modal";
 import SchoolSelect from "@components/common/SchoolSelect";
 import SectionCard from "@admin/components/SectionCard";
@@ -1280,12 +1281,13 @@ export function Teachers() {
                             />
                         </div>
                         <div>
-                            <Input
+                            <PhoneInput
                                 label="Phone Number"
-                                placeholder="e.g. +91 98765 43210"
+                                placeholder="e.g. 9876543210"
                                 value={form.phone}
                                 onChange={update("phone")}
                                 error={errors.phone}
+                                required
                             />
                         </div>
                         <div>
