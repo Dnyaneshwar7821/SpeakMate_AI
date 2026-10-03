@@ -69,10 +69,150 @@ const AnimatedChatBubble = React.memo(function AnimatedChatBubble({ children, is
 const formatVocabularyText = (text) => {
   if (!text) return '';
   let clean = String(text);
+  clean = clean.replace(/\*\*/g, '');
   clean = clean.replace(/[\[\]{}"']/g, '');
   clean = clean.replace(/^(vocabulary|words|suggestions)\s*:\s*/i, '');
   return clean.replace(/\s+/g, ' ').trim();
 };
+
+// ─── Speaking Coach & Phrasing Card Component ────────────────────────────────
+const SpeakingCoachCard = React.memo(function SpeakingCoachCard({
+  item,
+  onSpeakText,
+}) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  const hasFeedbackText = (text) => {
+    if (!text) return false;
+    const clean = text.trim().toLowerCase();
+    return clean !== 'none' && clean !== 'null' && clean !== '' && !clean.includes('[better_sentence] none') && !clean.includes('[vocabulary] none');
+  };
+
+  const showGrammar = hasFeedbackText(item.grammarCorrection);
+  const showBetter = hasFeedbackText(item.betterSentence);
+  const showVocab = hasFeedbackText(item.vocabularySuggestions);
+  const showFollowup = hasFeedbackText(item.followUpQuestion);
+  const showNativeTip = hasFeedbackText(item.nativeTip);
+  const showExplanation = hasFeedbackText(item.explanation);
+
+  return (
+    <View style={styles.correctionBox}>
+      {/* Header with expand/collapse toggle */}
+      <TouchableOpacity
+        style={styles.correctionHeader}
+        activeOpacity={0.8}
+        onPress={() => setIsExpanded((prev) => !prev)}
+      >
+        <View style={styles.correctionTitleRow}>
+          <Ionicons name="sparkles" size={16} color="#818CF8" />
+          <Text style={styles.correctionTitle}>Speaking Coach & Phrasing</Text>
+        </View>
+        <View style={styles.expandToggleBtn}>
+          <Text style={styles.expandToggleText}>{isExpanded ? 'Hide' : 'Expand'}</Text>
+          <Ionicons
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color="#A5B4FC"
+          />
+        </View>
+      </TouchableOpacity>
+
+      {/* Expanded Content matching Speaking Practice module */}
+      {isExpanded ? (
+        <>
+          {showBetter && (
+            <View style={styles.betterSectionBox}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={styles.betterSectionLabel}>Native Phrasing ("How to say it")</Text>
+                <TouchableOpacity
+                  style={styles.listenPhraseMiniBtn}
+                  onPress={() => onSpeakText(item.betterSentence)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="volume-high" size={14} color="#6366F1" />
+                  <Text style={styles.listenPhraseMiniText}>Listen</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.betterSectionContent}>"{item.betterSentence}"</Text>
+            </View>
+          )}
+
+          {showGrammar && (
+            <View style={styles.correctionSection}>
+              <Text style={styles.correctionLabel}>Grammar Check</Text>
+              {item.grammarCorrection.includes('✅') || item.grammarCorrection.toLowerCase().includes('correct') ? (
+                <Text style={[styles.correctionContent, { color: '#10B981', fontWeight: '700' }]}>
+                  {item.grammarCorrection}
+                </Text>
+              ) : (
+                <Text style={styles.correctionContent}>👉 {item.grammarCorrection}</Text>
+              )}
+            </View>
+          )}
+
+          {showVocab && (
+            <View style={styles.correctionSection}>
+              <Text style={styles.correctionLabel}>Vocabulary Upgrade</Text>
+              <Text style={styles.correctionContent}>✨ {formatVocabularyText(item.vocabularySuggestions)}</Text>
+            </View>
+          )}
+
+          {showNativeTip && (
+            <View style={styles.correctionSection}>
+              <Text style={styles.correctionLabel}>Fluency & Pronunciation Tip</Text>
+              <Text style={[styles.correctionContent, { color: '#38BDF8' }]}>💡 {item.nativeTip}</Text>
+            </View>
+          )}
+
+          {showExplanation && (
+            <Text style={styles.correctionExplanation}>{item.explanation}</Text>
+          )}
+
+          {showFollowup && (
+            <View style={styles.followUpCard}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={styles.followUpHeaderRow}>
+                  <Ionicons name="chatbubbles-outline" size={14} color="#34D399" />
+                  <Text style={styles.followUpLabel}>Next Question / Follow-up</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.listenFollowUpMiniBtn}
+                  onPress={() => onSpeakText(item.followUpQuestion)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="volume-high" size={13} color="#34D399" />
+                  <Text style={styles.listenFollowUpMiniText}>Listen</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={async () => {
+                  try {
+                    await Share.share({ message: item.followUpQuestion });
+                  } catch (e) {
+                    Alert.alert('Follow-up Question', item.followUpQuestion);
+                  }
+                }}
+              >
+                <Text style={styles.followUpContent}>"{item.followUpQuestion}"</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </>
+      ) : (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => setIsExpanded(true)}
+          style={styles.collapsedPreviewRow}
+        >
+          <Text style={styles.collapsedPreviewText} numberOfLines={1}>
+            {showBetter ? `"${item.betterSentence}"` : showGrammar ? item.grammarCorrection : 'Tap to expand feedback'}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+});
 
 // ─── Memoized Chat Message Item Component ────────────────────────────────────
 const ChatMessageItem = React.memo(function ChatMessageItem({
@@ -96,121 +236,43 @@ const ChatMessageItem = React.memo(function ChatMessageItem({
 
   const hasAnyFeedback = !isUser && (showGrammar || showBetter || showVocab || showFollowup || showNativeTip);
 
+  if (isUser) {
+    return (
+      <AnimatedChatBubble isUser={true} onLongPress={() => onOpenMenu(item)}>
+        <View style={[styles.bubble, styles.userBubble]}>
+          <Text style={[styles.bubbleText, styles.userText]}>
+            {item.message}
+          </Text>
+        </View>
+        <View style={[styles.avatar, styles.userAvatar]}>
+          <Ionicons name="person" size={14} color="#FFF" />
+        </View>
+      </AnimatedChatBubble>
+    );
+  }
+
   return (
-    <AnimatedChatBubble isUser={isUser} onLongPress={() => onOpenMenu(item)}>
-      {/* Avatars */}
-      {!isUser && (
+    <View style={styles.aiItemContainer}>
+      <AnimatedChatBubble isUser={false} onLongPress={() => onOpenMenu(item)}>
         <View style={[styles.avatar, styles.aiAvatar]}>
           <Ionicons name="sparkles" size={14} color="#FFF" />
         </View>
-      )}
 
-      <View style={{ flex: 1, alignItems: isUser ? 'flex-end' : 'flex-start' }}>
-        <View style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
-          <Text style={[styles.bubbleText, isUser ? styles.userText : styles.aiText]}>
+        <View style={[styles.bubble, styles.aiBubble]}>
+          <Text style={[styles.bubbleText, styles.aiText]}>
             {item.message}
           </Text>
           {item.bookmarked && (
             <Ionicons name="star" size={12} color="#F59E0B" style={styles.starIcon} />
           )}
         </View>
+      </AnimatedChatBubble>
 
-        {/* Speaking Coach & Phrasing Card */}
-        {hasAnyFeedback && (
-          <View style={styles.evalCard}>
-            <View style={styles.evalHeader}>
-              <Ionicons name="sparkles" size={16} color="#818CF8" />
-              <Text style={styles.evalTitle}>Speaking Coach & Phrasing</Text>
-            </View>
-
-            {showBetter && (
-              <View style={styles.betterSectionBox}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={styles.betterSectionLabel}>Native Phrasing ("How to say it")</Text>
-                  <TouchableOpacity
-                    style={styles.listenPhraseMiniBtn}
-                    onPress={() => onSpeakText(item.betterSentence)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="volume-high" size={14} color="#6366F1" />
-                    <Text style={styles.listenPhraseMiniText}>Listen</Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.betterSectionContent}>"{item.betterSentence}"</Text>
-              </View>
-            )}
-
-            {showGrammar && (
-              <View style={styles.evalSection}>
-                <Text style={styles.evalLabel}>Grammar Check</Text>
-                {item.grammarCorrection.includes('✅') || item.grammarCorrection.toLowerCase().includes('correct') ? (
-                  <Text style={[styles.evalContent, { color: '#10B981', fontWeight: '700' }]}>
-                    {item.grammarCorrection}
-                  </Text>
-                ) : (
-                  <Text style={styles.evalContent}>👉 {item.grammarCorrection}</Text>
-                )}
-              </View>
-            )}
-
-            {showVocab && (
-              <View style={styles.evalSection}>
-                <Text style={styles.evalLabel}>Vocabulary Upgrade</Text>
-                <Text style={styles.evalContent}>✨ {formatVocabularyText(item.vocabularySuggestions)}</Text>
-              </View>
-            )}
-
-            {showNativeTip && (
-              <View style={styles.evalSection}>
-                <Text style={styles.evalLabel}>Fluency & Pronunciation Tip</Text>
-                <Text style={[styles.evalContent, { color: '#38BDF8' }]}>💡 {item.nativeTip}</Text>
-              </View>
-            )}
-
-            {hasFeedbackText(item.explanation) && (
-              <Text style={styles.evalExplanation}>{item.explanation}</Text>
-            )}
-
-            {showFollowup && (
-              <View style={styles.followUpCard}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <View style={styles.followUpHeaderRow}>
-                    <Ionicons name="chatbubbles-outline" size={14} color="#34D399" />
-                    <Text style={styles.followUpLabel}>Next Question / Follow-up</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.listenFollowUpMiniBtn}
-                    onPress={() => onSpeakText(item.followUpQuestion)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="volume-high" size={13} color="#34D399" />
-                    <Text style={styles.listenFollowUpMiniText}>Listen</Text>
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={async () => {
-                    try {
-                      await Share.share({ message: item.followUpQuestion });
-                    } catch (e) {
-                      Alert.alert('Follow-up Question', item.followUpQuestion);
-                    }
-                  }}
-                >
-                  <Text style={styles.followUpContent}>"{item.followUpQuestion}"</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        )}
-      </View>
-
-      {isUser && (
-        <View style={[styles.avatar, styles.userAvatar]}>
-          <Ionicons name="person" size={14} color="#FFF" />
-        </View>
+      {/* Speaking Coach & Phrasing Card - Full-width matching Speaking Practice module */}
+      {hasAnyFeedback && (
+        <SpeakingCoachCard item={item} onSpeakText={onSpeakText} />
       )}
-    </AnimatedChatBubble>
+    </View>
   );
 }, (prev, next) => {
   return prev.item === next.item && prev.onSpeakText === next.onSpeakText && prev.onOpenMenu === next.onOpenMenu;
@@ -1517,12 +1579,13 @@ const styles = StyleSheet.create({
   muteBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
 
   // Chat scroll
-  chatScroll: { paddingHorizontal: 16, paddingTop: 10, gap: 14, paddingBottom: 32 },
+  chatScroll: { paddingHorizontal: 16, paddingTop: 10, gap: 14, paddingBottom: 80 },
 
   // Bubble Wrapper
   bubbleWrapper: { flexDirection: 'row', gap: 10, maxWidth: '85%' },
   userWrapper: { alignSelf: 'flex-end', justifyContent: 'flex-end' },
   aiWrapper: { alignSelf: 'flex-start', justifyContent: 'flex-start' },
+  aiItemContainer: { width: '100%', alignSelf: 'stretch', marginBottom: 6 },
 
   // Avatars
   avatar: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
@@ -1538,18 +1601,58 @@ const styles = StyleSheet.create({
   aiText: { color: '#E5E7EB', fontWeight: '500' },
   starIcon: { alignSelf: 'flex-end', marginTop: 4 },
 
-  // Interactive Speaking Coach & Phrasing Card
-  evalCard: {
+  // Speaking Coach & Phrasing Card (matching ConversationScreen)
+  correctionBox: {
     backgroundColor: 'rgba(30, 27, 75, 0.9)',
     width: '100%',
+    alignSelf: 'stretch',
     borderRadius: 16,
     padding: 14,
     marginTop: 8,
+    marginBottom: 8,
     borderWidth: 1.5,
     borderColor: 'rgba(99, 102, 241, 0.4)',
   },
-  evalHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  evalTitle: { fontSize: 13, fontWeight: '800', color: '#FFF', flex: 1 },
+  correctionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  correctionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+  correctionTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  expandToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  expandToggleText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#A5B4FC',
+  },
+  collapsedPreviewRow: {
+    marginTop: 4,
+    paddingVertical: 4,
+  },
+  collapsedPreviewText: {
+    fontSize: 12,
+    color: '#A5B4FC',
+    fontStyle: 'italic',
+  },
   betterSectionBox: {
     backgroundColor: 'rgba(99, 102, 241, 0.15)',
     borderRadius: 12,
@@ -1558,8 +1661,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(99, 102, 241, 0.3)',
   },
-  betterSectionLabel: { fontSize: 10, fontWeight: '800', color: '#A5B4FC', textTransform: 'uppercase', letterSpacing: 0.5 },
-  betterSectionContent: { fontSize: 13, color: '#FFF', marginTop: 4, fontWeight: '700', lineHeight: 18 },
+  betterSectionLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#A5B4FC',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  betterSectionContent: {
+    fontSize: 13,
+    color: '#FFF',
+    marginTop: 4,
+    fontWeight: '700',
+    lineHeight: 18,
+  },
   listenPhraseMiniBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1569,11 +1684,37 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 8,
   },
-  listenPhraseMiniText: { fontSize: 10, fontWeight: '800', color: '#A5B4FC' },
-  evalSection: { marginTop: 8 },
-  evalLabel: { fontSize: 9, fontWeight: '700', color: '#818CF8', textTransform: 'uppercase', letterSpacing: 0.5 },
-  evalContent: { fontSize: 13, color: '#E5E7EB', marginTop: 3, fontWeight: '600', lineHeight: 18 },
-  evalExplanation: { fontSize: 11, color: '#9CA3AF', fontStyle: 'italic', marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(99, 102, 241, 0.2)', paddingTop: 8 },
+  listenPhraseMiniText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#A5B4FC',
+  },
+  correctionSection: {
+    marginTop: 8,
+  },
+  correctionLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#818CF8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  correctionContent: {
+    fontSize: 13,
+    color: '#E5E7EB',
+    marginTop: 3,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  correctionExplanation: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(99, 102, 241, 0.2)',
+    paddingTop: 8,
+  },
   followUpCard: {
     marginTop: 10,
     backgroundColor: 'rgba(16, 185, 129, 0.08)',
