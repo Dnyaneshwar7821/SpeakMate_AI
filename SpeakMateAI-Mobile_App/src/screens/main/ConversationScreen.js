@@ -1486,6 +1486,26 @@ export default function ConversationScreen({ navigation, route }) {
                 {corrections && hasFeedbackText(corrections.explanation) && (
                   <Text style={styles.correctionExplanation}>{corrections.explanation}</Text>
                 )}
+
+                {showFollowup && (
+                  <View style={styles.followUpCard}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <View style={styles.followUpHeaderRow}>
+                        <Ionicons name="chatbubbles-outline" size={14} color="#34D399" />
+                        <Text style={styles.followUpLabel}>Next Question / Follow-up</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.listenFollowUpMiniBtn}
+                        onPress={() => speakTextWithVoice(corrections.followUpQuestion)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="volume-high" size={13} color="#34D399" />
+                        <Text style={styles.listenFollowUpMiniText}>Listen</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={styles.followUpContent}>"{corrections.followUpQuestion}"</Text>
+                  </View>
+                )}
               </View>
             )}
           </>
@@ -1707,6 +1727,47 @@ const styles = StyleSheet.create({
   correctionLabel: { fontSize: 9, fontWeight: '700', color: '#818CF8', textTransform: 'uppercase', letterSpacing: 0.5 },
   correctionContent: { fontSize: 13, color: '#E5E7EB', marginTop: 3, fontWeight: '600', lineHeight: 18 },
   correctionExplanation: { fontSize: 11, color: '#9CA3AF', fontStyle: 'italic', marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(99, 102, 241, 0.2)', paddingTop: 8 },
+  followUpCard: {
+    marginTop: 10,
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+  },
+  followUpHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  followUpLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#34D399',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  followUpContent: {
+    fontSize: 12,
+    color: '#E5E7EB',
+    marginTop: 4,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  listenFollowUpMiniBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  listenFollowUpMiniText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#34D399',
+  },
 
   // Sound Wave mic & stage
   micStageContainer: {

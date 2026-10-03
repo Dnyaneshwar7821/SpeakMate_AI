@@ -570,6 +570,14 @@ export default function ConversationChatScreen({ navigation, route }) {
     return text;
   };
 
+  const formatVocabulary = (text) => {
+    if (!text) return '';
+    let clean = String(text);
+    clean = clean.replace(/[\[\]{}"']/g, '');
+    clean = clean.replace(/^(vocabulary|words|suggestions)\s*:\s*/i, '');
+    return clean.replace(/\s+/g, ' ').trim();
+  };
+
   const avatarGender = VoiceService.getAvatarGender(preferredVoice, onboardingVoiceStyle);
 
   const speakText = (text, speedOverride = null) => {
@@ -1139,8 +1147,9 @@ export default function ConversationChatScreen({ navigation, route }) {
           const showBetter = hasFeedbackText(item.betterSentence);
           const showVocab = hasFeedbackText(item.vocabularySuggestions);
           const showFollowup = hasFeedbackText(item.followUpQuestion);
+          const showNativeTip = hasFeedbackText(item.nativeTip);
 
-          const hasAnyFeedback = !isUser && (showGrammar || showBetter || showVocab || showFollowup);
+          const hasAnyFeedback = !isUser && (showGrammar || showBetter || showVocab || showFollowup || showNativeTip);
 
           return (
             <AnimatedChatBubble isUser={isUser} onLongPress={() => handleOpenMenu(item)}>
@@ -1161,17 +1170,34 @@ export default function ConversationChatScreen({ navigation, route }) {
                   )}
                 </View>
 
-                {/* Tutor Feedback Card */}
+                {/* Speaking Coach & Phrasing Card */}
                 {hasAnyFeedback && (
                   <View style={styles.evalCard}>
                     <View style={styles.evalHeader}>
-                      <Ionicons name="school" size={14} color={COLORS.primary} />
-                      <Text style={styles.evalTitle}>Tutor Corrections & Feedback</Text>
+                      <Ionicons name="sparkles" size={16} color="#818CF8" />
+                      <Text style={styles.evalTitle}>Speaking Coach & Phrasing</Text>
                     </View>
-                    
+
+                    {showBetter && (
+                      <View style={styles.betterSectionBox}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Text style={styles.betterSectionLabel}>Native Phrasing ("How to say it")</Text>
+                          <TouchableOpacity
+                            style={styles.listenPhraseMiniBtn}
+                            onPress={() => speakText(item.betterSentence)}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="volume-high" size={14} color="#6366F1" />
+                            <Text style={styles.listenPhraseMiniText}>Listen</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Text style={styles.betterSectionContent}>"{item.betterSentence}"</Text>
+                      </View>
+                    )}
+
                     {showGrammar && (
                       <View style={styles.evalSection}>
-                        <Text style={styles.evalLabel}>Grammar Correction</Text>
+                        <Text style={styles.evalLabel}>Grammar Check</Text>
                         {item.grammarCorrection.includes('✅') || item.grammarCorrection.toLowerCase().includes('correct') ? (
                           <Text style={[styles.evalContent, { color: '#10B981', fontWeight: '700' }]}>
                             {item.grammarCorrection}
@@ -1182,27 +1208,17 @@ export default function ConversationChatScreen({ navigation, route }) {
                       </View>
                     )}
 
-                    {showBetter && (
-                      <View style={styles.evalSection}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Text style={styles.evalLabel}>Better Sentence</Text>
-                          <TouchableOpacity
-                            style={styles.listenPhraseMiniBtn}
-                            onPress={() => speakText(item.betterSentence)}
-                            activeOpacity={0.7}
-                          >
-                            <Ionicons name="volume-high" size={13} color="#818CF8" />
-                            <Text style={styles.listenPhraseMiniText}>Listen</Text>
-                          </TouchableOpacity>
-                        </View>
-                        <Text style={styles.evalContent}>💡 "{item.betterSentence}"</Text>
-                      </View>
-                    )}
-
                     {showVocab && (
                       <View style={styles.evalSection}>
                         <Text style={styles.evalLabel}>Vocabulary Upgrade</Text>
-                        <Text style={styles.evalContent}>✨ {item.vocabularySuggestions}</Text>
+                        <Text style={styles.evalContent}>✨ {formatVocabulary(item.vocabularySuggestions)}</Text>
+                      </View>
+                    )}
+
+                    {showNativeTip && (
+                      <View style={styles.evalSection}>
+                        <Text style={styles.evalLabel}>Fluency & Pronunciation Tip</Text>
+                        <Text style={[styles.evalContent, { color: '#38BDF8' }]}>💡 {item.nativeTip}</Text>
                       </View>
                     )}
 
@@ -1211,18 +1227,34 @@ export default function ConversationChatScreen({ navigation, route }) {
                     )}
 
                     {showFollowup && (
-                      <TouchableOpacity
-                        style={styles.followUpBadge}
-                        onPress={async () => {
-                          try {
-                            await Share.share({ message: item.followUpQuestion });
-                          } catch (e) {
-                            Alert.alert('Follow-up Question', item.followUpQuestion);
-                          }
-                        }}
-                      >
-                        <Text style={styles.followUpText}>❓ Follow-up: "{item.followUpQuestion}"</Text>
-                      </TouchableOpacity>
+                      <View style={styles.followUpCard}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <View style={styles.followUpHeaderRow}>
+                            <Ionicons name="chatbubbles-outline" size={14} color="#34D399" />
+                            <Text style={styles.followUpLabel}>Next Question / Follow-up</Text>
+                          </View>
+                          <TouchableOpacity
+                            style={styles.listenFollowUpMiniBtn}
+                            onPress={() => speakText(item.followUpQuestion)}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="volume-high" size={13} color="#34D399" />
+                            <Text style={styles.listenFollowUpMiniText}>Listen</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={async () => {
+                            try {
+                              await Share.share({ message: item.followUpQuestion });
+                            } catch (e) {
+                              Alert.alert('Follow-up Question', item.followUpQuestion);
+                            }
+                          }}
+                        >
+                          <Text style={styles.followUpContent}>"{item.followUpQuestion}"</Text>
+                        </TouchableOpacity>
+                      </View>
                     )}
                   </View>
                 )}
@@ -1483,13 +1515,28 @@ const styles = StyleSheet.create({
   aiText: { color: '#E5E7EB', fontWeight: '500' },
   starIcon: { alignSelf: 'flex-end', marginTop: 4 },
 
-  // Interactive evaluation tutor card
-  evalCard: { backgroundColor: 'rgba(17, 24, 39, 0.8)', width: '100%', borderRadius: 16, padding: 12, marginTop: 6, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
+  // Interactive Speaking Coach & Phrasing Card
+  evalCard: {
+    backgroundColor: 'rgba(30, 27, 75, 0.9)',
+    width: '100%',
+    borderRadius: 16,
+    padding: 14,
+    marginTop: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(99, 102, 241, 0.4)',
+  },
   evalHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  evalTitle: { fontSize: 12, fontWeight: '800', color: '#FFF' },
-  evalSection: { marginBottom: 6 },
-  evalLabel: { fontSize: 10, fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase' },
-  evalContent: { fontSize: 12, color: '#E5E7EB', marginTop: 2, fontWeight: '600' },
+  evalTitle: { fontSize: 13, fontWeight: '800', color: '#FFF', flex: 1 },
+  betterSectionBox: {
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.3)',
+  },
+  betterSectionLabel: { fontSize: 10, fontWeight: '800', color: '#A5B4FC', textTransform: 'uppercase', letterSpacing: 0.5 },
+  betterSectionContent: { fontSize: 13, color: '#FFF', marginTop: 4, fontWeight: '700', lineHeight: 18 },
   listenPhraseMiniBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1498,17 +1545,53 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
+  },
+  listenPhraseMiniText: { fontSize: 10, fontWeight: '800', color: '#A5B4FC' },
+  evalSection: { marginTop: 8 },
+  evalLabel: { fontSize: 9, fontWeight: '700', color: '#818CF8', textTransform: 'uppercase', letterSpacing: 0.5 },
+  evalContent: { fontSize: 13, color: '#E5E7EB', marginTop: 3, fontWeight: '600', lineHeight: 18 },
+  evalExplanation: { fontSize: 11, color: '#9CA3AF', fontStyle: 'italic', marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(99, 102, 241, 0.2)', paddingTop: 8 },
+  followUpCard: {
+    marginTop: 10,
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    padding: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.5)',
+    borderColor: 'rgba(16, 185, 129, 0.25)',
   },
-  listenPhraseMiniText: {
+  followUpHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  followUpLabel: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#818CF8',
+    fontWeight: '800',
+    color: '#34D399',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  evalExplanation: { fontSize: 11, color: '#9CA3AF', fontStyle: 'italic', marginTop: 4, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)', paddingTop: 6 },
-  followUpBadge: { marginTop: 8, backgroundColor: 'rgba(16, 185, 129, 0.08)', padding: 8, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.2)' },
-  followUpText: { fontSize: 11, color: '#34D399', fontWeight: '600' },
+  followUpContent: {
+    fontSize: 12,
+    color: '#E5E7EB',
+    marginTop: 4,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  listenFollowUpMiniBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  listenFollowUpMiniText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#34D399',
+  },
 
   // Loading bubble
   loadingBubbleWrapper: { alignSelf: 'flex-start', marginLeft: 42, marginBottom: 12 },
