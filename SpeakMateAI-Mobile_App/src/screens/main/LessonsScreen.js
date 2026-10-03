@@ -87,7 +87,7 @@ function LessonSkeleton() {
   );
 }
 
-function DifficultyBadge({ level }) {
+const DifficultyBadge = React.memo(function DifficultyBadge({ level }) {
   if (!level) return null;
   const c = DIFF_COLORS[level] || { bg: '#F1F5F9', text: '#64748B' };
   return (
@@ -95,9 +95,9 @@ function DifficultyBadge({ level }) {
       <Text style={[styles.diffBadgeText, { color: c.text }]}>{level}</Text>
     </View>
   );
-}
+});
 
-function ProgressRing({ percent = 0, size = 44 }) {
+const ProgressRing = React.memo(function ProgressRing({ percent = 0, size = 44 }) {
   const { isDark } = useTheme();
   const r = (size - 6) / 2;
   const circ = 2 * Math.PI * r;
@@ -130,9 +130,9 @@ function ProgressRing({ percent = 0, size = 44 }) {
       <Text style={{ fontSize: 10, fontWeight: '700', color: COLORS.primary }}>{percent}%</Text>
     </View>
   );
-}
+});
 
-function CategoryCard({ item, index, onPress }) {
+const CategoryCard = React.memo(function CategoryCard({ item, index, onPress }) {
   const [start, end] = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
   const scale = useRef(new Animated.Value(1)).current;
   const pIn = () => Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, speed: 50 }).start();
@@ -161,9 +161,9 @@ function CategoryCard({ item, index, onPress }) {
       </Pressable>
     </Animated.View>
   );
-}
+});
 
-function LessonCard({ lesson, onPress }) {
+const LessonCard = React.memo(function LessonCard({ lesson, onPress }) {
   const { isDark, theme } = useTheme();
   const scale = useRef(new Animated.Value(1)).current;
   const pIn = () => Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, speed: 50 }).start();
@@ -176,9 +176,15 @@ function LessonCard({ lesson, onPress }) {
   const btnLabel = isLocked ? 'Locked' : isCompleted ? 'Review' : prog > 0 ? 'Resume' : 'Start';
   const btnColor = isLocked ? '#9CA3AF' : isCompleted ? COLORS.success : COLORS.primary;
 
+  const handlePress = useCallback(() => {
+    if (!isLocked && onPress) {
+      onPress(lesson);
+    }
+  }, [isLocked, lesson, onPress]);
+
   return (
     <Animated.View style={[styles.cardOuter, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }, { transform: [{ scale }] }]}>
-      <Pressable onPress={isLocked ? undefined : onPress} onPressIn={pIn} onPressOut={pOut}>
+      <Pressable onPress={isLocked ? undefined : handlePress} onPressIn={pIn} onPressOut={pOut}>
         {/* Gradient header band */}
         <LinearGradient
           colors={isLocked ? ['#94A3B8', '#64748B'] : ['#4F46E5', '#7C3AED']}
@@ -242,7 +248,7 @@ function LessonCard({ lesson, onPress }) {
 
           <TouchableOpacity
             style={[styles.cardBtn, { backgroundColor: btnColor, opacity: isLocked ? 0.6 : 1 }]}
-            onPress={isLocked ? undefined : onPress}
+            onPress={isLocked ? undefined : handlePress}
             activeOpacity={0.8}
           >
             {isLocked && <Ionicons name="lock-closed" size={14} color="#FFF" style={{ marginRight: 4 }} />}
@@ -252,9 +258,9 @@ function LessonCard({ lesson, onPress }) {
       </Pressable>
     </Animated.View>
   );
-}
+});
 
-function ContinueLearningCard({ lesson, onPress }) {
+const ContinueLearningCard = React.memo(function ContinueLearningCard({ lesson, onPress }) {
   const percent = Math.min(100, Math.max(10, lesson.progressPercent || 11));
   return (
     <TouchableOpacity style={styles.continueCard} onPress={onPress} activeOpacity={0.85}>
@@ -288,9 +294,9 @@ function ContinueLearningCard({ lesson, onPress }) {
       </LinearGradient>
     </TouchableOpacity>
   );
-}
+});
 
-function SectionHeader({ title, subtitle, onSeeAll }) {
+const SectionHeader = React.memo(function SectionHeader({ title, subtitle, onSeeAll }) {
   const { theme } = useTheme();
   return (
     <View style={styles.secHeader}>
@@ -305,9 +311,9 @@ function SectionHeader({ title, subtitle, onSeeAll }) {
       )}
     </View>
   );
-}
+});
 
-function EmptyState({ icon = 'search-outline', title, message }) {
+const EmptyState = React.memo(function EmptyState({ icon = 'search-outline', title, message }) {
   const { theme } = useTheme();
   return (
     <View style={styles.emptyState}>
@@ -316,7 +322,7 @@ function EmptyState({ icon = 'search-outline', title, message }) {
       {message && <Text style={[styles.emptyMsg, { color: theme.textSecondary }]}>{message}</Text>}
     </View>
   );
-}
+});
 
 // Helper to normalize grade key into standard curriculum keys
 const normalizeGradeKey = (grade) => {
@@ -1144,16 +1150,26 @@ export default function LessonsScreen({ navigation }) {
     );
   }
 
+  const keyExtractor = useCallback((item) => String(item.id), []);
+
+  const renderLessonItem = useCallback(({ item }) => (
+    <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
+      <LessonCard lesson={item} onPress={openLesson} />
+    </View>
+  ), [openLesson]);
+
   return (
     <View style={[styles.root, { backgroundColor: theme.bg }]}>
       <FlatList
         data={displayedLessons}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
-          <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
-            <LessonCard lesson={item} onPress={() => openLesson(item)} />
-          </View>
-        )}
+        keyExtractor={keyExtractor}
+        renderItem={renderLessonItem}
+        initialNumToRender={8}
+        maxToRenderPerBatch={6}
+        windowSize={7}
+        removeClippedSubviews={Platform.OS === 'android'}
+        updateCellsBatchingPeriod={50}
+        keyboardShouldPersistTaps="handled"
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
           !loading && (

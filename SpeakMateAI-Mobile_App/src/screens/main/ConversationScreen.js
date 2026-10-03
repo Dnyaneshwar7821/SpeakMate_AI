@@ -4,7 +4,7 @@
  * Handles microphone recording (expo-audio), transcript submission,
  * Groq AI evaluations, and automatic text-to-speech feedback (expo-speech).
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -37,7 +37,7 @@ import JumpingDotsIndicator from '../../components/common/JumpingDotsIndicator';
 import LevelSegmentedControl from '../../components/common/LevelSegmentedControl';
 
 // ── Animated Message Bubble Component ────────────────────────────────────────
-function AnimatedMessageBubble({ item, isUser, formatDisplayMessage }) {
+const AnimatedMessageBubble = React.memo(function AnimatedMessageBubble({ item, isUser, formatDisplayMessage }) {
   const enterAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -67,12 +67,12 @@ function AnimatedMessageBubble({ item, isUser, formatDisplayMessage }) {
       )}
       <View style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
         <Text style={[styles.bubbleText, isUser ? styles.userText : styles.aiText]}>
-          {formatDisplayMessage(item.message)}
+          {formatDisplayMessage ? formatDisplayMessage(item.message) : item.message}
         </Text>
       </View>
     </Animated.View>
   );
-}
+});
 
 // ─── Sound Wave / Dynamic Mic Component ───────────────────────────────────────
 function SoundWave({ isRecording }) {
@@ -1334,7 +1334,7 @@ export default function ConversationScreen({ navigation, route }) {
     ? 'listening'
     : 'idle';
 
-  const formatDisplayMessage = (text) => {
+  const formatDisplayMessage = useCallback((text) => {
     if (!text) return '';
     let t = String(text);
     if (t.includes('Analyze User Input:') || t.includes('Context:') || t.includes('Identify Key Constraints:')) {
@@ -1349,7 +1349,20 @@ export default function ConversationScreen({ navigation, route }) {
     t = t.replace(/…/g, '');
     t = t.replace(/[*#_~`]/g, '');
     return t.replace(/\s+/g, ' ').trim() || text;
-  };
+  }, []);
+
+  const keyExtractor = useCallback((item) => String(item.id), []);
+
+  const renderMessageItem = useCallback(({ item }) => {
+    const isUser = item.sender === 'user';
+    return (
+      <AnimatedMessageBubble
+        item={item}
+        isUser={isUser}
+        formatDisplayMessage={formatDisplayMessage}
+      />
+    );
+  }, [formatDisplayMessage]);
 
   return (
     <KeyboardAvoidingView
@@ -1401,19 +1414,15 @@ export default function ConversationScreen({ navigation, route }) {
         ref={flatListRef}
         data={messages}
         style={{ flex: 1 }}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={keyExtractor}
         contentContainerStyle={styles.chatList}
         onScrollToIndexFailed={handleScrollToIndexFailed}
-        renderItem={({ item }) => {
-          const isUser = item.sender === 'user';
-          return (
-            <AnimatedMessageBubble
-              item={item}
-              isUser={isUser}
-              formatDisplayMessage={formatDisplayMessage}
-            />
-          );
-        }}
+        renderItem={renderMessageItem}
+        initialNumToRender={10}
+        maxToRenderPerBatch={6}
+        windowSize={7}
+        removeClippedSubviews={Platform.OS === 'android'}
+        updateCellsBatchingPeriod={50}
         ListEmptyComponent={
           <ActivityIndicator size="small" color={COLORS.primary} style={{ marginTop: 40 }} />
         }

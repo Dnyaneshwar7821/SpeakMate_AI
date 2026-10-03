@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -38,7 +38,7 @@ import JumpingDotsIndicator from '../../components/common/JumpingDotsIndicator';
 import LevelSegmentedControl from '../../components/common/LevelSegmentedControl';
 
 // ── Animated Message Bubble Component ────────────────────────────────────────
-function AnimatedChatBubble({ children, isUser, onLongPress }) {
+const AnimatedChatBubble = React.memo(function AnimatedChatBubble({ children, isUser, onLongPress }) {
   const enterAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -64,7 +64,157 @@ function AnimatedChatBubble({ children, isUser, onLongPress }) {
       </TouchableOpacity>
     </Animated.View>
   );
-}
+});
+
+const formatVocabularyText = (text) => {
+  if (!text) return '';
+  let clean = String(text);
+  clean = clean.replace(/[\[\]{}"']/g, '');
+  clean = clean.replace(/^(vocabulary|words|suggestions)\s*:\s*/i, '');
+  return clean.replace(/\s+/g, ' ').trim();
+};
+
+// ─── Memoized Chat Message Item Component ────────────────────────────────────
+const ChatMessageItem = React.memo(function ChatMessageItem({
+  item,
+  onOpenMenu,
+  onSpeakText,
+}) {
+  const isUser = item.sender === 'user';
+
+  const hasFeedbackText = (text) => {
+    if (!text) return false;
+    const clean = text.trim().toLowerCase();
+    return clean !== 'none' && clean !== 'null' && clean !== '' && !clean.includes('[better_sentence] none') && !clean.includes('[vocabulary] none');
+  };
+
+  const showGrammar = hasFeedbackText(item.grammarCorrection);
+  const showBetter = hasFeedbackText(item.betterSentence);
+  const showVocab = hasFeedbackText(item.vocabularySuggestions);
+  const showFollowup = hasFeedbackText(item.followUpQuestion);
+  const showNativeTip = hasFeedbackText(item.nativeTip);
+
+  const hasAnyFeedback = !isUser && (showGrammar || showBetter || showVocab || showFollowup || showNativeTip);
+
+  return (
+    <AnimatedChatBubble isUser={isUser} onLongPress={() => onOpenMenu(item)}>
+      {/* Avatars */}
+      {!isUser && (
+        <View style={[styles.avatar, styles.aiAvatar]}>
+          <Ionicons name="sparkles" size={14} color="#FFF" />
+        </View>
+      )}
+
+      <View style={{ flex: 1, alignItems: isUser ? 'flex-end' : 'flex-start' }}>
+        <View style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
+          <Text style={[styles.bubbleText, isUser ? styles.userText : styles.aiText]}>
+            {item.message}
+          </Text>
+          {item.bookmarked && (
+            <Ionicons name="star" size={12} color="#F59E0B" style={styles.starIcon} />
+          )}
+        </View>
+
+        {/* Speaking Coach & Phrasing Card */}
+        {hasAnyFeedback && (
+          <View style={styles.evalCard}>
+            <View style={styles.evalHeader}>
+              <Ionicons name="sparkles" size={16} color="#818CF8" />
+              <Text style={styles.evalTitle}>Speaking Coach & Phrasing</Text>
+            </View>
+
+            {showBetter && (
+              <View style={styles.betterSectionBox}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={styles.betterSectionLabel}>Native Phrasing ("How to say it")</Text>
+                  <TouchableOpacity
+                    style={styles.listenPhraseMiniBtn}
+                    onPress={() => onSpeakText(item.betterSentence)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="volume-high" size={14} color="#6366F1" />
+                    <Text style={styles.listenPhraseMiniText}>Listen</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.betterSectionContent}>"{item.betterSentence}"</Text>
+              </View>
+            )}
+
+            {showGrammar && (
+              <View style={styles.evalSection}>
+                <Text style={styles.evalLabel}>Grammar Check</Text>
+                {item.grammarCorrection.includes('✅') || item.grammarCorrection.toLowerCase().includes('correct') ? (
+                  <Text style={[styles.evalContent, { color: '#10B981', fontWeight: '700' }]}>
+                    {item.grammarCorrection}
+                  </Text>
+                ) : (
+                  <Text style={styles.evalContent}>👉 {item.grammarCorrection}</Text>
+                )}
+              </View>
+            )}
+
+            {showVocab && (
+              <View style={styles.evalSection}>
+                <Text style={styles.evalLabel}>Vocabulary Upgrade</Text>
+                <Text style={styles.evalContent}>✨ {formatVocabularyText(item.vocabularySuggestions)}</Text>
+              </View>
+            )}
+
+            {showNativeTip && (
+              <View style={styles.evalSection}>
+                <Text style={styles.evalLabel}>Fluency & Pronunciation Tip</Text>
+                <Text style={[styles.evalContent, { color: '#38BDF8' }]}>💡 {item.nativeTip}</Text>
+              </View>
+            )}
+
+            {hasFeedbackText(item.explanation) && (
+              <Text style={styles.evalExplanation}>{item.explanation}</Text>
+            )}
+
+            {showFollowup && (
+              <View style={styles.followUpCard}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={styles.followUpHeaderRow}>
+                    <Ionicons name="chatbubbles-outline" size={14} color="#34D399" />
+                    <Text style={styles.followUpLabel}>Next Question / Follow-up</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.listenFollowUpMiniBtn}
+                    onPress={() => onSpeakText(item.followUpQuestion)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="volume-high" size={13} color="#34D399" />
+                    <Text style={styles.listenFollowUpMiniText}>Listen</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={async () => {
+                    try {
+                      await Share.share({ message: item.followUpQuestion });
+                    } catch (e) {
+                      Alert.alert('Follow-up Question', item.followUpQuestion);
+                    }
+                  }}
+                >
+                  <Text style={styles.followUpContent}>"{item.followUpQuestion}"</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+
+      {isUser && (
+        <View style={[styles.avatar, styles.userAvatar]}>
+          <Ionicons name="person" size={14} color="#FFF" />
+        </View>
+      )}
+    </AnimatedChatBubble>
+  );
+}, (prev, next) => {
+  return prev.item === next.item && prev.onSpeakText === next.onSpeakText && prev.onOpenMenu === next.onOpenMenu;
+});
 
 // ─── Sound Wave Component ────────────────────────────────────────────────────
 function VoiceWaveBars({ isRecording }) {
@@ -570,17 +720,9 @@ export default function ConversationChatScreen({ navigation, route }) {
     return text;
   };
 
-  const formatVocabulary = (text) => {
-    if (!text) return '';
-    let clean = String(text);
-    clean = clean.replace(/[\[\]{}"']/g, '');
-    clean = clean.replace(/^(vocabulary|words|suggestions)\s*:\s*/i, '');
-    return clean.replace(/\s+/g, ' ').trim();
-  };
-
   const avatarGender = VoiceService.getAvatarGender(preferredVoice, onboardingVoiceStyle);
 
-  const speakText = (text, speedOverride = null) => {
+  const speakText = useCallback((text, speedOverride = null) => {
     const effectiveSpeed = speedOverride !== null && speedOverride !== undefined ? speedOverride : speechSpeed;
     setCurrentSpokenText(text);
     VoiceService.speak(text, {
@@ -604,7 +746,7 @@ export default function ConversationChatScreen({ navigation, route }) {
         setCurrentSpokenText('');
       }
     });
-  };
+  }, [speechSpeed, isMuted, selectedAvatarModel, preferredVoice, availableVoices]);
 
   const speakAiWithCoaching = (aiMsg) => {
     if (!aiMsg || isMuted) return;
@@ -962,10 +1104,10 @@ export default function ConversationChatScreen({ navigation, route }) {
   };
 
   // ─── Actions Menus ───
-  const handleOpenMenu = (message) => {
+  const handleOpenMenu = useCallback((message) => {
     setSelectedMessage(message);
     setMenuVisible(true);
-  };
+  }, []);
 
   const handleCopyMessage = async () => {
     if (selectedMessage) {
@@ -1054,6 +1196,16 @@ export default function ConversationChatScreen({ navigation, route }) {
     ? '✨ Tutor listening...'
     : '✨ Tap mic to speak';
 
+  const keyExtractor = useCallback((item) => String(item.id), []);
+
+  const renderChatItem = useCallback(({ item }) => (
+    <ChatMessageItem
+      item={item}
+      onOpenMenu={handleOpenMenu}
+      onSpeakText={speakText}
+    />
+  ), [handleOpenMenu, speakText]);
+
   return (
     <LinearGradient colors={['#0B0F19', '#111827', '#1E1B4B']} style={styles.root}>
       <StatusBar barStyle="light-content" />
@@ -1128,147 +1280,18 @@ export default function ConversationChatScreen({ navigation, route }) {
           ref={flatListRef}
           data={messages}
           style={{ flex: 1 }}
-          keyExtractor={(item) => String(item.id)}
+          keyExtractor={keyExtractor}
           contentContainerStyle={styles.chatScroll}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           onScrollToIndexFailed={handleScrollToIndexFailed}
-        renderItem={({ item }) => {
-          const isUser = item.sender === 'user';
-
-          // Helper to check if feedback exists and is not "None"
-          const hasFeedbackText = (text) => {
-            if (!text) return false;
-            const clean = text.trim().toLowerCase();
-            return clean !== 'none' && clean !== 'null' && clean !== '' && !clean.includes('[better_sentence] none') && !clean.includes('[vocabulary] none');
-          };
-
-          const showGrammar = hasFeedbackText(item.grammarCorrection);
-          const showBetter = hasFeedbackText(item.betterSentence);
-          const showVocab = hasFeedbackText(item.vocabularySuggestions);
-          const showFollowup = hasFeedbackText(item.followUpQuestion);
-          const showNativeTip = hasFeedbackText(item.nativeTip);
-
-          const hasAnyFeedback = !isUser && (showGrammar || showBetter || showVocab || showFollowup || showNativeTip);
-
-          return (
-            <AnimatedChatBubble isUser={isUser} onLongPress={() => handleOpenMenu(item)}>
-              {/* Avatars */}
-              {!isUser && (
-                <View style={[styles.avatar, styles.aiAvatar]}>
-                  <Ionicons name="sparkles" size={14} color="#FFF" />
-                </View>
-              )}
-
-              <View style={{ flex: 1, alignItems: isUser ? 'flex-end' : 'flex-start' }}>
-                <View style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
-                  <Text style={[styles.bubbleText, isUser ? styles.userText : styles.aiText]}>
-                    {item.message}
-                  </Text>
-                  {item.bookmarked && (
-                    <Ionicons name="star" size={12} color="#F59E0B" style={styles.starIcon} />
-                  )}
-                </View>
-
-                {/* Speaking Coach & Phrasing Card */}
-                {hasAnyFeedback && (
-                  <View style={styles.evalCard}>
-                    <View style={styles.evalHeader}>
-                      <Ionicons name="sparkles" size={16} color="#818CF8" />
-                      <Text style={styles.evalTitle}>Speaking Coach & Phrasing</Text>
-                    </View>
-
-                    {showBetter && (
-                      <View style={styles.betterSectionBox}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Text style={styles.betterSectionLabel}>Native Phrasing ("How to say it")</Text>
-                          <TouchableOpacity
-                            style={styles.listenPhraseMiniBtn}
-                            onPress={() => speakText(item.betterSentence)}
-                            activeOpacity={0.7}
-                          >
-                            <Ionicons name="volume-high" size={14} color="#6366F1" />
-                            <Text style={styles.listenPhraseMiniText}>Listen</Text>
-                          </TouchableOpacity>
-                        </View>
-                        <Text style={styles.betterSectionContent}>"{item.betterSentence}"</Text>
-                      </View>
-                    )}
-
-                    {showGrammar && (
-                      <View style={styles.evalSection}>
-                        <Text style={styles.evalLabel}>Grammar Check</Text>
-                        {item.grammarCorrection.includes('✅') || item.grammarCorrection.toLowerCase().includes('correct') ? (
-                          <Text style={[styles.evalContent, { color: '#10B981', fontWeight: '700' }]}>
-                            {item.grammarCorrection}
-                          </Text>
-                        ) : (
-                          <Text style={styles.evalContent}>👉 {item.grammarCorrection}</Text>
-                        )}
-                      </View>
-                    )}
-
-                    {showVocab && (
-                      <View style={styles.evalSection}>
-                        <Text style={styles.evalLabel}>Vocabulary Upgrade</Text>
-                        <Text style={styles.evalContent}>✨ {formatVocabulary(item.vocabularySuggestions)}</Text>
-                      </View>
-                    )}
-
-                    {showNativeTip && (
-                      <View style={styles.evalSection}>
-                        <Text style={styles.evalLabel}>Fluency & Pronunciation Tip</Text>
-                        <Text style={[styles.evalContent, { color: '#38BDF8' }]}>💡 {item.nativeTip}</Text>
-                      </View>
-                    )}
-
-                    {hasFeedbackText(item.explanation) && (
-                      <Text style={styles.evalExplanation}>{item.explanation}</Text>
-                    )}
-
-                    {showFollowup && (
-                      <View style={styles.followUpCard}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <View style={styles.followUpHeaderRow}>
-                            <Ionicons name="chatbubbles-outline" size={14} color="#34D399" />
-                            <Text style={styles.followUpLabel}>Next Question / Follow-up</Text>
-                          </View>
-                          <TouchableOpacity
-                            style={styles.listenFollowUpMiniBtn}
-                            onPress={() => speakText(item.followUpQuestion)}
-                            activeOpacity={0.7}
-                          >
-                            <Ionicons name="volume-high" size={13} color="#34D399" />
-                            <Text style={styles.listenFollowUpMiniText}>Listen</Text>
-                          </TouchableOpacity>
-                        </View>
-                        <TouchableOpacity
-                          activeOpacity={0.8}
-                          onPress={async () => {
-                            try {
-                              await Share.share({ message: item.followUpQuestion });
-                            } catch (e) {
-                              Alert.alert('Follow-up Question', item.followUpQuestion);
-                            }
-                          }}
-                        >
-                          <Text style={styles.followUpContent}>"{item.followUpQuestion}"</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </View>
-                )}
-              </View>
-
-              {isUser && (
-                <View style={[styles.avatar, styles.userAvatar]}>
-                  <Ionicons name="person" size={14} color="#FFF" />
-                </View>
-              )}
-            </AnimatedChatBubble>
-          );
-        }}
-        ListFooterComponent={
+          renderItem={renderChatItem}
+          initialNumToRender={10}
+          maxToRenderPerBatch={6}
+          windowSize={7}
+          removeClippedSubviews={Platform.OS === 'android'}
+          updateCellsBatchingPeriod={50}
+          ListFooterComponent={
           evaluating ? (
             <View style={styles.loadingBubbleWrapper}>
               <View style={styles.loadingBubble}>
