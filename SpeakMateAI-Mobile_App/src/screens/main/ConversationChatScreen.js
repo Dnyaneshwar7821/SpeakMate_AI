@@ -267,8 +267,61 @@ export default function ConversationChatScreen({ navigation, route }) {
   const [selectedMessage, setSelectedMessage] = useState(null);
 
   const flatListRef = useRef(null);
+  const isInitialMount = useRef(true);
   const recordingRef = useRef(null);
   const wasSpeakingOnPause = useRef(false);
+
+  const handleScrollToIndexFailed = (info) => {
+    setTimeout(() => {
+      if (flatListRef.current && messages.length > info.index) {
+        try {
+          flatListRef.current.scrollToIndex({
+            index: info.index,
+            animated: true,
+            viewPosition: 0,
+          });
+        } catch (_) {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }
+      }
+    }, 100);
+  };
+
+  // Align viewport so the AI tutor's response is at the top, followed by suggestions below it
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (!messages || messages.length === 0) return;
+    const lastMsg = messages[messages.length - 1];
+
+    const scrollTimer = setTimeout(() => {
+      if (!flatListRef.current) return;
+      if (lastMsg?.sender === 'user') {
+        flatListRef.current.scrollToEnd({ animated: true });
+      } else {
+        const targetIndex = messages.length - 1;
+        try {
+          flatListRef.current.scrollToIndex({
+            index: targetIndex,
+            animated: true,
+            viewPosition: 0,
+          });
+        } catch (_) {
+          setTimeout(() => {
+            flatListRef.current?.scrollToIndex({
+              index: targetIndex,
+              animated: true,
+              viewPosition: 0,
+            });
+          }, 100);
+        }
+      }
+    }, 120);
+
+    return () => clearTimeout(scrollTimer);
+  }, [messages]);
 
   // VAD / Silence Auto-Stop refs & Session Token
   const speechDetectedRef = useRef(false);
@@ -551,66 +604,120 @@ export default function ConversationChatScreen({ navigation, route }) {
     // Stop any in-flight voice immediately
     VoiceService.stop();
 
+    // 1. Build dynamic in-character reply + dynamic follow-up question
     let mainReply = aiMsg.message || '';
     if (aiMsg.followUpQuestion && !mainReply.includes(aiMsg.followUpQuestion)) {
       mainReply += ` ${aiMsg.followUpQuestion}`;
     }
 
-    // Determine if there is a coaching tip to speak
-    const isGrammarCorrect = !aiMsg.grammarCorrection ||
-      aiMsg.grammarCorrection.includes('✅') ||
-      aiMsg.grammarCorrection.toLowerCase().includes('correct') ||
-      aiMsg.grammarCorrection.toLowerCase() === 'none';
+    // 2. Check if the grammar was already correct
+    const cleanCorrection = aiMsg.grammarCorrection && typeof aiMsg.grammarCorrection === 'string'
+      ? aiMsg.grammarCorrection.replace(/^👉\s*/, '').replace(/[\[\]"]/g, '').trim()
+      : null;
 
+    const isGrammarCorrect = !cleanCorrection ||
+      cleanCorrection.includes('✅') ||
+      cleanCorrection.toLowerCase().includes('correct') ||
+      cleanCorrection.toLowerCase() === 'none' ||
+      cleanCorrection.toLowerCase() === 'null';
+
+    // 3. Check for better sentence suggestion
     const cleanBetter = aiMsg.betterSentence && typeof aiMsg.betterSentence === 'string'
       ? aiMsg.betterSentence.replace(/[\[\]"]/g, '').trim()
       : null;
+
     const hasBetter = cleanBetter &&
       cleanBetter.toLowerCase() !== 'null' &&
       cleanBetter.toLowerCase() !== 'none' &&
       !cleanBetter.includes('✅');
 
-    let coachingPhrase = null;
-    if (!isGrammarCorrect && aiMsg.grammarCorrection) {
-      const cleanCorrection = aiMsg.grammarCorrection.replace(/^👉\s*/, '').replace(/[\[\]"]/g, '').trim();
-      coachingPhrase = `A better way to say that is: "${cleanCorrection}"`;
-      if (aiMsg.explanation && aiMsg.explanation.toLowerCase() !== 'none' && !aiMsg.explanation.toLowerCase().includes('null')) {
-        coachingPhrase += `. ${aiMsg.explanation}`;
-      }
-    } else if (hasBetter) {
-      coachingPhrase = `A better way to say that is: "${cleanBetter}"`;
-      if (aiMsg.explanation && aiMsg.explanation.toLowerCase() !== 'none' && !aiMsg.explanation.toLowerCase().includes('null')) {
-        coachingPhrase += `. ${aiMsg.explanation}`;
-      }
+    // 4. Clean explanation
+    const cleanExplanation = aiMsg.explanation && typeof aiMsg.explanation === 'string'
+      ? aiMsg.explanation.replace(/[\[\]"]/g, '').trim()
+      : null;
+    const hasExplanation = cleanExplanation &&
+      cleanExplanation.toLowerCase() !== 'null' &&
+      cleanExplanation.toLowerCase() !== 'none';
+
+    // SCENARIO A: Sentence is 100% correct! (Never say "a better way")
+    if (isGrammarCorrect && !hasBetter) {
+      const praises = ["Spot on!", "Nicely said!", "Well phrased!", "Great sentence!"];
+      const randomPraise = praises[Math.floor(Math.random() * praises.length)];
+      const fullSpeech = `${randomPraise} ${mainReply}`;
+
+      setCurrentSpokenText(fullSpeech);
+      VoiceService.speak(fullSpeech, {
+        isMuted,
+        avatarId: selectedAvatarModel,
+        voiceType: preferredVoice,
+        speechSpeed,
+        availableVoices,
+        onStart: () => {
+          setStatusText('Speaking');
+          setIsSpeaking(true);
+        },
+        onDone: () => {
+          setStatusText('Waiting for Response');
+          setIsSpeaking(false);
+          setCurrentSpokenText('');
+          wasSpeakingOnPause.current = false;
+        },
+        onError: () => {
+          setStatusText('Waiting for Response');
+          setIsSpeaking(false);
+          setCurrentSpokenText('');
+          wasSpeakingOnPause.current = false;
+        }
+      });
+      return;
     }
 
-    // Stage 1: Speak ONLY the conversational tutor reply
-    setCurrentSpokenText(mainReply);
-    VoiceService.speak(mainReply, {
+    // SCENARIO B: Sentence has a mistake or better phrasing exists!
+    const targetPhrase = (!isGrammarCorrect && cleanCorrection) ? cleanCorrection : cleanBetter;
+    const acknowledgments = ["Got it!", "I see what you mean!", "Makes total sense!"];
+    const randomAck = acknowledgments[Math.floor(Math.random() * acknowledgments.length)];
+
+    const tipPrefixes = [
+      "Quick tip—you can say",
+      "By the way, you can phrase that as",
+      "A natural way to say that is"
+    ];
+    const randomPrefix = tipPrefixes[Math.floor(Math.random() * tipPrefixes.length)];
+
+    const coachingPhrase = `${randomAck} ${randomPrefix}: "${targetPhrase}".${hasExplanation ? ` ${cleanExplanation}` : ''}`;
+
+    // Stage 1: Speak the coaching tip + reason first
+    setStatusText('Coaching Tip');
+    setIsSpeaking(true);
+    setCurrentSpokenText(coachingPhrase);
+
+    VoiceService.speak(coachingPhrase, {
       isMuted,
       avatarId: selectedAvatarModel,
       voiceType: preferredVoice,
       speechSpeed,
       availableVoices,
       onStart: () => {
-        setStatusText('Speaking');
+        setStatusText('Coaching Tip');
         setIsSpeaking(true);
       },
       onDone: () => {
-        // Stage 2: EXACT 0.45s (450ms) natural gap before speaking coaching tip
-        if (coachingPhrase && !isMuted) {
-          setStatusText('Coaching Tip');
+        // Stage 2: 0.5s natural conversational pause before speaking dynamic conversation reply + follow-up
+        if (!isMuted) {
           setTimeout(() => {
             if (!isMuted) {
-              setCurrentSpokenText(coachingPhrase);
-              VoiceService.speak(coachingPhrase, {
+              setStatusText('Speaking');
+              setIsSpeaking(true);
+              setCurrentSpokenText(mainReply);
+
+              VoiceService.speak(mainReply, {
                 isMuted,
                 avatarId: selectedAvatarModel,
                 voiceType: preferredVoice,
                 speechSpeed,
                 availableVoices,
                 onStart: () => {
-                  setStatusText('Coaching Tip');
+                  setStatusText('Speaking');
                   setIsSpeaking(true);
                 },
                 onDone: () => {
@@ -624,10 +731,10 @@ export default function ConversationChatScreen({ navigation, route }) {
                   setIsSpeaking(false);
                   setCurrentSpokenText('');
                   wasSpeakingOnPause.current = false;
-                },
+                }
               });
             }
-          }, 450); // 0.45 second conversational gap
+          }, 500);
         } else {
           setStatusText('Waiting for Response');
           setIsSpeaking(false);
@@ -1017,8 +1124,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           contentContainerStyle={styles.chatScroll}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onScrollToIndexFailed={handleScrollToIndexFailed}
         renderItem={({ item }) => {
           const isUser = item.sender === 'user';
 
@@ -1078,7 +1184,17 @@ export default function ConversationChatScreen({ navigation, route }) {
 
                     {showBetter && (
                       <View style={styles.evalSection}>
-                        <Text style={styles.evalLabel}>Better Sentence</Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Text style={styles.evalLabel}>Better Sentence</Text>
+                          <TouchableOpacity
+                            style={styles.listenPhraseMiniBtn}
+                            onPress={() => speakText(item.betterSentence)}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="volume-high" size={13} color="#818CF8" />
+                            <Text style={styles.listenPhraseMiniText}>Listen</Text>
+                          </TouchableOpacity>
+                        </View>
                         <Text style={styles.evalContent}>💡 "{item.betterSentence}"</Text>
                       </View>
                     )}
@@ -1374,6 +1490,22 @@ const styles = StyleSheet.create({
   evalSection: { marginBottom: 6 },
   evalLabel: { fontSize: 10, fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase' },
   evalContent: { fontSize: 12, color: '#E5E7EB', marginTop: 2, fontWeight: '600' },
+  listenPhraseMiniBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(99, 102, 241, 0.25)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.5)',
+  },
+  listenPhraseMiniText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#818CF8',
+  },
   evalExplanation: { fontSize: 11, color: '#9CA3AF', fontStyle: 'italic', marginTop: 4, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)', paddingTop: 6 },
   followUpBadge: { marginTop: 8, backgroundColor: 'rgba(16, 185, 129, 0.08)', padding: 8, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.2)' },
   followUpText: { fontSize: 11, color: '#34D399', fontWeight: '600' },

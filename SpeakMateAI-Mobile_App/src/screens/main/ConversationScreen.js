@@ -585,30 +585,147 @@ export default function ConversationScreen({ navigation, route }) {
   const speakAiWithCoaching = (aiMsg) => {
     if (!aiMsg || isPausedRef.current || isMuted) return;
 
+    // 1. Build dynamic in-character reply + dynamic follow-up question
     let mainReply = aiMsg.message || aiMsg.aiReply || '';
     if (aiMsg.followUpQuestion && !mainReply.includes(aiMsg.followUpQuestion)) {
       mainReply += ` ${aiMsg.followUpQuestion}`;
     }
 
-    pausedAiText.current = mainReply;
-    setCurrentSpokenText(mainReply);
+    // 2. Check if the grammar was already correct
+    const cleanCorrection = aiMsg.grammarCorrection && typeof aiMsg.grammarCorrection === 'string'
+      ? aiMsg.grammarCorrection.replace(/^👉\s*/, '').replace(/[\[\]"]/g, '').trim()
+      : null;
 
-    // Speak in-character conversational response
-    VoiceService.speak(mainReply, {
+    const isGrammarCorrect = !cleanCorrection ||
+      cleanCorrection.includes('✅') ||
+      cleanCorrection.toLowerCase().includes('correct') ||
+      cleanCorrection.toLowerCase() === 'none' ||
+      cleanCorrection.toLowerCase() === 'null';
+
+    // 3. Check for better sentence suggestion
+    const cleanBetter = aiMsg.betterSentence && typeof aiMsg.betterSentence === 'string'
+      ? aiMsg.betterSentence.replace(/[\[\]"]/g, '').trim()
+      : null;
+
+    const hasBetter = cleanBetter &&
+      cleanBetter.toLowerCase() !== 'null' &&
+      cleanBetter.toLowerCase() !== 'none' &&
+      !cleanBetter.includes('✅');
+
+    // 4. Clean explanation
+    const cleanExplanation = aiMsg.explanation && typeof aiMsg.explanation === 'string'
+      ? aiMsg.explanation.replace(/[\[\]"]/g, '').trim()
+      : null;
+    const hasExplanation = cleanExplanation &&
+      cleanExplanation.toLowerCase() !== 'null' &&
+      cleanExplanation.toLowerCase() !== 'none';
+
+    // SCENARIO A: Sentence is 100% correct! (Never say "a better way")
+    if (isGrammarCorrect && !hasBetter) {
+      const praises = ["Spot on!", "Nicely said!", "Well phrased!", "Great sentence!"];
+      const randomPraise = praises[Math.floor(Math.random() * praises.length)];
+      const fullSpeech = `${randomPraise} ${mainReply}`;
+
+      pausedAiText.current = fullSpeech;
+      setCurrentSpokenText(fullSpeech);
+
+      VoiceService.speak(fullSpeech, {
+        isMuted,
+        avatarId: selectedAvatarModel,
+        voiceType: preferredVoice,
+        speechSpeed,
+        availableVoices,
+        onStart: () => {
+          setStatusText('Speaking');
+          setIsSpeaking(true);
+        },
+        onDone: () => {
+          setStatusText('Waiting for Response');
+          setIsSpeaking(false);
+          setCurrentSpokenText('');
+          wasSpeakingOnPause.current = false;
+        },
+        onError: () => {
+          setStatusText('Waiting for Response');
+          setIsSpeaking(false);
+          setCurrentSpokenText('');
+          wasSpeakingOnPause.current = false;
+        }
+      });
+      return;
+    }
+
+    // SCENARIO B: Sentence has a mistake or better phrasing exists!
+    const targetPhrase = (!isGrammarCorrect && cleanCorrection) ? cleanCorrection : cleanBetter;
+    const acknowledgments = ["Got it!", "I see what you mean!", "Makes total sense!"];
+    const randomAck = acknowledgments[Math.floor(Math.random() * acknowledgments.length)];
+
+    const tipPrefixes = [
+      "Quick tip—you can say",
+      "By the way, you can phrase that as",
+      "A natural way to say that is"
+    ];
+    const randomPrefix = tipPrefixes[Math.floor(Math.random() * tipPrefixes.length)];
+
+    const coachingPhrase = `${randomAck} ${randomPrefix}: "${targetPhrase}".${hasExplanation ? ` ${cleanExplanation}` : ''}`;
+
+    // Stage 1: Speak the coaching tip + reason first
+    setStatusText('Coaching Tip');
+    setIsSpeaking(true);
+    pausedAiText.current = coachingPhrase;
+    setCurrentSpokenText(coachingPhrase);
+
+    VoiceService.speak(coachingPhrase, {
       isMuted,
       avatarId: selectedAvatarModel,
       voiceType: preferredVoice,
       speechSpeed,
       availableVoices,
       onStart: () => {
-        setStatusText('Speaking');
+        setStatusText('Coaching Tip');
         setIsSpeaking(true);
       },
       onDone: () => {
-        setStatusText('Waiting for Response');
-        setIsSpeaking(false);
-        setCurrentSpokenText('');
-        wasSpeakingOnPause.current = false;
+        // Stage 2: 0.5s natural conversational pause before speaking dynamic conversation reply + follow-up
+        if (!isPausedRef.current && !isMuted) {
+          setTimeout(() => {
+            if (!isPausedRef.current && !isMuted) {
+              setStatusText('Speaking');
+              setIsSpeaking(true);
+              pausedAiText.current = mainReply;
+              setCurrentSpokenText(mainReply);
+
+              VoiceService.speak(mainReply, {
+                isMuted,
+                avatarId: selectedAvatarModel,
+                voiceType: preferredVoice,
+                speechSpeed,
+                availableVoices,
+                onStart: () => {
+                  setStatusText('Speaking');
+                  setIsSpeaking(true);
+                },
+                onDone: () => {
+                  setStatusText('Waiting for Response');
+                  setIsSpeaking(false);
+                  setCurrentSpokenText('');
+                  wasSpeakingOnPause.current = false;
+                },
+                onError: () => {
+                  setStatusText('Waiting for Response');
+                  setIsSpeaking(false);
+                  setCurrentSpokenText('');
+                  wasSpeakingOnPause.current = false;
+                }
+              });
+            }
+          }, 500);
+        } else {
+          setStatusText('Waiting for Response');
+          setIsSpeaking(false);
+          setCurrentSpokenText('');
+          wasSpeakingOnPause.current = false;
+        }
       },
       onError: () => {
         setStatusText('Waiting for Response');

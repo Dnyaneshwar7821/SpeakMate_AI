@@ -6013,7 +6013,7 @@
     ]
   },
   "conversation_messages": {
-    "rowCount": 599,
+    "rowCount": 612,
     "columns": [
       {
         "column_name": "id",
@@ -10239,6 +10239,97 @@
         "sender": "ai",
         "timestamp": "2026-10-03T09:50:15.398Z",
         "session_id": "935"
+      },
+      {
+        "id": "1959",
+        "message": "Hello! What interesting thing happened to you today?",
+        "sender": "ai",
+        "timestamp": "2026-10-03T11:15:14.254Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1960",
+        "message": "It was a crazy day",
+        "sender": "user",
+        "timestamp": "2026-10-03T11:15:31.527Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1961",
+        "message": "Sounds intense! What made it a crazy day?",
+        "sender": "ai",
+        "timestamp": "2026-10-03T11:15:33.411Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1962",
+        "message": "I had a lot of work to do.",
+        "sender": "user",
+        "timestamp": "2026-10-03T11:15:45.566Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1963",
+        "message": "I understand, that can be stressful. Did you manage to finish everything?",
+        "sender": "ai",
+        "timestamp": "2026-10-03T11:15:47.333Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1964",
+        "message": "I finished most of my work, but I am still tired.",
+        "sender": "user",
+        "timestamp": "2026-10-03T11:15:58.024Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1965",
+        "message": "I know how that feels. Rest is important after a busy day.",
+        "sender": "ai",
+        "timestamp": "2026-10-03T11:15:59.712Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1966",
+        "message": "I usually watch a movie to relax.",
+        "sender": "user",
+        "timestamp": "2026-10-03T11:16:18.506Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1967",
+        "message": "That sounds nice. Watching a movie can help you relax after a long day.",
+        "sender": "ai",
+        "timestamp": "2026-10-03T11:16:20.550Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1968",
+        "message": "My favorite movie is a drama.",
+        "sender": "user",
+        "timestamp": "2026-10-03T11:16:29.351Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1969",
+        "message": "That sounds good. Drama movies can be very moving.",
+        "sender": "ai",
+        "timestamp": "2026-10-03T11:16:30.922Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1970",
+        "message": "I really enjoyed the movie \"The Shawshank Redemption\".",
+        "sender": "user",
+        "timestamp": "2026-10-03T11:17:00.612Z",
+        "session_id": "936"
+      },
+      {
+        "id": "1971",
+        "message": "It’s a great film! The story is very powerful.",
+        "sender": "ai",
+        "timestamp": "2026-10-03T11:17:02.476Z",
+        "session_id": "936"
       }
     ]
   },
@@ -40398,7 +40489,7 @@
     ]
   },
   "speaking_sessions": {
-    "rowCount": 325,
+    "rowCount": 326,
     "columns": [
       {
         "column_name": "id",
@@ -44907,6 +44998,24 @@
         "xp_earned": 12,
         "user_id": "152",
         "completed": true
+      },
+      {
+        "id": "936",
+        "created_at": "2026-10-03T11:15:12.160Z",
+        "duration": 0,
+        "feedback": null,
+        "fluency_score": null,
+        "grammar_score": null,
+        "overall_score": null,
+        "pronunciation_score": null,
+        "scenario": "Daily Conversation",
+        "score": 0,
+        "topic": "Daily Conversation",
+        "transcript": "Hello! What interesting thing happened to you today?\nUser: It was a crazy day\nAI: Sounds intense! What made it a crazy day?\nUser: I had a lot of work to do.\nAI: I understand, that can be stressful. Did you manage to finish everything?\nUser: I finished most of my work, but I am still tired.\nAI: I know how that feels. Rest is important after a busy day.\nUser: I usually watch a movie to relax.\nAI: That sounds nice. Watching a movie can help you relax after a long day.\nUser: My favorite movie is a drama.\nAI: That sounds good. Drama movies can be very moving.\nUser: I really enjoyed the movie \"The Shawshank Redemption\".\nAI: It’s a great film! The story is very powerful.",
+        "vocabulary_score": null,
+        "xp_earned": 0,
+        "user_id": "152",
+        "completed": false
       },
       {
         "id": "888",

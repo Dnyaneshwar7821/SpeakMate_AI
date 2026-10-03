@@ -1,6 +1,6 @@
 -- ==================================================
 -- SpeakMate AI Automated Backup
--- Timestamp: 2026-10-03T15:38:21.166Z
+-- Timestamp: 2026-10-03T18:36:34.730Z
 -- Tables: 43
 -- ==================================================
 
@@ -1259,6 +1259,19 @@ INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestam
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1956', 'I walked in the park near my house.', 'user', '2026-10-03T08:37:58.685Z', '934') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1957', 'That sounds lovely!', 'ai', '2026-10-03T08:38:00.323Z', '934') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1958', 'Good afternoon! How was your day today, and is there anything interesting you’d like to share?', 'ai', '2026-10-03T09:50:15.398Z', '935') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1959', 'Hello! What interesting thing happened to you today?', 'ai', '2026-10-03T11:15:14.254Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1960', 'It was a crazy day', 'user', '2026-10-03T11:15:31.527Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1961', 'Sounds intense! What made it a crazy day?', 'ai', '2026-10-03T11:15:33.411Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1962', 'I had a lot of work to do.', 'user', '2026-10-03T11:15:45.566Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1963', 'I understand, that can be stressful. Did you manage to finish everything?', 'ai', '2026-10-03T11:15:47.333Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1964', 'I finished most of my work, but I am still tired.', 'user', '2026-10-03T11:15:58.024Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1965', 'I know how that feels. Rest is important after a busy day.', 'ai', '2026-10-03T11:15:59.712Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1966', 'I usually watch a movie to relax.', 'user', '2026-10-03T11:16:18.506Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1967', 'That sounds nice. Watching a movie can help you relax after a long day.', 'ai', '2026-10-03T11:16:20.550Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1968', 'My favorite movie is a drama.', 'user', '2026-10-03T11:16:29.351Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1969', 'That sounds good. Drama movies can be very moving.', 'ai', '2026-10-03T11:16:30.922Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1970', 'I really enjoyed the movie "The Shawshank Redemption".', 'user', '2026-10-03T11:17:00.612Z', '936') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1971', 'It’s a great film! The story is very powerful.', 'ai', '2026-10-03T11:17:02.476Z', '936') ON CONFLICT DO NOTHING;
 
 -- Table: grammar_history
 CREATE TABLE IF NOT EXISTS public."grammar_history" (
@@ -4156,6 +4169,19 @@ User: Hello, you''re welcome.
 AI: Hi! How are you today?
 User: good morning good morning good morning so sometimes bantaran hello hi hi
 AI: Good morning! Hello! Nice to see you.', 40, 12, '152', true) ON CONFLICT DO NOTHING;
+INSERT INTO public."speaking_sessions" ("id", "created_at", "duration", "feedback", "fluency_score", "grammar_score", "overall_score", "pronunciation_score", "scenario", "score", "topic", "transcript", "vocabulary_score", "xp_earned", "user_id", "completed") VALUES ('936', '2026-10-03T11:15:12.160Z', 0, NULL, NULL, NULL, NULL, NULL, 'Daily Conversation', 0, 'Daily Conversation', 'Hello! What interesting thing happened to you today?
+User: It was a crazy day
+AI: Sounds intense! What made it a crazy day?
+User: I had a lot of work to do.
+AI: I understand, that can be stressful. Did you manage to finish everything?
+User: I finished most of my work, but I am still tired.
+AI: I know how that feels. Rest is important after a busy day.
+User: I usually watch a movie to relax.
+AI: That sounds nice. Watching a movie can help you relax after a long day.
+User: My favorite movie is a drama.
+AI: That sounds good. Drama movies can be very moving.
+User: I really enjoyed the movie "The Shawshank Redemption".
+AI: It’s a great film! The story is very powerful.', NULL, 0, '152', false) ON CONFLICT DO NOTHING;
 INSERT INTO public."speaking_sessions" ("id", "created_at", "duration", "feedback", "fluency_score", "grammar_score", "overall_score", "pronunciation_score", "scenario", "score", "topic", "transcript", "vocabulary_score", "xp_earned", "user_id", "completed") VALUES ('888', '2026-10-02T00:58:00.641Z', 3, 'Session ended with no speaking activity.', 0, 0, 0, 0, 'Daily Conversation', 0, 'Daily Conversation', 'Hi there! How’s your day going so far?', 0, 0, '152', false) ON CONFLICT DO NOTHING;
 INSERT INTO public."speaking_sessions" ("id", "created_at", "duration", "feedback", "fluency_score", "grammar_score", "overall_score", "pronunciation_score", "scenario", "score", "topic", "transcript", "vocabulary_score", "xp_earned", "user_id", "completed") VALUES ('738', '2026-09-30T09:36:49.983Z', 0, NULL, NULL, NULL, NULL, NULL, 'Daily Conversation', 0, 'Daily Conversation', 'Good morning! How''s your day going so far?', NULL, 0, '152', false) ON CONFLICT DO NOTHING;
 INSERT INTO public."speaking_sessions" ("id", "created_at", "duration", "feedback", "fluency_score", "grammar_score", "overall_score", "pronunciation_score", "scenario", "score", "topic", "transcript", "vocabulary_score", "xp_earned", "user_id", "completed") VALUES ('752', '2026-09-30T10:11:56.053Z', 0, NULL, NULL, NULL, NULL, NULL, 'Daily Conversation', 0, 'Daily Conversation', 'Good afternoon! How was your day today?', NULL, 0, '152', false) ON CONFLICT DO NOTHING;
