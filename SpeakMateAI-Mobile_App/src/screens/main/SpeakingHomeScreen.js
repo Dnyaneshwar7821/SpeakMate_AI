@@ -351,8 +351,6 @@ export default function SpeakingHomeScreen({ navigation }) {
 
   const [history, setHistory] = useState(() => cachedMobileSpeakingHistory || []);
   const [loading, setLoading] = useState(false);
-  const [startingScenario, setStartingScenario] = useState(false);
-  const [startingScenarioId, setStartingScenarioId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -416,61 +414,46 @@ export default function SpeakingHomeScreen({ navigation }) {
     }, [])
   );
 
-  const startScenario = async (scenario) => {
-    setStartingScenarioId(scenario?.id || scenario?.title);
-    triggerStart(scenario.title, scenario);
+  const startScenario = (scenario) => {
+    triggerStart(scenario?.title, scenario);
   };
 
-  const triggerStart = async (scenarioName, scenario) => {
+  const triggerStart = (scenarioName, scenario) => {
     const defaultGreeting = getScenarioInitialGreeting(scenarioName);
-    try {
-      setStartingScenario(true);
-      const durationNum = typeof scenario?.duration === 'number'
-        ? scenario.duration
-        : parseInt(String(scenario?.duration || '5').replace(/\D/g, ''), 10) || 5;
-      const xpNum = typeof scenario?.xp === 'number'
-        ? scenario.xp
-        : parseInt(String(scenario?.xp || '10').replace(/\D/g, ''), 10) || 10;
+    const durationNum = typeof scenario?.duration === 'number'
+      ? scenario.duration
+      : parseInt(String(scenario?.duration || '5').replace(/\D/g, ''), 10) || 5;
+    const xpNum = typeof scenario?.xp === 'number'
+      ? scenario.xp
+      : parseInt(String(scenario?.xp || '10').replace(/\D/g, ''), 10) || 10;
 
-      const effectiveCategory = accountType === 'STUDENT' ? selectedGrade : userAgeGroup;
-      const activeAvatar = getCachedAvatarModel() || (await AsyncStorage.getItem('speakmate_avatar_model').catch(() => null));
+    const effectiveDifficulty = scenario?.difficulty || (accountType === 'STUDENT' ? selectedGrade : 'Intermediate');
+    const activeAvatar = getCachedAvatarModel() || 'haru';
 
-      const session = await speakingService.start({
-        scenario: scenarioName,
-        difficulty: scenario?.difficulty || (accountType === 'STUDENT' ? selectedGrade : 'Intermediate'),
-        estimatedDuration: durationNum,
-        xpReward: xpNum,
-      });
-      navigation.navigate('Conversation', {
-        sessionId: session.id,
-        scenario: scenarioName,
-        xpReward: xpNum,
-        initialGreeting: defaultGreeting,
-        ageGroup: userAgeGroup,
-        standard: selectedGrade,
-        accountType: accountType,
-        avatarModel: activeAvatar,
-      });
-    } catch (error) {
-      console.warn('Backend session creation failed, proceeding locally:', error);
-      const activeAvatar = getCachedAvatarModel() || (await AsyncStorage.getItem('speakmate_avatar_model').catch(() => null));
-      const xpNum = typeof scenario?.xp === 'number'
-        ? scenario.xp
-        : parseInt(String(scenario?.xp || '10').replace(/\D/g, ''), 10) || 10;
-      navigation.navigate('Conversation', {
-        sessionId: 'sim_' + Date.now(),
-        scenario: scenarioName,
-        xpReward: xpNum,
-        initialGreeting: defaultGreeting,
-        ageGroup: userAgeGroup,
-        standard: selectedGrade,
-        accountType: accountType,
-        avatarModel: activeAvatar,
-      });
-    } finally {
-      setStartingScenario(false);
-      setStartingScenarioId(null);
-    }
+    // Kick off backend session creation in the background asynchronously (zero blocking)
+    const sessionPromise = speakingService.start({
+      scenario: scenarioName,
+      difficulty: effectiveDifficulty,
+      estimatedDuration: durationNum,
+      xpReward: xpNum,
+    }).catch((error) => {
+      console.warn('Background session creation note:', error);
+      return null;
+    });
+
+    // INSTANT NAVIGATION (0ms delay) - Opens ConversationScreen right away without any card loader!
+    navigation.navigate('Conversation', {
+      scenario: scenarioName,
+      difficulty: effectiveDifficulty,
+      estimatedDuration: durationNum,
+      xpReward: xpNum,
+      initialGreeting: defaultGreeting,
+      ageGroup: userAgeGroup,
+      standard: selectedGrade,
+      accountType: accountType,
+      avatarModel: activeAvatar,
+      sessionPromise,
+    });
   };
 
   const handleDeleteHistory = (id) => {
@@ -604,8 +587,7 @@ export default function SpeakingHomeScreen({ navigation }) {
         {filteredScenarios.map((sc) => (
           <TouchableOpacity 
             key={sc.id} 
-            disabled={startingScenario}
-            style={[styles.scCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }, startingScenario && { opacity: 0.7 }]} 
+            style={[styles.scCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }]} 
             onPress={() => startScenario(sc)}
           >
             <View style={styles.scHeader}>
@@ -617,11 +599,7 @@ export default function SpeakingHomeScreen({ navigation }) {
             <Text style={[styles.scDesc, { color: theme.textSecondary }]} numberOfLines={2}>{sc.desc}</Text>
             <View style={[styles.scFooter, { borderTopColor: theme.cardBorder }]}>
               <Text style={[styles.scInfo, { color: theme.textSecondary }]}>{sc.duration} min · +{sc.xp} XP</Text>
-              {startingScenarioId === (sc.id || sc.title) ? (
-                <ActivityIndicator size="small" color={COLORS.primary} />
-              ) : (
-                <Ionicons name="chevron-forward-circle" size={20} color={COLORS.primary} />
-              )}
+              <Ionicons name="chevron-forward-circle" size={20} color={COLORS.primary} />
             </View>
           </TouchableOpacity>
         ))}

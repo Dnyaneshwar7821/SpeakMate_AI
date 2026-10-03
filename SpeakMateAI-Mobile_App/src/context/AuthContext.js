@@ -156,18 +156,18 @@ export const AuthProvider = ({ children }) => {
             : Promise.resolve(),
         ]);
 
-        // Pre-fetch dashboard summary so DashboardScreen has instant data on startup
+        // Hydrate DashboardCache from disk immediately (0ms) and trigger background sync without blocking startup
         if (nextOnboardingCompleted && enrichedUser) {
           const userId = enrichedUser.id || enrichedUser._id;
           try {
-            const prefetchPromise = dashboardService.summary();
-            const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2000));
-            const dashboardData = await Promise.race([prefetchPromise, timeoutPromise]);
-            if (dashboardData) {
-              DashboardCache.set(dashboardData, userId);
-            }
+            await DashboardCache.init(userId);
+            dashboardService.summary().then((freshData) => {
+              if (freshData) {
+                DashboardCache.set(freshData, userId);
+              }
+            }).catch(() => {});
           } catch (e) {
-            console.warn("Mobile restoreSession dashboard prefetch note:", e);
+            console.warn("Mobile restoreSession dashboard init note:", e);
           }
         }
 
@@ -333,18 +333,18 @@ export const AuthProvider = ({ children }) => {
 
         await syncUserProfile(response.user);
 
-        // Approach 1: Pre-fetch dashboard summary while login spinner is active so DashboardScreen renders real data immediately
+        // Hydrate DashboardCache from disk immediately and refresh in background
         if (nextOnboardingCompleted && response.user) {
           const userId = response.user.id || response.user._id;
           try {
-            const prefetchPromise = dashboardService.summary();
-            const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2500));
-            const dashboardData = await Promise.race([prefetchPromise, timeoutPromise]);
-            if (dashboardData) {
-              DashboardCache.set(dashboardData, userId);
-            }
+            await DashboardCache.init(userId);
+            dashboardService.summary().then((freshData) => {
+              if (freshData) {
+                DashboardCache.set(freshData, userId);
+              }
+            }).catch(() => {});
           } catch (e) {
-            console.warn("Mobile dashboard prefetch note:", e);
+            console.warn("Mobile dashboard init note:", e);
           }
         }
 

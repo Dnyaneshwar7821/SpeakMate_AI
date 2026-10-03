@@ -197,7 +197,17 @@ function SoundWave({ isRecording }) {
 // ─── Screen Component ────────────────────────────────────────────────────────
 
 export default function ConversationScreen({ navigation, route }) {
-  const { sessionId, scenario, xpReward } = route.params || {};
+  const {
+    sessionId: initialSessionId,
+    scenario,
+    xpReward,
+    sessionPromise,
+    difficulty,
+    estimatedDuration,
+  } = route.params || {};
+
+  const [sessionId, setSessionId] = useState(initialSessionId || null);
+  const sessionIdRef = useRef(initialSessionId || null);
 
   const [messages, setMessages] = useState([]);
   const [corrections, setCorrections] = useState(null); // Latest message correction feedback
@@ -225,11 +235,41 @@ export default function ConversationScreen({ navigation, route }) {
   const micPressAnim = useRef(new Animated.Value(1)).current;
   const hasEndedRef = useRef(false);
 
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
+  // Resolve background session creation without blocking UI or avatar speech
+  useEffect(() => {
+    let isMounted = true;
+    if (!sessionIdRef.current) {
+      const pending = sessionPromise || speakingService.start({
+        scenario: scenario || 'General Conversation',
+        difficulty: difficulty || 'Intermediate',
+        estimatedDuration: estimatedDuration || 5,
+        xpReward: xpReward || 10,
+      });
+
+      Promise.resolve(pending).then((res) => {
+        if (isMounted && res?.id) {
+          sessionIdRef.current = res.id;
+          setSessionId(res.id);
+        }
+      }).catch((err) => {
+        console.warn("Background session link note:", err);
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Clean up incomplete session draft if user navigated away without finishing
   useEffect(() => {
     return () => {
-      if (!hasEndedRef.current && sessionId) {
-        speakingService.deleteSession(sessionId).catch(() => {});
+      const sid = sessionIdRef.current || sessionId;
+      if (!hasEndedRef.current && sid && !String(sid).startsWith('sim_')) {
+        speakingService.deleteSession(sid).catch(() => {});
       }
     };
   }, [sessionId]);
@@ -377,8 +417,9 @@ export default function ConversationScreen({ navigation, route }) {
       
       // 4. Sync background session if live backend session is available
       try {
-        if (sessionId && !String(sessionId).startsWith('sim_') && !isNaN(Number(sessionId))) {
-          const detail = await speakingService.detail(sessionId).catch(() => null);
+        const sid = sessionIdRef.current || sessionId;
+        if (sid && !String(sid).startsWith('sim_') && !isNaN(Number(sid))) {
+          const detail = await speakingService.detail(sid).catch(() => null);
           if (detail && detail.messages && detail.messages.length > 0) {
             const cleanMsgs = detail.messages.map((m) => {
               if (m.sender === 'ai' && (m.message.includes('Analyze User Input:') || m.message.includes('Context:') || m.message.includes('Requirements:'))) {
@@ -793,8 +834,9 @@ export default function ConversationScreen({ navigation, route }) {
 
     setLoadingHints(true);
     try {
-      if (sessionId && !String(sessionId).startsWith('sim_')) {
-        const data = await speakingService.getHints(sessionId);
+      const sid = sessionIdRef.current || sessionId;
+      if (sid && !String(sid).startsWith('sim_')) {
+        const data = await speakingService.getHints(sid);
         if (data && data.length > 0) {
           const cleanList = data.map(cleanHintText).filter(Boolean);
           if (cleanList.length >= 2) {
@@ -986,9 +1028,10 @@ export default function ConversationScreen({ navigation, route }) {
       setMessages((prev) => [...prev, tempUserMsg]);
 
       let feedback;
-      if (sessionId && !String(sessionId).startsWith('sim_')) {
+      const sid = sessionIdRef.current || sessionId;
+      if (sid && !String(sid).startsWith('sim_')) {
         feedback = await speakingService.sendMessage({
-          sessionId: sessionId,
+          sessionId: sid,
           message: cleanText,
           level: chatLevel,
         });
@@ -1084,8 +1127,13 @@ export default function ConversationScreen({ navigation, route }) {
             hasEndedRef.current = true;
             setEnding(true);
             try {
-              const summary = await speakingService.end(sessionId);
-              navigation.replace('SpeakingSummary', { summary });
+              const sid = sessionIdRef.current || sessionId;
+              if (sid && !String(sid).startsWith('sim_')) {
+                const summary = await speakingService.end(sid);
+                navigation.replace('SpeakingSummary', { summary });
+                return;
+              }
+              throw new Error('Local session summary fallback');
             } catch (e) {
               const calcXp = (dur) => {
                 const mins = Math.floor((dur || 0) / 60);

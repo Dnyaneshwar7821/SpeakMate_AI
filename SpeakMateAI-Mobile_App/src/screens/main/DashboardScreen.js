@@ -72,7 +72,7 @@ export default function DashboardScreen({ navigation }) {
   const currentUserId = user?.id || user?._id;
   const initialCache = DashboardCache.get(currentUserId);
   const [state, setState] = useState(() => ({
-    loading: !initialCache,
+    loading: false,
     refreshing: false,
     error: '',
     dashboard: initialCache,
@@ -81,11 +81,25 @@ export default function DashboardScreen({ navigation }) {
   const [assignments, setAssignments] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
 
+  // Immediately hydrate from disk cache if in-memory cache was not yet populated
+  useEffect(() => {
+    let isMounted = true;
+    if (!state.dashboard && currentUserId) {
+      DashboardCache.init(currentUserId).then((cached) => {
+        if (isMounted && cached) {
+          setState((prev) => ({ ...prev, dashboard: cached }));
+        }
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUserId, state.dashboard]);
+
   const loadDashboard = useCallback(async (refreshing = false) => {
-    const cached = DashboardCache.get(currentUserId);
     setState((current) => ({
       ...current,
-      loading: refreshing ? false : (!current.dashboard && !cached),
+      loading: false,
       refreshing,
       error: '',
     }));
@@ -123,18 +137,19 @@ export default function DashboardScreen({ navigation }) {
         DashboardCache.set(dashboard, currentUserId);
       }
 
-      setState({
+      setState((curr) => ({
+        ...curr,
         loading: false,
         refreshing: false,
         error: '',
-        dashboard,
-      });
+        dashboard: dashboard || curr.dashboard,
+      }));
     } catch (error) {
       setState((current) => ({
         ...current,
         loading: false,
         refreshing: false,
-        error: current.dashboard ? '' : (error.userMessage || 'Unable to load dashboard. Check your connection and try again.'),
+        error: current.dashboard ? '' : (error.userMessage || ''),
       }));
     }
   }, [currentUserId, setProfile, setProgress, isStudentUser, updateUser, user]);
@@ -165,7 +180,7 @@ export default function DashboardScreen({ navigation }) {
         schoolGrade: isStudentUser ? (user?.schoolGrade || '1st Std') : null,
         ageGroup: isStudentUser ? null : (user?.ageGroup || 'Professional'),
         englishLevel: isStudentUser ? null : (user?.englishLevel || 'Beginner'),
-        level: 1,
+        level: Number(user?.level) || 1,
         xp: Number(user?.xp) || 0,
         streak: Number(user?.streak) || 0,
         streakFreezes: Number(user?.streakFreezes ?? 1),
@@ -174,27 +189,27 @@ export default function DashboardScreen({ navigation }) {
         upcomingLessons: [],
         dailyGoal: {
           title: "Today Practice Goal",
-          lessonsCompletedToday: 0,
-          speakingMinutesToday: 0,
+          lessonsCompletedToday: Number(user?.lessonsCompletedToday) || 0,
+          speakingMinutesToday: Number(user?.speakingMinutesToday) || 0,
           dailyGoalMinutes: Number(user?.dailyGoalMinutes || 15),
           targetSpeakingMinutes: Number(user?.dailyGoalMinutes || 15),
-          vocabularyCompleted: 0,
+          vocabularyCompleted: Number(user?.vocabularyCompleted) || 0,
           vocabularyTarget: 5,
-          percentage: 0,
+          percentage: Number(user?.dailyGoalPercentage) || 0,
           remainingLessons: 1,
         },
         weeklyProgress: [],
         recentActivity: [],
         statistics: {
-          totalLessons: 0,
-          completedLessons: 0,
-          speakingSessions: 0,
-          vocabularyLearned: 0,
-          grammarExercises: 0,
-          totalStudyHours: 0,
-          currentStreak: 0,
-          longestStreak: 0,
-          averageScore: 0,
+          totalLessons: Number(user?.totalLessons) || 0,
+          completedLessons: Number(user?.completedLessons) || 0,
+          speakingSessions: Number(user?.speakingSessions) || 0,
+          vocabularyLearned: Number(user?.vocabularyLearned) || 0,
+          grammarExercises: Number(user?.grammarExercises) || 0,
+          totalStudyHours: Number(user?.totalStudyHours) || 0,
+          currentStreak: Number(user?.streak) || 0,
+          longestStreak: Number(user?.longestStreak || user?.streak) || 0,
+          averageScore: Number(user?.averageScore) || 0,
         },
         quote: null,
         continueLearning: null,
@@ -370,15 +385,6 @@ export default function DashboardScreen({ navigation }) {
     );
   }
 
-  if (!state.dashboard) {
-    return (
-      <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
-        <ScrollView style={[styles.scroll, { backgroundColor: contentBg }]} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <DashboardSkeleton />
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>

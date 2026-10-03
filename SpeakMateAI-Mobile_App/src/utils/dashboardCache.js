@@ -1,26 +1,62 @@
-// In-memory cache to make dashboard, profile, and lessons page transitions instant across tabs
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const DASHBOARD_CACHE_PREFIX = 'speakmate_dashboard_summary_cache_';
+
+// In-memory cache + persistent disk cache to make dashboard load instantly (0ms) on cold & warm starts
 let cachedDashboardData = null;
 let cachedUserId = null;
 
 export const DashboardCache = {
+  init: async (userId) => {
+    try {
+      const key = `${DASHBOARD_CACHE_PREFIX}${userId || 'default'}`;
+      const raw = await AsyncStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed) {
+          cachedDashboardData = parsed;
+          cachedUserId = userId || null;
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('DashboardCache.init error:', e);
+    }
+    return cachedDashboardData;
+  },
   get: (userId) => {
-    if (userId && cachedUserId && cachedUserId !== userId) {
+    if (userId && cachedUserId && String(cachedUserId) !== String(userId)) {
       return null;
     }
     return cachedDashboardData;
   },
   set: (data, userId) => {
+    if (!data) return;
     cachedDashboardData = data;
     if (userId) cachedUserId = userId;
+    try {
+      const key = `${DASHBOARD_CACHE_PREFIX}${userId || cachedUserId || 'default'}`;
+      AsyncStorage.setItem(key, JSON.stringify(data)).catch((err) => {
+        console.warn('DashboardCache disk save error:', err);
+      });
+    } catch (_) {}
   },
   updateProfileAvatar: (avatar) => {
     if (cachedDashboardData && cachedDashboardData.profile) {
       cachedDashboardData.profile.avatar = avatar;
+      if (cachedUserId) {
+        DashboardCache.set(cachedDashboardData, cachedUserId);
+      }
     }
   },
-  clear: () => {
+  clear: (userId) => {
+    const targetId = userId || cachedUserId;
     cachedDashboardData = null;
     cachedUserId = null;
+    if (targetId) {
+      AsyncStorage.removeItem(`${DASHBOARD_CACHE_PREFIX}${targetId}`).catch(() => {});
+    }
+    AsyncStorage.removeItem(`${DASHBOARD_CACHE_PREFIX}default`).catch(() => {});
   },
 };
 
