@@ -254,7 +254,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     try {
       clearAuthToken();
-      DashboardCache.clear();
+      DashboardCache.clearMemory();
 
       const email = (user?.email || "").toLowerCase();
       await SecureStore.deleteItemAsync(STORAGE_KEYS.token);
@@ -314,7 +314,7 @@ export const AuthProvider = ({ children }) => {
     async (credentials) => {
       try {
         const response = await authService.login(credentials);
-        DashboardCache.clear();
+        DashboardCache.clearMemory();
         setAuthToken(response.token);
         const userEmail = (response.user?.email || credentials.email || "").toLowerCase();
         const isCompleted = Boolean(response.user?.onboardingCompleted === true);
@@ -333,18 +333,24 @@ export const AuthProvider = ({ children }) => {
 
         await syncUserProfile(response.user);
 
-        // Hydrate DashboardCache from disk immediately and refresh in background
+        // Hydrate DashboardCache and fetch fresh summary BEFORE entering dashboard
         if (nextOnboardingCompleted && response.user) {
           const userId = response.user.id || response.user._id;
           try {
-            await DashboardCache.init(userId);
-            dashboardService.summary().then((freshData) => {
-              if (freshData) {
-                DashboardCache.set(freshData, userId);
-              }
-            }).catch(() => {});
+            // 1. Immediately hydrate from disk if cache exists (0ms)
+            const diskCached = await DashboardCache.init(userId);
+
+            // 2. Fetch fresh updated summary so entering the dashboard shows 100% updated data right away
+            const freshPromise = dashboardService.summary();
+            const timeoutPromise = new Promise((resolve) =>
+              setTimeout(() => resolve(null), diskCached ? 1800 : 3500)
+            );
+            const freshData = await Promise.race([freshPromise, timeoutPromise]);
+            if (freshData) {
+              DashboardCache.set(freshData, userId);
+            }
           } catch (e) {
-            console.warn("Mobile dashboard init note:", e);
+            console.warn("Mobile dashboard login sync note:", e);
           }
         }
 
@@ -368,7 +374,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await authService.register(payload);
         if (response && response.token) {
-          DashboardCache.clear();
+          DashboardCache.clearMemory();
           setAuthToken(response.token);
           const userEmail = (response.user?.email || payload.email || "").toLowerCase();
           const isCompleted = Boolean(

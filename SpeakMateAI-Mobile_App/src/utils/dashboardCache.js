@@ -49,14 +49,16 @@ export const DashboardCache = {
       }
     }
   },
-  clear: (userId) => {
-    const targetId = userId || cachedUserId;
+  clearMemory: () => {
     cachedDashboardData = null;
     cachedUserId = null;
-    if (targetId) {
-      AsyncStorage.removeItem(`${DASHBOARD_CACHE_PREFIX}${targetId}`).catch(() => {});
+  },
+  clear: (userId) => {
+    cachedDashboardData = null;
+    cachedUserId = null;
+    if (userId) {
+      AsyncStorage.removeItem(`${DASHBOARD_CACHE_PREFIX}${userId}`).catch(() => {});
     }
-    AsyncStorage.removeItem(`${DASHBOARD_CACHE_PREFIX}default`).catch(() => {});
   },
 };
 

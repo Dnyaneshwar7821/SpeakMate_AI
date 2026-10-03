@@ -6013,7 +6013,7 @@
     ]
   },
   "conversation_messages": {
-    "rowCount": 598,
+    "rowCount": 599,
     "columns": [
       {
         "column_name": "id",
@@ -10232,6 +10232,13 @@
         "sender": "ai",
         "timestamp": "2026-10-03T08:38:00.323Z",
         "session_id": "934"
+      },
+      {
+        "id": "1958",
+        "message": "Good afternoon! How was your day today, and is there anything interesting you’d like to share?",
+        "sender": "ai",
+        "timestamp": "2026-10-03T09:50:15.398Z",
+        "session_id": "935"
       }
     ]
   },
@@ -40391,7 +40398,7 @@
     ]
   },
   "speaking_sessions": {
-    "rowCount": 324,
+    "rowCount": 325,
     "columns": [
       {
         "column_name": "id",
@@ -44950,6 +44957,24 @@
         "score": 0,
         "topic": "Daily Conversation",
         "transcript": "Good afternoon! How was your day today?",
+        "vocabulary_score": null,
+        "xp_earned": 0,
+        "user_id": "152",
+        "completed": false
+      },
+      {
+        "id": "935",
+        "created_at": "2026-10-03T09:50:13.264Z",
+        "duration": 0,
+        "feedback": null,
+        "fluency_score": null,
+        "grammar_score": null,
+        "overall_score": null,
+        "pronunciation_score": null,
+        "scenario": "Daily Conversation",
+        "score": 0,
+        "topic": "Daily Conversation",
+        "transcript": "Good afternoon! How was your day today, and is there anything interesting you’d like to share?",
         "vocabulary_score": null,
         "xp_earned": 0,
         "user_id": "152",
