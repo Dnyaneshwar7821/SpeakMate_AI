@@ -1,6 +1,6 @@
 -- ==================================================
 -- SpeakMate AI Automated Backup
--- Timestamp: 2026-10-03T14:02:21.812Z
+-- Timestamp: 2026-10-03T14:25:48.279Z
 -- Tables: 43
 -- ==================================================
 
@@ -931,6 +931,7 @@ INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestam
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('947', 'That is very interesting! Could you tell me more about that?', 'user', '2026-09-21T07:06:28.173Z', '444') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('948', 'Sure thing—I''m Alex, a peer‑tutor who loves helping students craft clear, polite emails.', 'ai', '2026-09-21T07:06:29.569Z', '444') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1482', 'Hello! How''s your day going so far?', 'ai', '2026-09-29T12:25:17.684Z', '705') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1954', 'I went for a walk this morning.', 'user', '2026-10-03T08:37:42.924Z', '934') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1159', 'Hello! How are you doing today?', 'ai', '2026-09-24T18:05:30.255Z', '563') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('976', 'Hi there! How''s your day going so far?', 'ai', '2026-09-22T06:41:10.214Z', '462') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('977', 'Good thanks', 'user', '2026-09-22T06:41:25.611Z', '462') ON CONFLICT DO NOTHING;
@@ -1053,6 +1054,7 @@ INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestam
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1452', 'Great! I’m glad you’re ready to practice. Let’s talk about a short presentation you could give.', 'ai', '2026-09-29T01:51:21.779Z', '691') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1455', 'Hi there! How''s your day going so far?', 'ai', '2026-09-29T02:12:30.956Z', '692') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1458', 'Hello! How''s your day going so far?', 'ai', '2026-09-29T02:13:57.382Z', '693') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1951', 'Hello! How''s your day going so far?', 'ai', '2026-10-03T08:36:54.823Z', '934') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('937', 'I''m especially interested in environmental science because I want to help combat climate change.', 'user', '2026-09-17T05:11:09.520Z', '440') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('938', 'That''s a compelling motivation. How have you started exploring environmental science, perhaps through projects or coursework?', 'ai', '2026-09-17T05:11:11.583Z', '440') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('961', 'Good morning! I''m Ms. Patel, pleased to meet you—what''s one thing you''re most excited about as you consider joining our high school?', 'ai', '2026-09-22T05:02:00.985Z', '451') ON CONFLICT DO NOTHING;
@@ -1246,11 +1248,16 @@ INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestam
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1824', 'I’m planning to hit the farmer’s market and then try out a new pasta recipe – what about you?', 'ai', '2026-10-01T13:46:22.051Z', '867') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1825', 'Hello?', 'user', '2026-10-01T13:46:48.208Z', '867') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1681', 'Hi there! How’s your day going so far?', 'ai', '2026-09-30T13:20:24.152Z', '802') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1952', 'Pretty good, how about you', 'user', '2026-10-03T08:37:10.299Z', '934') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1883', 'Hi there! To kick things off, which side do you feel more passionate about: defending the power of social media or championing the timeless value of books?', 'ai', '2026-10-02T05:41:18.593Z', '914') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1884', 'Hi! I''m happy to practice English with you today.', 'user', '2026-10-02T05:41:21.216Z', '914') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1885', 'Great to hear! Are you leaning towards defending social media or supporting the power of books for the debate?', 'ai', '2026-10-02T05:41:23.134Z', '914') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1886', 'How would a native speaker explain this in conversation?', 'user', '2026-10-02T05:41:26.656Z', '914') ON CONFLICT DO NOTHING;
 INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1887', 'Sure! A native speaker might say, "I''m really excited to practice English with you today."', 'ai', '2026-10-02T05:41:28.497Z', '914') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1953', 'I''m good, thanks! What have you been up to today?', 'ai', '2026-10-03T08:37:11.918Z', '934') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1955', 'That sounds nice! Did you enjoy the fresh air?', 'ai', '2026-10-03T08:37:44.420Z', '934') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1956', 'I walked in the park near my house.', 'user', '2026-10-03T08:37:58.685Z', '934') ON CONFLICT DO NOTHING;
+INSERT INTO public."conversation_messages" ("id", "message", "sender", "timestamp", "session_id") VALUES ('1957', 'That sounds lovely!', 'ai', '2026-10-03T08:38:00.323Z', '934') ON CONFLICT DO NOTHING;
 
 -- Table: grammar_history
 CREATE TABLE IF NOT EXISTS public."grammar_history" (
@@ -3439,9 +3446,9 @@ INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "l
 INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "longest_streak", "total_grammar_checks", "total_practice_minutes", "total_speaking_sessions", "total_vocabulary_words", "updated_at", "xp", "user_id", "streak_freezes") VALUES ('110', '2026-09-27T01:03:40.641Z', 0, 1, 0, 0, 0, 0, 0, '2026-09-27T01:03:40.641Z', 0, '157', 1) ON CONFLICT DO NOTHING;
 INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "longest_streak", "total_grammar_checks", "total_practice_minutes", "total_speaking_sessions", "total_vocabulary_words", "updated_at", "xp", "user_id", "streak_freezes") VALUES ('111', '2026-09-27T01:03:42.427Z', 0, 1, 0, 0, 0, 0, 0, '2026-09-27T01:03:42.427Z', 0, '88', 1) ON CONFLICT DO NOTHING;
 INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "longest_streak", "total_grammar_checks", "total_practice_minutes", "total_speaking_sessions", "total_vocabulary_words", "updated_at", "xp", "user_id", "streak_freezes") VALUES ('75', '2026-09-10T01:51:40.023Z', 0, 1, 0, 0, 0, 0, 0, '2026-09-10T01:51:40.023Z', 0, '151', 1) ON CONFLICT DO NOTHING;
-INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "longest_streak", "total_grammar_checks", "total_practice_minutes", "total_speaking_sessions", "total_vocabulary_words", "updated_at", "xp", "user_id", "streak_freezes") VALUES ('74', '2026-09-10T06:09:59.173Z', 3, 3, 3, 12, 116, 17, 7, '2026-10-03T08:24:06.503Z', 1342, '152', 6) ON CONFLICT DO NOTHING;
 INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "longest_streak", "total_grammar_checks", "total_practice_minutes", "total_speaking_sessions", "total_vocabulary_words", "updated_at", "xp", "user_id", "streak_freezes") VALUES ('76', '2026-09-10T08:25:14.784Z', 1, 4, 1, 18, 42, 6, 20, '2026-10-02T00:19:24.628Z', 1942, '94', 1) ON CONFLICT DO NOTHING;
 INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "longest_streak", "total_grammar_checks", "total_practice_minutes", "total_speaking_sessions", "total_vocabulary_words", "updated_at", "xp", "user_id", "streak_freezes") VALUES ('117', '2026-10-02T00:19:27.453Z', 0, 1, 0, 0, 0, 0, 0, '2026-10-02T00:19:27.453Z', 0, '203', 1) ON CONFLICT DO NOTHING;
+INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "longest_streak", "total_grammar_checks", "total_practice_minutes", "total_speaking_sessions", "total_vocabulary_words", "updated_at", "xp", "user_id", "streak_freezes") VALUES ('74', '2026-09-10T06:09:59.173Z', 3, 3, 3, 12, 116, 17, 7, '2026-10-03T08:36:58.057Z', 1312, '152', 6) ON CONFLICT DO NOTHING;
 INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "longest_streak", "total_grammar_checks", "total_practice_minutes", "total_speaking_sessions", "total_vocabulary_words", "updated_at", "xp", "user_id", "streak_freezes") VALUES ('118', '2026-10-02T07:48:55.064Z', 0, 1, 0, 0, 0, 0, 0, '2026-10-02T07:48:55.064Z', 0, '204', 1) ON CONFLICT DO NOTHING;
 INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "longest_streak", "total_grammar_checks", "total_practice_minutes", "total_speaking_sessions", "total_vocabulary_words", "updated_at", "xp", "user_id", "streak_freezes") VALUES ('83', '2026-09-22T00:41:28.289Z', 0, 1, 0, 0, 0, 0, 0, '2026-09-22T00:41:28.289Z', 0, '186', 1) ON CONFLICT DO NOTHING;
 INSERT INTO public."progress" ("id", "created_at", "current_streak", "level", "longest_streak", "total_grammar_checks", "total_practice_minutes", "total_speaking_sessions", "total_vocabulary_words", "updated_at", "xp", "user_id", "streak_freezes") VALUES ('114', '2026-10-01T06:54:24.240Z', 0, 1, 0, 0, 1, 1, 0, '2026-10-02T11:20:59.190Z', 64, '201', 1) ON CONFLICT DO NOTHING;
@@ -4195,6 +4202,13 @@ User: Hi! I''m happy to practice English with you today.
 AI: Great! I’m glad you’re ready to practice. Let’s talk about a short presentation you could give.
 User: That is very interesting! Could you tell me more about that?
 AI: Sure! I can give you more details. A good short presentation has an opening, main points, and a closing.', 78, 21, '152', true) ON CONFLICT DO NOTHING;
+INSERT INTO public."speaking_sessions" ("id", "created_at", "duration", "feedback", "fluency_score", "grammar_score", "overall_score", "pronunciation_score", "scenario", "score", "topic", "transcript", "vocabulary_score", "xp_earned", "user_id", "completed") VALUES ('934', '2026-10-03T08:36:52.457Z', 0, NULL, NULL, NULL, NULL, NULL, 'Daily Conversation', 0, 'Daily Conversation', 'Hello! How''s your day going so far?
+User: Pretty good, how about you
+AI: I''m good, thanks! What have you been up to today?
+User: I went for a walk this morning.
+AI: That sounds nice! Did you enjoy the fresh air?
+User: I walked in the park near my house.
+AI: That sounds lovely!', NULL, 0, '152', false) ON CONFLICT DO NOTHING;
 INSERT INTO public."speaking_sessions" ("id", "created_at", "duration", "feedback", "fluency_score", "grammar_score", "overall_score", "pronunciation_score", "scenario", "score", "topic", "transcript", "vocabulary_score", "xp_earned", "user_id", "completed") VALUES ('844', '2026-10-01T05:32:51.610Z', 0, NULL, NULL, NULL, NULL, NULL, 'Daily Conversation', 0, 'Daily Conversation', 'Good afternoon! How''s your day been so far?
 User: Pretty good thanks
 AI: Glad to hear it! Anything fun on your agenda for later?', NULL, 0, '152', false) ON CONFLICT DO NOTHING;

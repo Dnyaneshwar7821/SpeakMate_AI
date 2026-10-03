@@ -226,6 +226,7 @@ export default function ConversationScreen({ navigation, route }) {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   const flatListRef = useRef(null);
+  const isInitialMount = useRef(true);
   const timerInterval = useRef(null);
   const recordingRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -235,6 +236,58 @@ export default function ConversationScreen({ navigation, route }) {
   const micPressAnim = useRef(new Animated.Value(1)).current;
   const hasEndedRef = useRef(false);
   const lastSuggestedResponsesRef = useRef([]);
+
+  const handleScrollToIndexFailed = (info) => {
+    setTimeout(() => {
+      if (flatListRef.current && messages.length > info.index) {
+        try {
+          flatListRef.current.scrollToIndex({
+            index: info.index,
+            animated: true,
+            viewPosition: 0,
+          });
+        } catch (_) {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }
+      }
+    }, 100);
+  };
+
+  // Align viewport so the AI tutor's response is at the top, followed by suggestions below it
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (!messages || messages.length === 0) return;
+    const lastMsg = messages[messages.length - 1];
+
+    const scrollTimer = setTimeout(() => {
+      if (!flatListRef.current) return;
+      if (lastMsg?.sender === 'user') {
+        flatListRef.current.scrollToEnd({ animated: true });
+      } else {
+        const targetIndex = messages.length - 1;
+        try {
+          flatListRef.current.scrollToIndex({
+            index: targetIndex,
+            animated: true,
+            viewPosition: 0,
+          });
+        } catch (_) {
+          setTimeout(() => {
+            flatListRef.current?.scrollToIndex({
+              index: targetIndex,
+              animated: true,
+              viewPosition: 0,
+            });
+          }, 100);
+        }
+      }
+    }, 120);
+
+    return () => clearTimeout(scrollTimer);
+  }, [messages]);
 
   useEffect(() => {
     sessionIdRef.current = sessionId;
@@ -537,19 +590,10 @@ export default function ConversationScreen({ navigation, route }) {
       mainReply += ` ${aiMsg.followUpQuestion}`;
     }
 
-    const cleanBetter = aiMsg.betterSentence && typeof aiMsg.betterSentence === 'string'
-      ? aiMsg.betterSentence.replace(/[\[\]"]/g, '').trim()
-      : null;
-
-    const hasBetter = cleanBetter &&
-      cleanBetter.toLowerCase() !== 'null' &&
-      cleanBetter.toLowerCase() !== 'none' &&
-      !cleanBetter.includes('✅');
-
     pausedAiText.current = mainReply;
     setCurrentSpokenText(mainReply);
 
-    // Stage 1: Speak in-character conversational response
+    // Speak in-character conversational response
     VoiceService.speak(mainReply, {
       isMuted,
       avatarId: selectedAvatarModel,
@@ -561,45 +605,10 @@ export default function ConversationScreen({ navigation, route }) {
         setIsSpeaking(true);
       },
       onDone: () => {
-        // Stage 2: 0.45s natural conversational gap before speaking coaching tip
-        if (hasBetter && !isPausedRef.current && !isMuted) {
-          setStatusText('Coaching Tip');
-          setTimeout(() => {
-            if (!isPausedRef.current && !isMuted) {
-              const coachingPhrase = `A better way to say that is: ${cleanBetter}`;
-              pausedAiText.current = coachingPhrase;
-              setCurrentSpokenText(coachingPhrase);
-              VoiceService.speak(coachingPhrase, {
-                isMuted,
-                avatarId: selectedAvatarModel,
-                voiceType: preferredVoice,
-                speechSpeed,
-                availableVoices,
-                onStart: () => {
-                  setStatusText('Coaching Tip');
-                  setIsSpeaking(true);
-                },
-                onDone: () => {
-                  setStatusText('Waiting for Response');
-                  setIsSpeaking(false);
-                  setCurrentSpokenText('');
-                  wasSpeakingOnPause.current = false;
-                },
-                onError: () => {
-                  setStatusText('Waiting for Response');
-                  setIsSpeaking(false);
-                  setCurrentSpokenText('');
-                  wasSpeakingOnPause.current = false;
-                }
-              });
-            }
-          }, 450); // 0.45 second natural conversational gap
-        } else {
-          setStatusText('Waiting for Response');
-          setIsSpeaking(false);
-          setCurrentSpokenText('');
-          wasSpeakingOnPause.current = false;
-        }
+        setStatusText('Waiting for Response');
+        setIsSpeaking(false);
+        setCurrentSpokenText('');
+        wasSpeakingOnPause.current = false;
       },
       onError: () => {
         setStatusText('Waiting for Response');
@@ -1277,8 +1286,7 @@ export default function ConversationScreen({ navigation, route }) {
         style={{ flex: 1 }}
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.chatList}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onScrollToIndexFailed={handleScrollToIndexFailed}
         renderItem={({ item }) => {
           const isUser = item.sender === 'user';
           return (

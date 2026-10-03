@@ -6013,7 +6013,7 @@
     ]
   },
   "conversation_messages": {
-    "rowCount": 591,
+    "rowCount": 598,
     "columns": [
       {
         "column_name": "id",
@@ -7945,6 +7945,13 @@
         "session_id": "705"
       },
       {
+        "id": "1954",
+        "message": "I went for a walk this morning.",
+        "sender": "user",
+        "timestamp": "2026-10-03T08:37:42.924Z",
+        "session_id": "934"
+      },
+      {
         "id": "1159",
         "message": "Hello! How are you doing today?",
         "sender": "ai",
@@ -8797,6 +8804,13 @@
         "sender": "ai",
         "timestamp": "2026-09-29T02:13:57.382Z",
         "session_id": "693"
+      },
+      {
+        "id": "1951",
+        "message": "Hello! How's your day going so far?",
+        "sender": "ai",
+        "timestamp": "2026-10-03T08:36:54.823Z",
+        "session_id": "934"
       },
       {
         "id": "937",
@@ -10150,6 +10164,13 @@
         "session_id": "802"
       },
       {
+        "id": "1952",
+        "message": "Pretty good, how about you",
+        "sender": "user",
+        "timestamp": "2026-10-03T08:37:10.299Z",
+        "session_id": "934"
+      },
+      {
         "id": "1883",
         "message": "Hi there! To kick things off, which side do you feel more passionate about: defending the power of social media or championing the timeless value of books?",
         "sender": "ai",
@@ -10183,6 +10204,34 @@
         "sender": "ai",
         "timestamp": "2026-10-02T05:41:28.497Z",
         "session_id": "914"
+      },
+      {
+        "id": "1953",
+        "message": "I'm good, thanks! What have you been up to today?",
+        "sender": "ai",
+        "timestamp": "2026-10-03T08:37:11.918Z",
+        "session_id": "934"
+      },
+      {
+        "id": "1955",
+        "message": "That sounds nice! Did you enjoy the fresh air?",
+        "sender": "ai",
+        "timestamp": "2026-10-03T08:37:44.420Z",
+        "session_id": "934"
+      },
+      {
+        "id": "1956",
+        "message": "I walked in the park near my house.",
+        "sender": "user",
+        "timestamp": "2026-10-03T08:37:58.685Z",
+        "session_id": "934"
+      },
+      {
+        "id": "1957",
+        "message": "That sounds lovely!",
+        "sender": "ai",
+        "timestamp": "2026-10-03T08:38:00.323Z",
+        "session_id": "934"
       }
     ]
   },
@@ -38128,21 +38177,6 @@
         "streak_freezes": 1
       },
       {
-        "id": "74",
-        "created_at": "2026-09-10T06:09:59.173Z",
-        "current_streak": 3,
-        "level": 3,
-        "longest_streak": 3,
-        "total_grammar_checks": 12,
-        "total_practice_minutes": 116,
-        "total_speaking_sessions": 17,
-        "total_vocabulary_words": 7,
-        "updated_at": "2026-10-03T08:24:06.503Z",
-        "xp": 1342,
-        "user_id": "152",
-        "streak_freezes": 6
-      },
-      {
         "id": "76",
         "created_at": "2026-09-10T08:25:14.784Z",
         "current_streak": 1,
@@ -38171,6 +38205,21 @@
         "xp": 0,
         "user_id": "203",
         "streak_freezes": 1
+      },
+      {
+        "id": "74",
+        "created_at": "2026-09-10T06:09:59.173Z",
+        "current_streak": 3,
+        "level": 3,
+        "longest_streak": 3,
+        "total_grammar_checks": 12,
+        "total_practice_minutes": 116,
+        "total_speaking_sessions": 17,
+        "total_vocabulary_words": 7,
+        "updated_at": "2026-10-03T08:36:58.057Z",
+        "xp": 1312,
+        "user_id": "152",
+        "streak_freezes": 6
       },
       {
         "id": "118",
@@ -40342,7 +40391,7 @@
     ]
   },
   "speaking_sessions": {
-    "rowCount": 323,
+    "rowCount": 324,
     "columns": [
       {
         "column_name": "id",
@@ -45373,6 +45422,24 @@
         "xp_earned": 21,
         "user_id": "152",
         "completed": true
+      },
+      {
+        "id": "934",
+        "created_at": "2026-10-03T08:36:52.457Z",
+        "duration": 0,
+        "feedback": null,
+        "fluency_score": null,
+        "grammar_score": null,
+        "overall_score": null,
+        "pronunciation_score": null,
+        "scenario": "Daily Conversation",
+        "score": 0,
+        "topic": "Daily Conversation",
+        "transcript": "Hello! How's your day going so far?\nUser: Pretty good, how about you\nAI: I'm good, thanks! What have you been up to today?\nUser: I went for a walk this morning.\nAI: That sounds nice! Did you enjoy the fresh air?\nUser: I walked in the park near my house.\nAI: That sounds lovely!",
+        "vocabulary_score": null,
+        "xp_earned": 0,
+        "user_id": "152",
+        "completed": false
       },
       {
         "id": "844",
