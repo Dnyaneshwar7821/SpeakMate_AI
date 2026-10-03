@@ -2436,7 +2436,7 @@
     "rows": []
   },
   "chat_messages": {
-    "rowCount": 116,
+    "rowCount": 131,
     "columns": [
       {
         "column_name": "id",
@@ -4013,11 +4013,206 @@
         "vocabulary_suggestions": null,
         "voice_enabled": false,
         "session_id": "186"
+      },
+      {
+        "id": "331",
+        "better_sentence": null,
+        "created_at": "2026-10-03T08:16:36.940Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "Hi there! I’m SpeakMateAI, your friendly English practice buddy—what’s a hobby you’ve been enjoying lately?",
+        "sender": "ai",
+        "vocabulary_suggestions": null,
+        "voice_enabled": false,
+        "session_id": "187"
+      },
+      {
+        "id": "332",
+        "better_sentence": null,
+        "created_at": "2026-10-03T08:17:30.248Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "Hi, I’m SpeakMateAI – happy to chat and practice English together! How’s your week been so far?",
+        "sender": "ai",
+        "vocabulary_suggestions": null,
+        "voice_enabled": false,
+        "session_id": "188"
+      },
+      {
+        "id": "333",
+        "better_sentence": null,
+        "created_at": "2026-10-03T08:18:13.500Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "Hi there! I’m SpeakMate, your English practice buddy—what’s a favorite way you like to unwind after a busy day?",
+        "sender": "ai",
+        "vocabulary_suggestions": null,
+        "voice_enabled": false,
+        "session_id": "189"
+      },
+      {
+        "id": "334",
+        "better_sentence": null,
+        "created_at": "2026-10-03T08:18:48.095Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "Watching cricket match",
+        "sender": "user",
+        "vocabulary_suggestions": null,
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "335",
+        "better_sentence": "I enjoy watching a cricket match.",
+        "created_at": "2026-10-03T08:18:49.611Z",
+        "explanation": "In English we usually need an article (“a” or “the”) before singular countable nouns.",
+        "follow_up_question": "Which team do you like to cheer for when you watch cricket?",
+        "grammar_correction": "Watching a cricket match. (Add the article “a” before “cricket match”.)",
+        "message": "Watching cricket is a fun way to relax!",
+        "sender": "ai",
+        "vocabulary_suggestions": "**cheer** – to shout support for a team; **innings** – a period of play in cricket.",
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "336",
+        "better_sentence": null,
+        "created_at": "2026-10-03T08:19:27.981Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "Do you follow any particular team?",
+        "sender": "user",
+        "vocabulary_suggestions": null,
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "337",
+        "better_sentence": null,
+        "created_at": "2026-10-03T08:19:29.371Z",
+        "explanation": "“Cheer for” is a natural way to say you support a sports team.",
+        "follow_up_question": "Which team do you enjoy watching the most?",
+        "grammar_correction": "✅ Your sentence is correct.",
+        "message": "I do! I often cheer for the Mumbai Indians. They play exciting cricket.",
+        "sender": "ai",
+        "vocabulary_suggestions": "**cheer** – to shout support for a team; **fan** – a person who likes a team a lot.",
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "338",
+        "better_sentence": null,
+        "created_at": "2026-10-03T08:20:02.783Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "I also like Mumbai Indians",
+        "sender": "user",
+        "vocabulary_suggestions": null,
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "339",
+        "better_sentence": "I’m also a fan of the Mumbai Indians.",
+        "created_at": "2026-10-03T08:20:04.175Z",
+        "explanation": "Using “the” before a team name sounds natural in English.",
+        "follow_up_question": "Who is your favorite player on the Mumbai Indians?",
+        "grammar_correction": "I also like **the** Mumbai Indians.  (Add “the” before a team name.)",
+        "message": "That’s great! The Mumbai Indians have many strong players.",
+        "sender": "ai",
+        "vocabulary_suggestions": "fan – a person who likes and supports a team; cheer – to shout support for someone.",
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "340",
+        "better_sentence": null,
+        "created_at": "2026-10-03T08:20:43.770Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "I like to watch Rohit sharma bat.",
+        "sender": "user",
+        "vocabulary_suggestions": null,
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "341",
+        "better_sentence": "I enjoy watching Rohit Sharma bat.",
+        "created_at": "2026-10-03T08:20:45.306Z",
+        "explanation": "“Enjoy watching” sounds a bit more natural than “like to watch.”",
+        "follow_up_question": "What’s your favorite Rohit Sharma moment in a match?",
+        "grammar_correction": "I like to watch Rohit **Sharma** bat.  (Capitalize “Sharma”.)",
+        "message": "Rohit Sharma is a great batsman! His shots are very exciting.",
+        "sender": "ai",
+        "vocabulary_suggestions": "**batting** – the act of hitting the ball; **power hitter** – a player who scores many runs quickly.",
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "342",
+        "better_sentence": null,
+        "created_at": "2026-10-03T08:22:40.430Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "My favourite moment of Rohit sharma when he made 264 in one innings of odi cricket",
+        "sender": "user",
+        "vocabulary_suggestions": null,
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "343",
+        "better_sentence": "My favorite moment with Rohit Sharma is his 264‑run innings in an ODI.",
+        "created_at": "2026-10-03T08:22:42.006Z",
+        "explanation": "Use “scored” or “made” with a number of runs, and remember proper nouns are capitalized.",
+        "follow_up_question": "What did you feel watching that huge score?",
+        "grammar_correction": "My favourite moment of Rohit Sharma **is** when he made 264 in one innings of **ODI** cricket. (Add “is” and capitalize “Sharma” and “ODI”.)",
+        "message": "That 264‑run innings was amazing! Rohit Sharma showed huge skill.",
+        "sender": "ai",
+        "vocabulary_suggestions": "**innings** – a period when a team or player bats; **record‑breaking** – setting a new high score.",
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "344",
+        "better_sentence": null,
+        "created_at": "2026-10-03T08:24:04.889Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "Against which team he made 264 knock tell me?",
+        "sender": "user",
+        "vocabulary_suggestions": null,
+        "voice_enabled": true,
+        "session_id": "189"
+      },
+      {
+        "id": "345",
+        "better_sentence": "\"Which team did he score the 264 against?\"",
+        "created_at": "2026-10-03T08:24:06.327Z",
+        "explanation": "Using “did” makes the question grammatically correct and clearer.",
+        "follow_up_question": "Have you ever watched that match live or on video?",
+        "grammar_correction": "\"Against which team he made 264 knock tell me?\" → \"Against which team did he make the 264 knock? Tell me.\" The auxiliary verb “did” is needed for questions in past tense.",
+        "message": "Rohit Sharma scored his 264‑run knock against Sri Lanka in an ODI. It was a historic innings!",
+        "sender": "ai",
+        "vocabulary_suggestions": "**knock** – a slang term for a single innings or score; **historic** – very important or famous in history.",
+        "voice_enabled": true,
+        "session_id": "189"
       }
     ]
   },
   "chat_sessions": {
-    "rowCount": 68,
+    "rowCount": 71,
     "columns": [
       {
         "column_name": "id",
@@ -4599,6 +4794,30 @@
         "mode": "General English",
         "title": "General English Session",
         "updated_at": "2026-10-01T04:49:33.816Z",
+        "user_id": "152"
+      },
+      {
+        "id": "187",
+        "created_at": "2026-10-03T08:16:36.476Z",
+        "mode": "General English",
+        "title": "General English Session",
+        "updated_at": "2026-10-03T08:16:36.476Z",
+        "user_id": "152"
+      },
+      {
+        "id": "188",
+        "created_at": "2026-10-03T08:17:29.656Z",
+        "mode": "General English",
+        "title": "General English Session",
+        "updated_at": "2026-10-03T08:17:29.656Z",
+        "user_id": "152"
+      },
+      {
+        "id": "189",
+        "created_at": "2026-10-03T08:18:13.049Z",
+        "mode": "General English",
+        "title": "General English Session",
+        "updated_at": "2026-10-03T08:24:06.503Z",
         "user_id": "152"
       }
     ]
@@ -37909,6 +38128,21 @@
         "streak_freezes": 1
       },
       {
+        "id": "74",
+        "created_at": "2026-09-10T06:09:59.173Z",
+        "current_streak": 3,
+        "level": 3,
+        "longest_streak": 3,
+        "total_grammar_checks": 12,
+        "total_practice_minutes": 116,
+        "total_speaking_sessions": 17,
+        "total_vocabulary_words": 7,
+        "updated_at": "2026-10-03T08:24:06.503Z",
+        "xp": 1342,
+        "user_id": "152",
+        "streak_freezes": 6
+      },
+      {
         "id": "76",
         "created_at": "2026-09-10T08:25:14.784Z",
         "current_streak": 1,
@@ -38012,21 +38246,6 @@
         "xp": 0,
         "user_id": "202",
         "streak_freezes": 1
-      },
-      {
-        "id": "74",
-        "created_at": "2026-09-10T06:09:59.173Z",
-        "current_streak": 3,
-        "level": 3,
-        "longest_streak": 3,
-        "total_grammar_checks": 12,
-        "total_practice_minutes": 116,
-        "total_speaking_sessions": 17,
-        "total_vocabulary_words": 7,
-        "updated_at": "2026-10-03T04:31:55.297Z",
-        "xp": 1312,
-        "user_id": "152",
-        "streak_freezes": 6
       }
     ]
   },

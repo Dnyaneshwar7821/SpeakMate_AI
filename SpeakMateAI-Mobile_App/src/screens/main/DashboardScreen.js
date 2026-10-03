@@ -32,7 +32,6 @@ import {
   ContinueLearningCard,
   DailyGoalCard,
   DashboardHeader,
-  DashboardSkeleton,
   QuickStatistics,
   QuoteCard,
   RecentActivityTimeline,

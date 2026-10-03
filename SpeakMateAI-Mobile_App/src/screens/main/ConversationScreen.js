@@ -234,23 +234,22 @@ export default function ConversationScreen({ navigation, route }) {
   const isPausedRef = useRef(false);
   const micPressAnim = useRef(new Animated.Value(1)).current;
   const hasEndedRef = useRef(false);
+  const lastSuggestedResponsesRef = useRef([]);
 
   useEffect(() => {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
 
-  // Resolve background session creation without blocking UI or avatar speech
+  // Start backend session in background upon mount without blocking avatar speech or UI
   useEffect(() => {
     let isMounted = true;
     if (!sessionIdRef.current) {
-      const pending = sessionPromise || speakingService.start({
+      speakingService.start({
         scenario: scenario || 'General Conversation',
         difficulty: difficulty || 'Intermediate',
         estimatedDuration: estimatedDuration || 5,
         xpReward: xpReward || 10,
-      });
-
-      Promise.resolve(pending).then((res) => {
+      }).then((res) => {
         if (isMounted && res?.id) {
           sessionIdRef.current = res.id;
           setSessionId(res.id);
@@ -264,15 +263,15 @@ export default function ConversationScreen({ navigation, route }) {
     };
   }, []);
 
-  // Clean up incomplete session draft if user navigated away without finishing
+  // Clean up incomplete session draft ONLY when user navigates away without finishing (on unmount)
   useEffect(() => {
     return () => {
-      const sid = sessionIdRef.current || sessionId;
+      const sid = sessionIdRef.current;
       if (!hasEndedRef.current && sid && !String(sid).startsWith('sim_')) {
         speakingService.deleteSession(sid).catch(() => {});
       }
     };
-  }, [sessionId]);
+  }, []); // Run ONLY on unmount
 
   // VAD / Silence Auto-Stop refs & Session Token
   const speechDetectedRef = useRef(false);
@@ -832,6 +831,13 @@ export default function ConversationScreen({ navigation, route }) {
       return;
     }
 
+    // If the latest AI reply has contextual suggested responses ready, display them on button click!
+    if (lastSuggestedResponsesRef.current && lastSuggestedResponsesRef.current.length >= 2) {
+      setHints(lastSuggestedResponsesRef.current);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      return;
+    }
+
     setLoadingHints(true);
     try {
       const sid = sessionIdRef.current || sessionId;
@@ -849,7 +855,6 @@ export default function ConversationScreen({ navigation, route }) {
       setHints(getScenarioHints(scenario));
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     } catch (e) {
-      console.warn("Failed to fetch hints, using fallback hints:", e);
       setHints(getScenarioHints(scenario));
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     } finally {
@@ -1071,7 +1076,8 @@ export default function ConversationScreen({ navigation, route }) {
       if (feedback.suggestedResponses && feedback.suggestedResponses.length > 0) {
         const cleanList = feedback.suggestedResponses.map(cleanHintText).filter(Boolean);
         if (cleanList.length > 0) {
-          setHints(cleanList);
+          lastSuggestedResponsesRef.current = cleanList;
+          // Note: Kept hidden until user explicitly taps the AI Hint button
         }
       }
 
@@ -1105,7 +1111,7 @@ export default function ConversationScreen({ navigation, route }) {
       };
       setMessages((prev) => [...prev, fallbackAiMsg]);
       setCorrections(fallbackAiMsg);
-      setHints(fallbackAiMsg.suggestedResponses);
+      lastSuggestedResponsesRef.current = fallbackAiMsg.suggestedResponses;
       speakAiWithCoaching(fallbackAiMsg);
     } finally {
       setLoading(false);

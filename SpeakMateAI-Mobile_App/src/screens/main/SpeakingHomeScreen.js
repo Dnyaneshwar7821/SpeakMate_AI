@@ -430,17 +430,6 @@ export default function SpeakingHomeScreen({ navigation }) {
     const effectiveDifficulty = scenario?.difficulty || (accountType === 'STUDENT' ? selectedGrade : 'Intermediate');
     const activeAvatar = getCachedAvatarModel() || 'haru';
 
-    // Kick off backend session creation in the background asynchronously (zero blocking)
-    const sessionPromise = speakingService.start({
-      scenario: scenarioName,
-      difficulty: effectiveDifficulty,
-      estimatedDuration: durationNum,
-      xpReward: xpNum,
-    }).catch((error) => {
-      console.warn('Background session creation note:', error);
-      return null;
-    });
-
     // INSTANT NAVIGATION (0ms delay) - Opens ConversationScreen right away without any card loader!
     navigation.navigate('Conversation', {
       scenario: scenarioName,
@@ -452,7 +441,6 @@ export default function SpeakingHomeScreen({ navigation }) {
       standard: selectedGrade,
       accountType: accountType,
       avatarModel: activeAvatar,
-      sessionPromise,
     });
   };
 

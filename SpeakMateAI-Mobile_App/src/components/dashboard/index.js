@@ -724,29 +724,7 @@ export const QuickStatistics = memo(function QuickStatistics({ stats }) {
 });
 
 export const DashboardSkeleton = memo(function DashboardSkeleton() {
-  const opacity = useRef(new Animated.Value(0.32)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.72, duration: 850, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.32, duration: 850, useNativeDriver: true }),
-      ])
-    ).start();
-  }, [opacity]);
-
-  return (
-    <View>
-      <Animated.View style={[styles.skeletonHero, { opacity }]} />
-      <Animated.View style={[styles.skeletonCard, { opacity }]} />
-      <Animated.View style={[styles.skeletonCard, { opacity, height: 180 }]} />
-      <View style={styles.skeletonRow}>
-        <Animated.View style={[styles.skeletonSmall, { opacity }]} />
-        <Animated.View style={[styles.skeletonSmall, { opacity }]} />
-      </View>
-      <Animated.View style={[styles.skeletonCard, { opacity, height: 210 }]} />
-    </View>
-  );
+  return null;
 });
 
 export const EmptyDashboardState = memo(function EmptyDashboardState({ onRetry }) {
